@@ -1,6 +1,6 @@
 # WASI Cryptography APIs
 
-This repository is for development of Cryptograph API propsoals for the
+This repository is for development of Cryptography API proposals for the
 [WASI Subgroup] of the [WebAssembly Community Group]. Please refer to those
 groups' documentation for more information on their processes, goals, scope,
 and deliverables.

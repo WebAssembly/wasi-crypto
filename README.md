@@ -5,5 +5,5 @@ This repository is for development of Cryptograph API propsoals for the
 groups' documentation for more information on their processes, goals, scope,
 and deliverables.
 
-[WASI]: https://github.com/WebAssembly/WASI
+[WASI Subgroup]: https://github.com/WebAssembly/WASI
 [WebAssembly Community Group]: https://www.w3.org/community/webassembly/

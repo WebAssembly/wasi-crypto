@@ -1,0 +1,29 @@
+[package]
+name = "witx"
+version = "0.8.2"
+description = "Parse and validate witx file format"
+homepage = "https://github.com/WebAssembly/WASI"
+repository = "https://github.com/WebAssembly/WASI"
+license = "Apache-2.0"
+categories = ["wasm"]
+keywords = ["webassembly", "wasm"]
+authors = ["Pat Hickey <phickey@fastly.com>", "Alex Crichton <alex@alexcrichton.com>"]
+edition = "2018"
+
+[lib]
+crate-type=["rlib"]
+
+[[bin]]
+name = "witx"
+path = "src/main.rs"
+
+[dependencies]
+structopt = "0.3"
+wast = "8.0.0"
+thiserror = "1.0"
+log = "0.4"
+pretty_env_logger = "0.3"
+anyhow = "1"
+
+[dev-dependencies]
+diff = "0.1.11"

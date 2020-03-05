@@ -26,8 +26,8 @@ encryption, and post-quantum key exchange and signatures.
 
 ## WASI-crypto non-goals
 
-- Implementing high-level protocols (ex: Noise, TLS, PAKEs). However, the
-WASI-crypto module should provide all the required pieces in order to
+- Implementing high-level protocols (ex: Noise, TLS, PAKEs, HPKE). However,
+the WASI-crypto module should provide all the required pieces in order to
 build these protocols.
 - ASN.1 parsing or generation.
 - Networking.

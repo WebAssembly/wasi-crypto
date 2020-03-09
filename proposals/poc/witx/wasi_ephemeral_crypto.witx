@@ -59,7 +59,7 @@
 (typename $signature_publickey (handle))
 (typename $signature_verification_state (handle))
 
-(module $wasi_crypto
+(module $wasi_ephemeral_crypto
   (import "memory" (memory))
 
 ;;; Return the length of an array_output object

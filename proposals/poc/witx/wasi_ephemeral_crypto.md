@@ -92,7 +92,7 @@
 
 ### Supertypes
 # Modules
-## <a href="#wasi_crypto" name="wasi_crypto"></a> wasi_crypto
+## <a href="#wasi_ephemeral_crypto" name="wasi_ephemeral_crypto"></a> wasi_ephemeral_crypto
 ### Imports
 #### Memory
 ### Functions

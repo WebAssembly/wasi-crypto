@@ -8,6 +8,15 @@ use super::signature_publickey::*;
 use super::WASI_CRYPTO_CTX;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct Version(u64);
+
+impl Version {
+    pub const UNSPECIFIED: Version = Version(0xff00000000000000);
+    pub const LATEST: Version = Version(0xff00000000000000);
+    pub const ALL: Version = Version(0xff00000000000000);
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[repr(u16)]
 pub enum KeyPairEncoding {
     Raw = 1,
@@ -137,12 +146,21 @@ pub fn signature_keypair_import(
 pub fn signature_keypair_from_id(
     _kp_builder_handle: Handle,
     _kp_id: &[u8],
+    _kp_version: Version,
 ) -> Result<Handle, Error> {
     bail!(CryptoError::NotAvailable)
 }
 
-pub fn signature_keypair_id(kp_handle: Handle) -> Result<Vec<u8>, Error> {
+pub fn signature_keypair_id(kp_handle: Handle) -> Result<(Vec<u8>, Version), Error> {
     let _kp = WASI_CRYPTO_CTX.signature_keypair_manager.get(kp_handle)?;
+    bail!(CryptoError::NotAvailable)
+}
+
+pub fn signature_keypair_invalidate(
+    _kp_builder_handle: Handle,
+    _kp_id: &[u8],
+    _kp_version: Version,
+) -> Result<(), Error> {
     bail!(CryptoError::NotAvailable)
 }
 

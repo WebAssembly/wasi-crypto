@@ -65,6 +65,18 @@
 
 - <a href="#signature_encoding.der" name="signature_encoding.der"></a> `der`
 
+## <a href="#version" name="version"></a> `version`: Int(`u64`)
+
+### Consts
+- <a href="#version.unspecified" name="version.unspecified"></a> `unspecified`
+Key doesn't support versioning
+
+- <a href="#version.latest" name="version.latest"></a> `latest`
+Retrieve the latest version of a key
+
+- <a href="#version.all" name="version.all"></a> `all`
+Perform an operation over all versions of a key
+
 ## <a href="#size" name="size"></a> `size`: `usize`
 
 ## <a href="#array_output" name="array_output"></a> `array_output`
@@ -219,10 +231,32 @@ be decoded
 
 ---
 
-#### <a href="#signature_keypair_from_id" name="signature_keypair_from_id"></a> `signature_keypair_from_id(kp_builder: signature_keypair_builder, kp_id: ConstPointer<u8>, kp_id_len: size) -> (errno, signature_keypair)`
+#### <a href="#signature_keypair_id" name="signature_keypair_id"></a> `signature_keypair_id(kp: signature_keypair, kp_id: ConstPointer<u8>, kp_id_max_len: size) -> (errno, size, version)`
+Return the key identifier and version, if these are available
+or $errno.notavailable if not.
+
+##### Params
+- <a href="#signature_keypair_id.kp" name="signature_keypair_id.kp"></a> `kp`: [`signature_keypair`](#signature_keypair)
+
+- <a href="#signature_keypair_id.kp_id" name="signature_keypair_id.kp_id"></a> `kp_id`: `ConstPointer<u8>`
+
+- <a href="#signature_keypair_id.kp_id_max_len" name="signature_keypair_id.kp_id_max_len"></a> `kp_id_max_len`: [`size`](#size)
+
+##### Results
+- <a href="#signature_keypair_id.error" name="signature_keypair_id.error"></a> `error`: [`errno`](#errno)
+
+- <a href="#signature_keypair_id.kp_id_len" name="signature_keypair_id.kp_id_len"></a> `kp_id_len`: [`size`](#size)
+
+- <a href="#signature_keypair_id.version" name="signature_keypair_id.version"></a> `version`: [`version`](#version)
+
+
+---
+
+#### <a href="#signature_keypair_from_id" name="signature_keypair_from_id"></a> `signature_keypair_from_id(kp_builder: signature_keypair_builder, kp_id: ConstPointer<u8>, kp_id_len: size, kp_version: version) -> (errno, signature_keypair)`
 Create a key pair using an opaque key identifier
 Return errno.notavailable if this operation is not supported by
 the host, and errno.invalidkey if the identifier is invalid
+The version can be an actual version number or $version.latest
 
 ##### Params
 - <a href="#signature_keypair_from_id.kp_builder" name="signature_keypair_from_id.kp_builder"></a> `kp_builder`: [`signature_keypair_builder`](#signature_keypair_builder)
@@ -231,10 +265,34 @@ the host, and errno.invalidkey if the identifier is invalid
 
 - <a href="#signature_keypair_from_id.kp_id_len" name="signature_keypair_from_id.kp_id_len"></a> `kp_id_len`: [`size`](#size)
 
+- <a href="#signature_keypair_from_id.kp_version" name="signature_keypair_from_id.kp_version"></a> `kp_version`: [`version`](#version)
+
 ##### Results
 - <a href="#signature_keypair_from_id.error" name="signature_keypair_from_id.error"></a> `error`: [`errno`](#errno)
 
 - <a href="#signature_keypair_from_id.handle" name="signature_keypair_from_id.handle"></a> `handle`: [`signature_keypair`](#signature_keypair)
+
+
+---
+
+#### <a href="#signature_keypair_invalidate" name="signature_keypair_invalidate"></a> `signature_keypair_invalidate(kp_builder: signature_keypair_builder, kp_id: ConstPointer<u8>, kp_id_len: size, kp_version: version) -> errno`
+Invalidate a key pair given a key identifier and a version
+Return errno.notavailable if this operation is not supported by
+the host, and errno.invalidkey if the identifier is invalid
+The version can be a actual version number, as well as
+$version.latest or $version.all
+
+##### Params
+- <a href="#signature_keypair_invalidate.kp_builder" name="signature_keypair_invalidate.kp_builder"></a> `kp_builder`: [`signature_keypair_builder`](#signature_keypair_builder)
+
+- <a href="#signature_keypair_invalidate.kp_id" name="signature_keypair_invalidate.kp_id"></a> `kp_id`: `ConstPointer<u8>`
+
+- <a href="#signature_keypair_invalidate.kp_id_len" name="signature_keypair_invalidate.kp_id_len"></a> `kp_id_len`: [`size`](#size)
+
+- <a href="#signature_keypair_invalidate.kp_version" name="signature_keypair_invalidate.kp_version"></a> `kp_version`: [`version`](#version)
+
+##### Results
+- <a href="#signature_keypair_invalidate.error" name="signature_keypair_invalidate.error"></a> `error`: [`errno`](#errno)
 
 
 ---

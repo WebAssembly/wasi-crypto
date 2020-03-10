@@ -47,6 +47,16 @@
   )
 )
 
+(typename $version
+  (int u64
+;;; Key doesn't support versioning
+    (const $unspecified 0xff00000000000000)
+;;; Retrieve the latest version of a key
+    (const $latest 0xff00000000000001)
+;;; Perform an operation over all versions of a key
+    (const $all 0xff00000000000002)
+  )
+)
 
 (typename $size (@witx usize))
 
@@ -125,15 +135,41 @@
     (result $handle $signature_keypair)
   )
 
+;;; Return the key identifier and version, if these are available
+;;; or $errno.notavailable if not.
+  (@interface func (export "signature_keypair_id")
+    (param $kp $signature_keypair)
+    (param $kp_id (@witx const_pointer u8))
+    (param $kp_id_max_len $size)
+    (result $error $errno)
+    (result $kp_id_len $size)
+    (result $version $version)
+  )
+
 ;;; Create a key pair using an opaque key identifier
 ;;; Return errno.notavailable if this operation is not supported by
 ;;; the host, and errno.invalidkey if the identifier is invalid
+;;; The version can be an actual version number or $version.latest
   (@interface func (export "signature_keypair_from_id")
     (param $kp_builder $signature_keypair_builder)
     (param $kp_id (@witx const_pointer u8))
     (param $kp_id_len $size)
+    (param $kp_version $version)
     (result $error $errno)
     (result $handle $signature_keypair)
+  )
+
+;;; Invalidate a key pair given a key identifier and a version
+;;; Return errno.notavailable if this operation is not supported by
+;;; the host, and errno.invalidkey if the identifier is invalid
+;;; The version can be a actual version number, as well as
+;;; $version.latest or $version.all
+  (@interface func (export "signature_keypair_invalidate")
+    (param $kp_builder $signature_keypair_builder)
+    (param $kp_id (@witx const_pointer u8))
+    (param $kp_id_len $size)
+    (param $kp_version $version)
+    (result $error $errno)
   )
 
 ;;; Export the key pair as the given encoding format

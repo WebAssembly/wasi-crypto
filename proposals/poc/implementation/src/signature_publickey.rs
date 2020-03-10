@@ -65,6 +65,10 @@ impl SignaturePublicKey {
         };
         Ok(raw_pk)
     }
+
+    fn verify(pk_handle: Handle) -> Result<(), Error> {
+        bail!(CryptoError::NotAvailable)
+    }
 }
 
 pub fn signature_publickey_import(
@@ -80,6 +84,10 @@ pub fn signature_publickey_export(
     encoding: PublicKeyEncoding,
 ) -> Result<Vec<u8>, Error> {
     SignaturePublicKey::export(pk, encoding)
+}
+
+pub fn signature_publickey_verify(pk: Handle) -> Result<(), Error> {
+    SignaturePublicKey::verify(pk)
 }
 
 pub fn signature_publickey_close(handle: Handle) -> Result<(), Error> {

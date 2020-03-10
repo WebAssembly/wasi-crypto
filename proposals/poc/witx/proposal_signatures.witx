@@ -207,6 +207,13 @@
     (result $pk $signature_publickey)
   )
 
+;;; Check that a public key is valid and in canonical form
+;;; Return errno.invalidkey is verification fails
+  (@interface func (export "signature_publickey_verify")
+    (param $pk $signature_publickey)
+    (result $error $errno)
+  )
+
 ;;; Destroys a public key
   (@interface func (export "signature_publickey_close")
     (param $pk $signature_publickey)

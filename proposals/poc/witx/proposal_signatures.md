@@ -363,6 +363,19 @@ if the format is incompatible with the key type.
 
 ---
 
+#### <a href="#signature_publickey_verify" name="signature_publickey_verify"></a> `signature_publickey_verify(pk: signature_publickey) -> errno`
+Check that a public key is valid and in canonical form
+Return errno.invalidkey is verification fails
+
+##### Params
+- <a href="#signature_publickey_verify.pk" name="signature_publickey_verify.pk"></a> `pk`: [`signature_publickey`](#signature_publickey)
+
+##### Results
+- <a href="#signature_publickey_verify.error" name="signature_publickey_verify.error"></a> `error`: [`errno`](#errno)
+
+
+---
+
 #### <a href="#signature_publickey_close" name="signature_publickey_close"></a> `signature_publickey_close(pk: signature_publickey) -> errno`
 Destroys a public key
 

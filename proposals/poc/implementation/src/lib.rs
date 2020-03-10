@@ -41,6 +41,7 @@ pub use signature_op::{signature_op_close, signature_op_open};
 
 pub use signature_publickey::{
     signature_publickey_close, signature_publickey_export, signature_publickey_import,
+    signature_publickey_verify,
 };
 
 pub struct WasiCryptoCtx {

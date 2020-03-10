@@ -66,7 +66,7 @@ impl SignaturePublicKey {
         Ok(raw_pk)
     }
 
-    fn verify(pk_handle: Handle) -> Result<(), Error> {
+    fn verify(_pk_handle: Handle) -> Result<(), Error> {
         bail!(CryptoError::NotAvailable)
     }
 }

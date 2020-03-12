@@ -115,7 +115,7 @@
 
 ;;; Generate a new key pair
 ;;; This function may return errno.notavailable if key generation
-;;; is not support by the host for the chose algorithm
+;;; is not support by the host for the chosen algorithm
   (@interface func (export "signature_keypair_generate")
     (param $kp_builder $signature_keypair_builder)
     (result $error $errno)

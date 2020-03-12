@@ -195,7 +195,7 @@ Destroy a key pair builder
 #### <a href="#signature_keypair_generate" name="signature_keypair_generate"></a> `signature_keypair_generate(kp_builder: signature_keypair_builder) -> (errno, signature_keypair)`
 Generate a new key pair
 This function may return errno.notavailable if key generation
-is not support by the host for the chose algorithm
+is not support by the host for the chosen algorithm
 
 ##### Params
 - <a href="#signature_keypair_generate.kp_builder" name="signature_keypair_generate.kp_builder"></a> `kp_builder`: [`signature_keypair_builder`](#signature_keypair_builder)

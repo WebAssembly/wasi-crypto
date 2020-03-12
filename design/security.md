@@ -14,8 +14,8 @@ accept the key as a type specifically defined for the given operation
 and key type.
 
 Even though these keys can be represented as raw bytes, such a
-representation should not be directly be accepted by any function
-besides the ones constructing a key object.
+representation should not be directly accepted by any functions besides
+the ones constructing a key object.
 
 For example, a public key used for signature verification must be of
 type `signature_publickey`.
@@ -26,13 +26,13 @@ compilation.
 
 Internally, a key also stores the algorithm and parameters it is
 designed to be used with. Using a key for the correct operation, but
-the wrong algorithm or different parameters will result in a runtime
+the wrong algorithm or different parameters must result in a runtime
 error.
 
 ### No insecure options
 
-Applications instantiate a constructions using a string that
-represents an algorithm as well as its main parameters.
+Applications instantiate a construction using a string representing
+an algorithm as well as its main parameters.
 
 An example is `RSA_PKCS1_2048_8192_SHA384`.
 
@@ -46,7 +46,7 @@ for protected pages inside a memory region facilitates heartbleed-like
 vulnerabilities.
 
 As a result, `wasi-crypto` APIs must not trust applications for
-providing correctly sized output buffers:
+providing correctly sized output buffers.
 
 The following API would assume that `$tag` was properly allocated for
 the expected authentication tag:
@@ -78,20 +78,21 @@ applications ignoring the error code.
 
 ### Side channels
 
-Side channels should be avoided on all operations involving secrets.
+Mitigations against side channels must be implemented for all
+operations involving secrets.
 
 In order to do so, the API must try to prevent applications from
 performing comparisons themselves.
 
-For example, a MAC operations should not return the raw bytes, but a
-MAC object type. MAC objects can be compared for equality using a
-dedicated function, that will take care of avoiding side channels.
+For example, a MAC operation should not return raw bytes, but a
+MAC object. MAC objects can be compared for equality using a dedicated
+function, that will take care of avoiding side channels.
 
 ### Nonces / IVs
 
-Constant IVs is one of the most common mistake made by applications,
-and has catastrophic implications. In order to prevent this, APIs
-should:
+Using a constant IV is one of the most common mistake made by
+applications, and has catastrophic implications. In order to prevent
+this, APIs should:
 
 - APIs must not require an IV. Setting the IV should be an optional
 operation, distinct from the creation of a cipher object.
@@ -104,9 +105,10 @@ tries to use the object to encrypt data.
 ### Secret zeroing
 
 Keys are exposed as handles, that applications should close after use.
-`wasi-crypto` implementations should try to wipe the secret key
-material from memory, as well as any information derived from it (ex:
-initial state block ciphers).
+
+`wasi-crypto` implementations should try to wipe secret key material
+from memory, as well as any information derived from it (ex: initial
+state of block ciphers).
 
 ### Errors
 
@@ -129,6 +131,5 @@ implementations.
 
 This also includes the way public keys are validated. For example, the
 specification may require implementations to prevent the creation of a
-public key if the source representation of the key is not in canonical
+public key if the source representation of that key is not in canonical
 form.
-

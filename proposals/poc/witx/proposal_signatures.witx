@@ -1,0 +1,310 @@
+;; WASI Cryptography API
+
+(typename $crypto_errno
+  (enum u16
+    $success
+    $unsupportedoperation
+    $unsupportedencoding
+    $unsupportedalgorithm
+    $invalidkey
+    $verificationfailed
+    $rngerror
+    $algorithmfailure
+    $invalidsignature
+    $closed
+    $invalidhandle
+    $overflow
+  )
+)
+
+(typename $keypair_encoding
+  (enum u16
+    $raw
+    $pkcs8
+    $der
+    $pem
+  )
+)
+
+(typename $publickey_encoding
+  (enum u16
+    $raw
+    $hex
+    $base64_original
+    $base64_original_nopadding
+    $base64_urlsafe
+    $base64_urlsafe_nopadding
+  )
+)
+
+(typename $signature_encoding
+  (enum u16
+    $raw
+    $hex
+    $base64_original
+    $base64_original_nopadding
+    $base64_urlsafe
+    $base64_urlsafe_nopadding
+    $der
+  )
+)
+
+(typename $version
+  (int u64
+    ;;; Key doesn't support versioning.
+    (const $unspecified 0xff00000000000000)
+    ;;; Retrieve the latest version of a key.
+    (const $latest 0xff00000000000001)
+    ;;; Perform an operation over all versions of a key.
+    (const $all 0xff00000000000002)
+  )
+)
+
+(typename $size (@witx usize))
+
+(typename $array_output (handle))
+(typename $signature_op (handle))
+(typename $signature_keypair_builder (handle))
+(typename $signature_keypair (handle))
+(typename $signature_state (handle))
+(typename $signature (handle))
+(typename $signature_publickey (handle))
+(typename $signature_verification_state (handle))
+
+(module $wasi_ephemeral_crypto
+  (import "memory" (memory))
+
+  ;;; Return the length of an array_output object.
+  (@interface func (export "array_output_len")
+    (param $array_output $array_output)
+    (result $len $size)
+  )
+
+  ;;; Copy an array_output into an application-allocated buffer.
+  ;;; The array_output handle becomes invalid after this operation.
+  (@interface func (export "array_output_pull")
+    (param $array_output $array_output)
+    (param $buf (@witx pointer u8))
+    (param $buf_len $size)
+    (result $error $crypto_errno)
+  )
+
+  ;;; Create a context for a signature-related operation.
+  (@interface func (export "signature_op_open")
+    (param $op_str string)
+    (result $error $crypto_errno)
+    (result $signature_op $signature_op)
+  )
+
+  ;;; Destroy the signature context.
+  (@interface func (export "signature_op_close")
+    (param $signature_op $signature_op)
+    (result $error $crypto_errno)
+  )
+
+  ;;; Create a context to construct a key pair.
+  (@interface func (export "signature_keypair_builder_open")
+    (param $signature_op $signature_op)
+    (result $error $crypto_errno)
+    (result $handle $signature_keypair_builder)
+  )
+
+  ;;; Destroy a key pair builder.
+  (@interface func (export "signature_keypair_builder_close")
+    (param $kp_builder $signature_keypair_builder)
+    (result $error $crypto_errno)
+  )
+
+  ;;; Generate a new key pair.
+  ;;; This function may return crypto_errno.unsupportedoperation if key
+  ;;; generation is not supported by the host for the chosen algorithm.
+  (@interface func (export "signature_keypair_generate")
+    (param $kp_builder $signature_keypair_builder)
+    (result $error $crypto_errno)
+    (result $handle $signature_keypair)
+  )
+
+  ;;; Import a key pair.
+  ;;; This function may return crypto_errno.unsupportedalgorithm if the
+  ;;; encoding scheme is not supported, or crypto_errno.invalidkey if the key
+  ;;; cannot be decoded.
+  (@interface func (export "signature_keypair_import")
+    (param $kp_builder $signature_keypair_builder)
+    (param $encoded (@witx const_pointer u8))
+    (param $encoded_len $size)
+    (param $encoding $keypair_encoding)
+    (result $error $crypto_errno)
+    (result $handle $signature_keypair)
+  )
+
+  ;;; Return the key identifier and version, if these are available
+  ;;; or $crypto_errno.unsupportedoperation if not.
+  (@interface func (export "signature_keypair_id")
+    (param $kp $signature_keypair)
+    (param $kp_id (@witx const_pointer u8))
+    (param $kp_id_max_len $size)
+    (result $error $crypto_errno)
+    (result $kp_id_len $size)
+    (result $version $version)
+  )
+
+  ;;; Create a key pair using an opaque key identifier.
+  ;;; Return crypto_errno.unsupportedoperation if this operation is not
+  ;;; supported by the host, and crypto_errno.invalidkey if the identifier
+  ;;; is invalid.
+  ;;; The version can be an actual version number or $version.latest .
+  (@interface func (export "signature_keypair_from_id")
+    (param $kp_builder $signature_keypair_builder)
+    (param $kp_id (@witx const_pointer u8))
+    (param $kp_id_len $size)
+    (param $kp_version $version)
+    (result $error $crypto_errno)
+    (result $handle $signature_keypair)
+  )
+
+  ;;; Invalidate a key pair given a key identifier and a version.
+  ;;; Return crypto_errno.unsupportedoperation if this operation is not
+  ;;; supported by the host, and crypto_errno.invalidkey if the identifier
+  ;;; is invalid.
+  ;;; The version can be a actual version number, as well as
+  ;;; $version.latest or $version.all .
+  (@interface func (export "signature_keypair_invalidate")
+    (param $kp_builder $signature_keypair_builder)
+    (param $kp_id (@witx const_pointer u8))
+    (param $kp_id_len $size)
+    (param $kp_version $version)
+    (result $error $crypto_errno)
+  )
+
+  ;;; Export the key pair as the given encoding format.
+  ;;; May return crypto_errno.unsupportedoperation if this operation is
+  ;;; not supported or crypto_errno.unsupportedencoding if the encoding
+  ;;; is not supported.
+  (@interface func (export "signature_keypair_export")
+    (param $kp $signature_keypair)
+    (param $encoding $keypair_encoding)
+    (result $error $crypto_errno)
+    (result $encoded $array_output)
+  )
+
+  ;;; Create a public key object from the key pair.
+  (@interface func (export "signature_keypair_publickey")
+    (param $kp $signature_keypair)
+    (result $error $crypto_errno)
+    (result $pk $signature_publickey)
+  )
+
+  ;;; Destroys a key pair and wipe memory accordingly.
+  (@interface func (export "signature_keypair_close")
+    (param $kp $signature_keypair)
+    (result $error $crypto_errno)
+  )
+
+  ;;; Import a public key encoded.
+  ;;; Return crypto_errno.unsupportedoperation if this operation is not
+  ;;; supported by the host and crypto_errno.unsupportedencoding if exporting
+  ;;; to the given format is not implemented or if the format is
+  ;;; incompatible with the key type.
+  (@interface func (export "signature_publickey_import")
+    (param $signature_op $signature_op)
+    (param $encoded (@witx const_pointer u8))
+    (param $encoded_len $size)
+    (param $encoding $publickey_encoding)
+    (result $error $crypto_errno)
+    (result $pk $signature_publickey)
+  )
+
+  ;;; Check that a public key is valid and in canonical form.
+  ;;; Return crypto_errno.invalidkey is verification fails.
+  (@interface func (export "signature_publickey_verify")
+    (param $pk $signature_publickey)
+    (result $error $crypto_errno)
+  )
+
+  ;;; Destroys a public key.
+  (@interface func (export "signature_publickey_close")
+    (param $pk $signature_publickey)
+    (result $error $crypto_errno)
+  )
+
+  ;;; Export a signature in the given format.
+  (@interface func (export "signature_export")
+    (param $signature $signature)
+    (param $encoding $signature_encoding)
+    (result $error $crypto_errno)
+    (result $encoded $array_output)
+  )
+
+  ;;; Create a signature object by importing a signature encoded
+  ;;; in a given format.
+  ;;; Return crypto_errno.invalidsignature if the signature is incompatible
+  ;;; with the current content.
+  (@interface func (export "signature_import")
+    (param $signature_op $signature_op)
+    (param $encoding $signature_encoding)
+    (param $encoded (@witx const_pointer u8))
+    (param $encoded_len $size)
+    (result $error $crypto_errno)
+    (result $signature $signature)
+  )
+
+  ;;; Create a new state to collect data to compute a signature on.
+  (@interface func (export "signature_state_open")
+    (param $kp $signature_keypair)
+    (result $error $crypto_errno)
+    (result $state $signature_state)
+  )
+
+  ;;; Inject data into the state.
+  (@interface func (export "signature_state_update")
+    (param $state $signature_state)
+    (param $input (@witx const_pointer u8))
+    (param $input_len $size)
+    (result $error $crypto_errno)
+  )
+
+  ;;; Compute a signature for all the data collected until tht point.
+  ;;; The function can be called multiple times for incremental signing.
+  ;;; May return crypto_errno.overflow is too much data has been processed
+  ;;; for the chosen algorithm or if system resources have been
+  ;;; exceeded.
+  (@interface func (export "signature_state_sign")
+    (param $state $signature_state)
+    (result $error $crypto_errno)
+    (result $signature $array_output)
+  )
+
+  ;;; Destroy a signature state.
+  (@interface func (export "signature_state_close")
+    (param $state $signature_state)
+    (result $error $crypto_errno)
+  )
+
+  ;;; Create a new state to collect data to verify a signature on.
+  (@interface func (export "signature_verification_state_update")
+    (param $state $signature_verification_state)
+    (param $input (@witx const_pointer u8))
+    (param $input_len $size)
+    (result $error $crypto_errno)
+  )
+
+  ;;; Verify that the given signature is valid for the data collected
+  ;;; up to this point.
+  (@interface func (export "signature_verification_state_verify")
+    (param $state $signature_verification_state)
+    (param $signature $signature)
+    (result $error $crypto_errno)
+  )
+
+  ;;; Destroy a signature verification state.
+  (@interface func (export "signature_verification_state_close")
+    (param $state $signature_verification_state)
+    (result $error $crypto_errno)
+  )
+
+  ;;; Destroy a signature.
+  (@interface func (export "signature_close")
+    (param $signature $signature)
+    (result $error $crypto_errno)
+  )
+)

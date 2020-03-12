@@ -3,7 +3,9 @@
 (typename $crypto_errno
   (enum u16
     $success
-    $notavailable
+    $unsupportedoperation
+    $unsupportedencoding
+    $unsupportedalgorithm
     $invalidkey
     $verificationfailed
     $rngerror
@@ -114,8 +116,8 @@
   )
 
   ;;; Generate a new key pair.
-  ;;; This function may return crypto_errno.notavailable if key generation
-  ;;; is not support by the host for the chosen algorithm.
+  ;;; This function may return crypto_errno.unsupportedoperation if key
+  ;;; generation is not supported by the host for the chosen algorithm.
   (@interface func (export "signature_keypair_generate")
     (param $kp_builder $signature_keypair_builder)
     (result $error $crypto_errno)
@@ -123,9 +125,9 @@
   )
 
   ;;; Import a key pair.
-  ;;; This function may return crypto_errno.notavailable if the encoding
-  ;;; scheme is not supported, or crypto_errno.invalidkey if the key cannot
-  ;;; be decoded.
+  ;;; This function may return crypto_errno.unsupportedalgorithm if the
+  ;;; encoding scheme is not supported, or crypto_errno.invalidkey if the key
+  ;;; cannot be decoded.
   (@interface func (export "signature_keypair_import")
     (param $kp_builder $signature_keypair_builder)
     (param $encoded (@witx const_pointer u8))
@@ -136,7 +138,7 @@
   )
 
   ;;; Return the key identifier and version, if these are available
-  ;;; or $crypto_errno.notavailable if not.
+  ;;; or $crypto_errno.unsupportedoperation if not.
   (@interface func (export "signature_keypair_id")
     (param $kp $signature_keypair)
     (param $kp_id (@witx const_pointer u8))
@@ -147,8 +149,9 @@
   )
 
   ;;; Create a key pair using an opaque key identifier.
-  ;;; Return crypto_errno.notavailable if this operation is not supported by
-  ;;; the host, and crypto_errno.invalidkey if the identifier is invalid.
+  ;;; Return crypto_errno.unsupportedoperation if this operation is not
+  ;;; supported by the host, and crypto_errno.invalidkey if the identifier
+  ;;; is invalid.
   ;;; The version can be an actual version number or $version.latest .
   (@interface func (export "signature_keypair_from_id")
     (param $kp_builder $signature_keypair_builder)
@@ -160,8 +163,9 @@
   )
 
   ;;; Invalidate a key pair given a key identifier and a version.
-  ;;; Return crypto_errno.notavailable if this operation is not supported by
-  ;;; the host, and crypto_errno.invalidkey if the identifier is invalid.
+  ;;; Return crypto_errno.unsupportedoperation if this operation is not
+  ;;; supported by the host, and crypto_errno.invalidkey if the identifier
+  ;;; is invalid.
   ;;; The version can be a actual version number, as well as
   ;;; $version.latest or $version.all .
   (@interface func (export "signature_keypair_invalidate")
@@ -173,7 +177,9 @@
   )
 
   ;;; Export the key pair as the given encoding format.
-  ;;; May return crypto_errno.notavailable if this operation is not supported.
+  ;;; May return crypto_errno.unsupportedoperation if this operation is
+  ;;; not supported or crypto_errno.unsupportedencoding if the encoding
+  ;;; is not supported.
   (@interface func (export "signature_keypair_export")
     (param $kp $signature_keypair)
     (param $encoding $keypair_encoding)
@@ -195,9 +201,10 @@
   )
 
   ;;; Import a public key encoded.
-  ;;; Return crypto_errno.notavailable if this operation is not supported by
-  ;;; the host, if exporting to the given format is not implemented or
-  ;;; if the format is incompatible with the key type.
+  ;;; Return crypto_errno.unsupportedoperation if this operation is not
+  ;;; supported by the host and crypto_errno.unsupportedencoding if exporting
+  ;;; to the given format is not implemented or if the format is
+  ;;; incompatible with the key type.
   (@interface func (export "signature_publickey_import")
     (param $signature_op $signature_op)
     (param $encoded (@witx const_pointer u8))

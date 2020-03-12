@@ -2,8 +2,12 @@ pub use anyhow::{bail, ensure, Error};
 
 #[derive(thiserror::Error, Debug)]
 pub enum CryptoError {
-    #[error("Operation not available")]
-    NotAvailable,
+    #[error("Unsupported operation")]
+    UnsupportedOperation,
+    #[error("Unsupported encoding")]
+    UnsupportedEncoding,
+    #[error("Unsupported algorithm")]
+    UnsupportedAlgorithm,
     #[error("Invalid key")]
     InvalidKey,
     #[error("Verification failed")]
@@ -26,21 +30,25 @@ pub enum CryptoError {
 #[repr(u16)]
 pub enum WasiCryptoError {
     Success = 0,
-    NotAvailable = 1,
-    InvalidKey = 2,
-    VerificationFailed = 3,
-    RNGError = 4,
-    AlgorithmFailure = 5,
-    InvalidSignature = 6,
-    Closed = 7,
-    InvalidHandle = 8,
-    Overflow = 9,
+    UnsupportedEncoding = 1,
+    UnsupportedAlgorithm = 2,
+    UnsupportedOperation = 3,
+    InvalidKey = 4,
+    VerificationFailed = 5,
+    RNGError = 6,
+    AlgorithmFailure = 7,
+    InvalidSignature = 8,
+    Closed = 9,
+    InvalidHandle = 10,
+    Overflow = 11,
 }
 
 impl CryptoError {
     pub fn as_raw_errno(&self) -> WasiCryptoError {
         match self {
-            CryptoError::NotAvailable => WasiCryptoError::NotAvailable,
+            CryptoError::UnsupportedOperation => WasiCryptoError::UnsupportedOperation,
+            CryptoError::UnsupportedEncoding => WasiCryptoError::UnsupportedEncoding,
+            CryptoError::UnsupportedAlgorithm => WasiCryptoError::UnsupportedAlgorithm,
             CryptoError::InvalidKey => WasiCryptoError::InvalidKey,
             CryptoError::VerificationFailed => WasiCryptoError::VerificationFailed,
             CryptoError::RNGError => WasiCryptoError::RNGError,

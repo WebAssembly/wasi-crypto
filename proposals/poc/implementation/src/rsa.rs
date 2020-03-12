@@ -51,7 +51,7 @@ impl RSASignatureKeyPair {
 
     #[allow(dead_code)]
     pub fn generate(_alg: SignatureAlgorithm) -> Result<Self, Error> {
-        bail!(CryptoError::NotAvailable)
+        bail!(CryptoError::UnsupportedOperation)
     }
 
     pub fn raw_public_key(&self) -> &[u8] {
@@ -70,13 +70,13 @@ impl RSASignatureKeyPairBuilder {
     }
 
     pub fn generate(&self) -> Result<Handle, Error> {
-        bail!(CryptoError::NotAvailable)
+        bail!(CryptoError::UnsupportedOperation)
     }
 
     pub fn import(&self, encoded: &[u8], encoding: KeyPairEncoding) -> Result<Handle, Error> {
         match encoding {
             KeyPairEncoding::PKCS8 => {}
-            _ => bail!(CryptoError::NotAvailable),
+            _ => bail!(CryptoError::UnsupportedEncoding),
         };
         let kp = RSASignatureKeyPair::from_pkcs8(self.alg, encoded)?;
         let handle = WASI_CRYPTO_CTX
@@ -128,7 +128,7 @@ impl RSASignatureState {
             SignatureAlgorithm::RSA_PKCS1_2048_8192_SHA384 => &ring::signature::RSA_PKCS1_SHA384,
             SignatureAlgorithm::RSA_PKCS1_2048_8192_SHA512 => &ring::signature::RSA_PKCS1_SHA512,
             SignatureAlgorithm::RSA_PKCS1_3072_8192_SHA384 => &ring::signature::RSA_PKCS1_SHA384,
-            _ => bail!(CryptoError::NotAvailable),
+            _ => bail!(CryptoError::UnsupportedAlgorithm),
         };
         self.kp
             .ring_kp
@@ -172,7 +172,7 @@ impl RSASignatureVerificationState {
             SignatureAlgorithm::RSA_PKCS1_3072_8192_SHA384 => {
                 &ring::signature::RSA_PKCS1_3072_8192_SHA384
             }
-            _ => bail!(CryptoError::NotAvailable),
+            _ => bail!(CryptoError::UnsupportedAlgorithm),
         };
         let ring_pk = ring::signature::UnparsedPublicKey::new(ring_alg, self.pk.as_raw()?);
         ring_pk

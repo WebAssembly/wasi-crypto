@@ -44,7 +44,7 @@ impl ECDSASignatureKeyPair {
             SignatureAlgorithm::ECDSA_P384_SHA384 => {
                 &ring::signature::ECDSA_P384_SHA384_FIXED_SIGNING
             }
-            _ => bail!(CryptoError::NotAvailable),
+            _ => bail!(CryptoError::UnsupportedAlgorithm),
         };
         Ok(ring_alg)
     }
@@ -99,7 +99,7 @@ impl ECDSASignatureKeyPairBuilder {
     pub fn import(&self, encoded: &[u8], encoding: KeyPairEncoding) -> Result<Handle, Error> {
         match encoding {
             KeyPairEncoding::PKCS8 => {}
-            _ => bail!(CryptoError::NotAvailable),
+            _ => bail!(CryptoError::UnsupportedEncoding),
         };
         let kp = ECDSASignatureKeyPair::from_pkcs8(self.alg, encoded)?;
         let handle = WASI_CRYPTO_CTX
@@ -194,7 +194,7 @@ impl ECDSASignatureVerificationState {
             (SignatureAlgorithm::ECDSA_P384_SHA384, SignatureEncoding::DER) => {
                 &ring::signature::ECDSA_P384_SHA384_ASN1
             }
-            _ => bail!(CryptoError::NotAvailable),
+            _ => bail!(CryptoError::UnsupportedAlgorithm),
         };
         let ring_pk = ring::signature::UnparsedPublicKey::new(ring_alg, self.pk.as_raw()?);
         ring_pk

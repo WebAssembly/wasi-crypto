@@ -40,7 +40,7 @@ impl SignatureKeyPair {
                 SignatureKeyPair::EdDSA(kp) => kp.as_pkcs8()?.to_vec(),
                 SignatureKeyPair::RSA(kp) => kp.as_pkcs8()?.to_vec(),
             },
-            _ => bail!(CryptoError::NotAvailable),
+            _ => bail!(CryptoError::UnsupportedEncoding),
         };
         Ok(encoded)
     }
@@ -148,12 +148,12 @@ pub fn signature_keypair_from_id(
     _kp_id: &[u8],
     _kp_version: Version,
 ) -> Result<Handle, Error> {
-    bail!(CryptoError::NotAvailable)
+    bail!(CryptoError::UnsupportedOperation)
 }
 
 pub fn signature_keypair_id(kp_handle: Handle) -> Result<(Vec<u8>, Version), Error> {
     let _kp = WASI_CRYPTO_CTX.signature_keypair_manager.get(kp_handle)?;
-    bail!(CryptoError::NotAvailable)
+    bail!(CryptoError::UnsupportedOperation)
 }
 
 pub fn signature_keypair_invalidate(
@@ -161,7 +161,7 @@ pub fn signature_keypair_invalidate(
     _kp_id: &[u8],
     _kp_version: Version,
 ) -> Result<(), Error> {
-    bail!(CryptoError::NotAvailable)
+    bail!(CryptoError::UnsupportedOperation)
 }
 
 pub fn signature_keypair_export(

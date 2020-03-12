@@ -82,7 +82,7 @@ impl EdDSASignatureKeyPairBuilder {
     pub fn import(&self, encoded: &[u8], encoding: KeyPairEncoding) -> Result<Handle, Error> {
         match encoding {
             KeyPairEncoding::PKCS8 => {}
-            _ => bail!(CryptoError::NotAvailable),
+            _ => bail!(CryptoError::UnsupportedEncoding),
         };
         let kp = EdDSASignatureKeyPair::from_pkcs8(self.alg, encoded)?;
         let handle = WASI_CRYPTO_CTX
@@ -156,7 +156,7 @@ impl EdDSASignatureVerificationState {
     pub fn verify(&self, signature: &EdDSASignature) -> Result<(), Error> {
         let ring_alg = match self.pk.alg {
             SignatureAlgorithm::Ed25519 => &ring::signature::ED25519,
-            _ => bail!(CryptoError::NotAvailable),
+            _ => bail!(CryptoError::UnsupportedAlgorithm),
         };
         let ring_pk = ring::signature::UnparsedPublicKey::new(ring_alg, self.pk.as_raw()?);
         ring_pk

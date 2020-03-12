@@ -236,7 +236,7 @@ pub fn signature_export(
 ) -> Result<Vec<u8>, Error> {
     match encoding {
         SignatureEncoding::Raw => {}
-        _ => bail!(CryptoError::NotAvailable),
+        _ => bail!(CryptoError::UnsupportedEncoding),
     }
     let signature = WASI_CRYPTO_CTX.signature_manager.get(signature_handle)?;
     Ok(signature.as_ref().to_vec())
@@ -250,7 +250,7 @@ pub fn signature_import(
     let signature_op = WASI_CRYPTO_CTX.signature_op_manager.get(op_handle)?;
     let signature = match encoding {
         SignatureEncoding::Raw => Signature::from_raw(signature_op.alg(), encoded)?,
-        _ => bail!(CryptoError::NotAvailable),
+        _ => bail!(CryptoError::UnsupportedEncoding),
     };
     let handle = WASI_CRYPTO_CTX.signature_manager.register(signature)?;
     Ok(handle)

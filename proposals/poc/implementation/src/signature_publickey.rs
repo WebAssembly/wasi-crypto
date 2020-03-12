@@ -32,7 +32,7 @@ impl SignaturePublicKey {
     ) -> Result<Handle, Error> {
         match encoding {
             PublicKeyEncoding::Raw => {}
-            _ => bail!(CryptoError::NotAvailable),
+            _ => bail!(CryptoError::UnsupportedEncoding),
         }
         let signature_op = WASI_CRYPTO_CTX.signature_op_manager.get(signature_op)?;
         let pk =
@@ -55,7 +55,7 @@ impl SignaturePublicKey {
     fn export(pk: Handle, encoding: PublicKeyEncoding) -> Result<Vec<u8>, Error> {
         match encoding {
             PublicKeyEncoding::Raw => {}
-            _ => bail!(CryptoError::NotAvailable),
+            _ => bail!(CryptoError::UnsupportedEncoding),
         }
         let pk = WASI_CRYPTO_CTX.signature_publickey_manager.get(pk)?;
         let raw_pk = match pk {
@@ -67,7 +67,7 @@ impl SignaturePublicKey {
     }
 
     fn verify(_pk_handle: Handle) -> Result<(), Error> {
-        bail!(CryptoError::NotAvailable)
+        bail!(CryptoError::UnsupportedOperation)
     }
 }
 

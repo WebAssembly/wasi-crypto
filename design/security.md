@@ -76,7 +76,7 @@ must return a `$crypto_errno.overflow` error code. `$tag` may be
 filled with random bytes in order to mitigate the implications of
 applications ignoring the error code.
 
-### Side channel
+### Side channels
 
 Side channels should be avoided on all operations involving secrets.
 

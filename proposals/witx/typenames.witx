@@ -170,6 +170,21 @@
   )
 )
 
+(typename $crypto_error_cause
+  (enum u16
+    ;;; Uknown error cause.
+    $unknown
+    ;;; The specified algorithm is unsupported.
+    $unsupported_algorithm
+    ;;; Signature verification has failed.
+    $verification_failed
+    ;;; The key is invalid for the operation.
+    $invalid_key
+    ;;; The signature is in invalid format.
+    $invalid_signature
+  )
+)
+
 ;;; Handles for encryption and decryption operations.
 (typename $cipher_state_initial (handle))
 (typename $cipher_state_encrypting (handle))

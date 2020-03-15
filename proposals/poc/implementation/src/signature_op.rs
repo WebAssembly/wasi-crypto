@@ -4,7 +4,7 @@ use super::error::*;
 use super::handles::*;
 use super::rsa::*;
 use super::signature::*;
-use super::WASI_CRYPTO_CTX;
+use super::{HandleManagers, WasiCryptoCtx};
 
 #[derive(Clone, Copy, Debug)]
 pub enum SignatureOp {
@@ -22,7 +22,7 @@ impl SignatureOp {
         }
     }
 
-    fn open(alg_str: &str) -> Result<Handle, Error> {
+    fn open(handles: &HandleManagers, alg_str: &str) -> Result<Handle, Error> {
         let signature_op = match alg_str {
             "ECDSA_P256_SHA256" => {
                 SignatureOp::ECDSA(ECDSASignatureOp::new(SignatureAlgorithm::ECDSA_P256_SHA256))
@@ -45,17 +45,17 @@ impl SignatureOp {
             )),
             _ => bail!(CryptoError::UnsupportedAlgorithm),
         };
-        let handle = WASI_CRYPTO_CTX
-            .signature_op_manager
-            .register(signature_op)?;
+        let handle = handles.signature_op.register(signature_op)?;
         Ok(handle)
     }
 }
 
-pub fn signature_op_open(alg_str: &str) -> Result<Handle, Error> {
-    SignatureOp::open(alg_str)
-}
+impl WasiCryptoCtx {
+    pub fn signature_op_open(&self, alg_str: &str) -> Result<Handle, Error> {
+        SignatureOp::open(&self.handles, alg_str)
+    }
 
-pub fn signature_op_close(handle: Handle) -> Result<(), Error> {
-    WASI_CRYPTO_CTX.signature_op_manager.close(handle)
+    pub fn signature_op_close(&self, handle: Handle) -> Result<(), Error> {
+        self.handles.signature_op.close(handle)
+    }
 }

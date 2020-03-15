@@ -24,6 +24,10 @@ pub enum CryptoError {
     InvalidHandle,
     #[error("Overflow")]
     Overflow,
+    #[error("Internal error")]
+    InternalError,
+    #[error("Too many open handles")]
+    TooManyHandles,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -41,6 +45,8 @@ pub enum WasiCryptoError {
     Closed = 9,
     InvalidHandle = 10,
     Overflow = 11,
+    InternalError = 12,
+    TooManyHandles = 13,
 }
 
 impl CryptoError {
@@ -57,6 +63,8 @@ impl CryptoError {
             CryptoError::Closed => WasiCryptoError::Closed,
             CryptoError::InvalidHandle => WasiCryptoError::InvalidHandle,
             CryptoError::Overflow => WasiCryptoError::Overflow,
+            CryptoError::InternalError => WasiCryptoError::InternalError,
+            CryptoError::TooManyHandles => WasiCryptoError::TooManyHandles,
         }
     }
 }

@@ -4,27 +4,31 @@
 ### Variants
 - <a href="#crypto_errno.success" name="crypto_errno.success"></a> `success`
 
-- <a href="#crypto_errno.unsupportedoperation" name="crypto_errno.unsupportedoperation"></a> `unsupportedoperation`
+- <a href="#crypto_errno.unsupported_operation" name="crypto_errno.unsupported_operation"></a> `unsupported_operation`
 
-- <a href="#crypto_errno.unsupportedencoding" name="crypto_errno.unsupportedencoding"></a> `unsupportedencoding`
+- <a href="#crypto_errno.unsupported_encoding" name="crypto_errno.unsupported_encoding"></a> `unsupported_encoding`
 
-- <a href="#crypto_errno.unsupportedalgorithm" name="crypto_errno.unsupportedalgorithm"></a> `unsupportedalgorithm`
+- <a href="#crypto_errno.unsupported_algorithm" name="crypto_errno.unsupported_algorithm"></a> `unsupported_algorithm`
 
-- <a href="#crypto_errno.invalidkey" name="crypto_errno.invalidkey"></a> `invalidkey`
+- <a href="#crypto_errno.invalid_key" name="crypto_errno.invalid_key"></a> `invalid_key`
 
-- <a href="#crypto_errno.verificationfailed" name="crypto_errno.verificationfailed"></a> `verificationfailed`
+- <a href="#crypto_errno.verification_failed" name="crypto_errno.verification_failed"></a> `verification_failed`
 
-- <a href="#crypto_errno.rngerror" name="crypto_errno.rngerror"></a> `rngerror`
+- <a href="#crypto_errno.rng_error" name="crypto_errno.rng_error"></a> `rng_error`
 
-- <a href="#crypto_errno.algorithmfailure" name="crypto_errno.algorithmfailure"></a> `algorithmfailure`
+- <a href="#crypto_errno.algorithm_failure" name="crypto_errno.algorithm_failure"></a> `algorithm_failure`
 
-- <a href="#crypto_errno.invalidsignature" name="crypto_errno.invalidsignature"></a> `invalidsignature`
+- <a href="#crypto_errno.invalid_signature" name="crypto_errno.invalid_signature"></a> `invalid_signature`
 
 - <a href="#crypto_errno.closed" name="crypto_errno.closed"></a> `closed`
 
-- <a href="#crypto_errno.invalidhandle" name="crypto_errno.invalidhandle"></a> `invalidhandle`
+- <a href="#crypto_errno.invalid_handle" name="crypto_errno.invalid_handle"></a> `invalid_handle`
 
 - <a href="#crypto_errno.overflow" name="crypto_errno.overflow"></a> `overflow`
+
+- <a href="#crypto_errno.internal_error" name="crypto_errno.internal_error"></a> `internal_error`
+
+- <a href="#crypto_errno.too_many_handles" name="crypto_errno.too_many_handles"></a> `too_many_handles`
 
 ## <a href="#keypair_encoding" name="keypair_encoding"></a> `keypair_encoding`: Enum(`u16`)
 
@@ -198,7 +202,7 @@ Destroy a key pair builder.
 
 #### <a href="#signature_keypair_generate" name="signature_keypair_generate"></a> `signature_keypair_generate(kp_builder: signature_keypair_builder) -> (crypto_errno, signature_keypair)`
 Generate a new key pair.
-This function may return crypto_errno.unsupportedoperation if key
+This function may return crypto_errno.unsupported_operation if key
 generation is not supported by the host for the chosen algorithm.
 
 ##### Params
@@ -214,8 +218,8 @@ generation is not supported by the host for the chosen algorithm.
 
 #### <a href="#signature_keypair_import" name="signature_keypair_import"></a> `signature_keypair_import(kp_builder: signature_keypair_builder, encoded: ConstPointer<u8>, encoded_len: size, encoding: keypair_encoding) -> (crypto_errno, signature_keypair)`
 Import a key pair.
-This function may return crypto_errno.unsupportedalgorithm if the
-encoding scheme is not supported, or crypto_errno.invalidkey if the key
+This function may return crypto_errno.unsupported_algorithm if the
+encoding scheme is not supported, or crypto_errno.invalid_key if the key
 cannot be decoded.
 
 ##### Params
@@ -237,7 +241,7 @@ cannot be decoded.
 
 #### <a href="#signature_keypair_id" name="signature_keypair_id"></a> `signature_keypair_id(kp: signature_keypair, kp_id: ConstPointer<u8>, kp_id_max_len: size) -> (crypto_errno, size, version)`
 Return the key identifier and version, if these are available
-or $crypto_errno.unsupportedoperation if not.
+or $crypto_errno.unsupported_operation if not.
 
 ##### Params
 - <a href="#signature_keypair_id.kp" name="signature_keypair_id.kp"></a> `kp`: [`signature_keypair`](#signature_keypair)
@@ -258,8 +262,8 @@ or $crypto_errno.unsupportedoperation if not.
 
 #### <a href="#signature_keypair_from_id" name="signature_keypair_from_id"></a> `signature_keypair_from_id(kp_builder: signature_keypair_builder, kp_id: ConstPointer<u8>, kp_id_len: size, kp_version: version) -> (crypto_errno, signature_keypair)`
 Create a key pair using an opaque key identifier.
-Return crypto_errno.unsupportedoperation if this operation is not
-supported by the host, and crypto_errno.invalidkey if the identifier
+Return crypto_errno.unsupported_operation if this operation is not
+supported by the host, and crypto_errno.invalid_key if the identifier
 is invalid.
 The version can be an actual version number or $version.latest .
 
@@ -282,8 +286,8 @@ The version can be an actual version number or $version.latest .
 
 #### <a href="#signature_keypair_invalidate" name="signature_keypair_invalidate"></a> `signature_keypair_invalidate(kp_builder: signature_keypair_builder, kp_id: ConstPointer<u8>, kp_id_len: size, kp_version: version) -> crypto_errno`
 Invalidate a key pair given a key identifier and a version.
-Return crypto_errno.unsupportedoperation if this operation is not
-supported by the host, and crypto_errno.invalidkey if the identifier
+Return crypto_errno.unsupported_operation if this operation is not
+supported by the host, and crypto_errno.invalid_key if the identifier
 is invalid.
 The version can be a actual version number, as well as
 $version.latest or $version.all .
@@ -305,8 +309,8 @@ $version.latest or $version.all .
 
 #### <a href="#signature_keypair_export" name="signature_keypair_export"></a> `signature_keypair_export(kp: signature_keypair, encoding: keypair_encoding) -> (crypto_errno, array_output)`
 Export the key pair as the given encoding format.
-May return crypto_errno.unsupportedoperation if this operation is
-not supported or crypto_errno.unsupportedencoding if the encoding
+May return crypto_errno.unsupported_operation if this operation is
+not supported or crypto_errno.unsupported_encoding if the encoding
 is not supported.
 
 ##### Params
@@ -350,8 +354,8 @@ Destroys a key pair and wipe memory accordingly.
 
 #### <a href="#signature_publickey_import" name="signature_publickey_import"></a> `signature_publickey_import(signature_op: signature_op, encoded: ConstPointer<u8>, encoded_len: size, encoding: publickey_encoding) -> (crypto_errno, signature_publickey)`
 Import a public key encoded.
-Return crypto_errno.unsupportedoperation if this operation is not
-supported by the host and crypto_errno.unsupportedencoding if exporting
+Return crypto_errno.unsupported_operation if this operation is not
+supported by the host and crypto_errno.unsupported_encoding if exporting
 to the given format is not implemented or if the format is
 incompatible with the key type.
 
@@ -374,7 +378,7 @@ incompatible with the key type.
 
 #### <a href="#signature_publickey_verify" name="signature_publickey_verify"></a> `signature_publickey_verify(pk: signature_publickey) -> crypto_errno`
 Check that a public key is valid and in canonical form.
-Return crypto_errno.invalidkey is verification fails.
+Return crypto_errno.invalid_key is verification fails.
 
 ##### Params
 - <a href="#signature_publickey_verify.pk" name="signature_publickey_verify.pk"></a> `pk`: [`signature_publickey`](#signature_publickey)
@@ -416,7 +420,7 @@ Export a signature in the given format.
 #### <a href="#signature_import" name="signature_import"></a> `signature_import(signature_op: signature_op, encoding: signature_encoding, encoded: ConstPointer<u8>, encoded_len: size) -> (crypto_errno, signature)`
 Create a signature object by importing a signature encoded
 in a given format.
-Return crypto_errno.invalidsignature if the signature is incompatible
+Return crypto_errno.invalid_signature if the signature is incompatible
 with the current content.
 
 ##### Params

@@ -73,7 +73,7 @@ impl SignaturePublicKey {
     }
 
     fn verify(_pk_handle: Handle) -> Result<(), Error> {
-        bail!(CryptoError::UnsupportedOperation)
+        bail!(CryptoError::NotImplemented)
     }
 }
 

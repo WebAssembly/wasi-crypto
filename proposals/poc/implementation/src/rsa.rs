@@ -51,7 +51,7 @@ impl RSASignatureKeyPair {
 
     #[allow(dead_code)]
     pub fn generate(_alg: SignatureAlgorithm) -> Result<Self, Error> {
-        bail!(CryptoError::UnsupportedOperation)
+        bail!(CryptoError::NotImplemented)
     }
 
     pub fn raw_public_key(&self) -> &[u8] {
@@ -70,7 +70,7 @@ impl RSASignatureKeyPairBuilder {
     }
 
     pub fn generate(&self, _handles: &HandleManagers) -> Result<Handle, Error> {
-        bail!(CryptoError::UnsupportedOperation)
+        bail!(CryptoError::NotImplemented)
     }
 
     pub fn import(

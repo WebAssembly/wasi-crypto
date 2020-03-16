@@ -151,12 +151,12 @@ impl WasiCryptoCtx {
         _kp_id: &[u8],
         _kp_version: Version,
     ) -> Result<Handle, Error> {
-        bail!(CryptoError::UnsupportedOperation)
+        bail!(CryptoError::UnsupportedFeature)
     }
 
     pub fn signature_keypair_id(&self, kp_handle: Handle) -> Result<(Handle, Version), Error> {
         let _kp = self.handles.signature_keypair.get(kp_handle)?;
-        bail!(CryptoError::UnsupportedOperation)
+        bail!(CryptoError::UnsupportedFeature)
     }
 
     pub fn signature_keypair_invalidate(
@@ -165,7 +165,7 @@ impl WasiCryptoCtx {
         _kp_id: &[u8],
         _kp_version: Version,
     ) -> Result<(), Error> {
-        bail!(CryptoError::UnsupportedOperation)
+        bail!(CryptoError::UnsupportedFeature)
     }
 
     pub fn signature_keypair_export(

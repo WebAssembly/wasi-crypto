@@ -3,7 +3,9 @@
 (typename $crypto_errno
   (enum u16
     $success
-    $unsupported_operation
+    $not_implemented
+    $unsupported_feature
+    $prohibited_operation
     $unsupported_encoding
     $unsupported_algorithm
     $invalid_key
@@ -118,7 +120,7 @@
   )
 
   ;;; Generate a new key pair.
-  ;;; This function may return crypto_errno.unsupported_operation if key
+  ;;; This function may return crypto_errno.unsupported_feature if key
   ;;; generation is not supported by the host for the chosen algorithm.
   (@interface func (export "signature_keypair_generate")
     (param $kp_builder $signature_keypair_builder)
@@ -139,8 +141,9 @@
     (result $handle $signature_keypair)
   )
 
+  ;;; [OPTIONAL IMPORT]
   ;;; Return the key identifier and version, if these are available
-  ;;; or $crypto_errno.unsupported_operation if not.
+  ;;; or $crypto_errno.unsupported_feature if not.
   (@interface func (export "signature_keypair_id")
     (param $kp $signature_keypair)
     (param $kp_id (@witx const_pointer u8))
@@ -150,8 +153,9 @@
     (result $version $version)
   )
 
+  ;;; [OPTIONAL IMPORT]
   ;;; Create a key pair using an opaque key identifier.
-  ;;; Return crypto_errno.unsupported_operation if this operation is not
+  ;;; Return crypto_errno.unsupported_feature if this operation is not
   ;;; supported by the host, and crypto_errno.invalid_key if the identifier
   ;;; is invalid.
   ;;; The version can be an actual version number or $version.latest .
@@ -164,8 +168,9 @@
     (result $handle $signature_keypair)
   )
 
+  ;;; [OPTIONAL IMPORT]
   ;;; Invalidate a key pair given a key identifier and a version.
-  ;;; Return crypto_errno.unsupported_operation if this operation is not
+  ;;; Return crypto_errno.unsupported_feature if this operation is not
   ;;; supported by the host, and crypto_errno.invalid_key if the identifier
   ;;; is invalid.
   ;;; The version can be a actual version number, as well as
@@ -178,9 +183,10 @@
     (result $error $crypto_errno)
   )
 
+  ;;; [OPTIONAL IMPORT]
   ;;; Export the key pair as the given encoding format.
-  ;;; May return crypto_errno.unsupported_operation if this operation is
-  ;;; not supported or crypto_errno.unsupported_encoding if the encoding
+  ;;; May return crypto_errno.prohibited_operation if this operation is
+  ;;; not available or crypto_errno.unsupported_encoding if the encoding
   ;;; is not supported.
   (@interface func (export "signature_keypair_export")
     (param $kp $signature_keypair)
@@ -203,8 +209,7 @@
   )
 
   ;;; Import a public key encoded.
-  ;;; Return crypto_errno.unsupported_operation if this operation is not
-  ;;; supported by the host and crypto_errno.unsupported_encoding if exporting
+  ;;; Return crypto_errno.unsupported_encoding if exporting
   ;;; to the given format is not implemented or if the format is
   ;;; incompatible with the key type.
   (@interface func (export "signature_publickey_import")

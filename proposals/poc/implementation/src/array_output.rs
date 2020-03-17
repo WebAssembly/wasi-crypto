@@ -8,6 +8,10 @@ use super::{HandleManagers, WasiCryptoCtx};
 pub struct ArrayOutput(Cursor<Vec<u8>>);
 
 impl ArrayOutput {
+    fn len(&self) -> usize {
+        self.0.get_ref().len()
+    }
+
     fn pull(&self, buf: &mut [u8]) -> Result<usize, Error> {
         let data = self.0.get_ref();
         let data_len = data.len();
@@ -35,14 +39,19 @@ impl Read for ArrayOutput {
 }
 
 impl WasiCryptoCtx {
+    pub fn array_output_len(&self, array_output_handle: Handle) -> Result<usize, Error> {
+        let array_output = self.handles.array_output.get(array_output_handle)?;
+        Ok(array_output.len())
+    }
+
     pub fn array_output_pull(
         &self,
         array_output_handle: Handle,
         buf: &mut [u8],
     ) -> Result<usize, Error> {
         let array_output = self.handles.array_output.get(array_output_handle)?;
-        let size = array_output.pull(buf)?;
+        let len = array_output.pull(buf)?;
         self.handles.array_output.close(array_output_handle)?;
-        Ok(size)
+        Ok(len)
     }
 }

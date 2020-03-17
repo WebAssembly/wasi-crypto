@@ -1,10 +1,11 @@
+use super::array_output::*;
 use super::ecdsa::*;
 use super::eddsa::*;
 use super::error::*;
 use super::handles::*;
 use super::rsa::*;
 use super::signature_op::*;
-use super::WASI_CRYPTO_CTX;
+use super::{HandleManagers, WasiCryptoCtx};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[repr(u16)]
@@ -26,6 +27,7 @@ pub enum SignaturePublicKey {
 
 impl SignaturePublicKey {
     fn import(
+        handles: &HandleManagers,
         signature_op: Handle,
         encoded: &[u8],
         encoding: PublicKeyEncoding,
@@ -34,7 +36,7 @@ impl SignaturePublicKey {
             PublicKeyEncoding::Raw => {}
             _ => bail!(CryptoError::UnsupportedEncoding),
         }
-        let signature_op = WASI_CRYPTO_CTX.signature_op_manager.get(signature_op)?;
+        let signature_op = handles.signature_op.get(signature_op)?;
         let pk =
             match signature_op {
                 SignatureOp::ECDSA(_) => SignaturePublicKey::ECDSA(
@@ -48,16 +50,20 @@ impl SignaturePublicKey {
                     encoded,
                 )?),
             };
-        let handle = WASI_CRYPTO_CTX.signature_publickey_manager.register(pk)?;
+        let handle = handles.signature_publickey.register(pk)?;
         Ok(handle)
     }
 
-    fn export(pk: Handle, encoding: PublicKeyEncoding) -> Result<Vec<u8>, Error> {
+    fn export(
+        handles: &HandleManagers,
+        pk: Handle,
+        encoding: PublicKeyEncoding,
+    ) -> Result<Vec<u8>, Error> {
         match encoding {
             PublicKeyEncoding::Raw => {}
             _ => bail!(CryptoError::UnsupportedEncoding),
         }
-        let pk = WASI_CRYPTO_CTX.signature_publickey_manager.get(pk)?;
+        let pk = handles.signature_publickey.get(pk)?;
         let raw_pk = match pk {
             SignaturePublicKey::ECDSA(pk) => pk.as_raw()?.to_vec(),
             SignaturePublicKey::EdDSA(pk) => pk.as_raw()?.to_vec(),
@@ -67,29 +73,35 @@ impl SignaturePublicKey {
     }
 
     fn verify(_pk_handle: Handle) -> Result<(), Error> {
-        bail!(CryptoError::UnsupportedOperation)
+        bail!(CryptoError::NotImplemented)
     }
 }
 
-pub fn signature_publickey_import(
-    signature_op: Handle,
-    encoded: &[u8],
-    encoding: PublicKeyEncoding,
-) -> Result<Handle, Error> {
-    SignaturePublicKey::import(signature_op, encoded, encoding)
-}
+impl WasiCryptoCtx {
+    pub fn signature_publickey_import(
+        &self,
+        signature_op: Handle,
+        encoded: &[u8],
+        encoding: PublicKeyEncoding,
+    ) -> Result<Handle, Error> {
+        SignaturePublicKey::import(&self.handles, signature_op, encoded, encoding)
+    }
 
-pub fn signature_publickey_export(
-    pk: Handle,
-    encoding: PublicKeyEncoding,
-) -> Result<Vec<u8>, Error> {
-    SignaturePublicKey::export(pk, encoding)
-}
+    pub fn signature_publickey_export(
+        &self,
+        pk: Handle,
+        encoding: PublicKeyEncoding,
+    ) -> Result<Handle, Error> {
+        let encoded = SignaturePublicKey::export(&self.handles, pk, encoding)?;
+        let array_output_handle = ArrayOutput::register(&self.handles, encoded)?;
+        Ok(array_output_handle)
+    }
 
-pub fn signature_publickey_verify(pk: Handle) -> Result<(), Error> {
-    SignaturePublicKey::verify(pk)
-}
+    pub fn signature_publickey_verify(&self, pk: Handle) -> Result<(), Error> {
+        SignaturePublicKey::verify(pk)
+    }
 
-pub fn signature_publickey_close(handle: Handle) -> Result<(), Error> {
-    WASI_CRYPTO_CTX.signature_publickey_manager.close(handle)
+    pub fn signature_publickey_close(&self, handle: Handle) -> Result<(), Error> {
+        self.handles.signature_publickey.close(handle)
+    }
 }

@@ -59,11 +59,14 @@ impl<HandleType: Clone + Sync> HandlesManagerInner<HandleType> {
             if !self.map.contains_key(&handle) {
                 break;
             }
-            ensure!(handle != self.last_handle, "No more handles");
+            ensure!(handle != self.last_handle, CryptoError::TooManyHandles);
             handle = self.next_handle(self.last_handle);
         }
         self.last_handle = handle;
-        ensure!(self.map.insert(handle, op).is_none(), "Collision");
+        ensure!(
+            self.map.insert(handle, op).is_none(),
+            CryptoError::InternalError
+        );
         Ok(handle)
     }
 

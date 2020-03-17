@@ -6,7 +6,6 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1.0"
-lazy_static = "1.4"
 parking_lot = "0.10"
 ring = "0.16"
 thiserror = "1.0"

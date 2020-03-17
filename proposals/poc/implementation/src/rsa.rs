@@ -7,7 +7,7 @@ use super::error::*;
 use super::handles::*;
 use super::signature::*;
 use super::signature_keypair::*;
-use super::WASI_CRYPTO_CTX;
+use super::HandleManagers;
 
 #[derive(Clone, Copy, Debug)]
 pub struct RSASignatureOp {
@@ -51,7 +51,7 @@ impl RSASignatureKeyPair {
 
     #[allow(dead_code)]
     pub fn generate(_alg: SignatureAlgorithm) -> Result<Self, Error> {
-        bail!(CryptoError::UnsupportedOperation)
+        bail!(CryptoError::NotImplemented)
     }
 
     pub fn raw_public_key(&self) -> &[u8] {
@@ -69,18 +69,23 @@ impl RSASignatureKeyPairBuilder {
         RSASignatureKeyPairBuilder { alg }
     }
 
-    pub fn generate(&self) -> Result<Handle, Error> {
-        bail!(CryptoError::UnsupportedOperation)
+    pub fn generate(&self, _handles: &HandleManagers) -> Result<Handle, Error> {
+        bail!(CryptoError::NotImplemented)
     }
 
-    pub fn import(&self, encoded: &[u8], encoding: KeyPairEncoding) -> Result<Handle, Error> {
+    pub fn import(
+        &self,
+        handles: &HandleManagers,
+        encoded: &[u8],
+        encoding: KeyPairEncoding,
+    ) -> Result<Handle, Error> {
         match encoding {
             KeyPairEncoding::PKCS8 => {}
             _ => bail!(CryptoError::UnsupportedEncoding),
         };
         let kp = RSASignatureKeyPair::from_pkcs8(self.alg, encoded)?;
-        let handle = WASI_CRYPTO_CTX
-            .signature_keypair_manager
+        let handle = handles
+            .signature_keypair
             .register(SignatureKeyPair::RSA(kp))?;
         Ok(handle)
     }

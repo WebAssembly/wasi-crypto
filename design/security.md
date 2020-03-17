@@ -84,9 +84,26 @@ operations involving secrets.
 In order to do so, the API must try to prevent applications from
 performing comparisons themselves.
 
-For example, a MAC operation should not return raw bytes, but a
+In particular, a MAC operation should not return raw bytes, but a
 MAC object. MAC objects can be compared for equality using a dedicated
 function, that will take care of avoiding side channels.
+
+The API should also not leak internal data structures. For example,
+there shouldn't be any ways to get the internal state of a cipher.
+
+In the context of WebAssembly, it also means nothing directly derived
+from pointers to host memory or external linear memories.
+
+A secret should only be referred to using an opaque handle, and
+exporting it should require a dedicated function.
+
+Error codes may end up being sent to untrusted users, and should not
+leak information about secrets either (ex: act as a padding oracle).
+
+The same guarantees are expected from the underlying algorithm
+implementations. Any application using the `wasi-crypto` module can
+thus assume that side channels mitigations have been implemented
+for every single operation exposed by the API.
 
 ### Nonces / IVs
 

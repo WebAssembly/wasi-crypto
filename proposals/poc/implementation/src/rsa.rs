@@ -34,7 +34,7 @@ impl Drop for RSASignatureKeyPair {
 }
 
 impl RSASignatureKeyPair {
-    pub fn from_pkcs8(alg: SignatureAlgorithm, pkcs8: &[u8]) -> Result<Self, Error> {
+    pub fn from_pkcs8(alg: SignatureAlgorithm, pkcs8: &[u8]) -> Result<Self, CryptoError> {
         let ring_kp =
             ring::signature::RsaKeyPair::from_pkcs8(pkcs8).map_err(|_| CryptoError::InvalidKey)?;
         let kp = RSASignatureKeyPair {
@@ -45,12 +45,12 @@ impl RSASignatureKeyPair {
         Ok(kp)
     }
 
-    pub fn as_pkcs8(&self) -> Result<&[u8], Error> {
+    pub fn as_pkcs8(&self) -> Result<&[u8], CryptoError> {
         Ok(&self.pkcs8)
     }
 
     #[allow(dead_code)]
-    pub fn generate(_alg: SignatureAlgorithm) -> Result<Self, Error> {
+    pub fn generate(_alg: SignatureAlgorithm) -> Result<Self, CryptoError> {
         bail!(CryptoError::NotImplemented)
     }
 
@@ -69,7 +69,7 @@ impl RSASignatureKeyPairBuilder {
         RSASignatureKeyPairBuilder { alg }
     }
 
-    pub fn generate(&self, _handles: &HandleManagers) -> Result<Handle, Error> {
+    pub fn generate(&self, _handles: &HandleManagers) -> Result<Handle, CryptoError> {
         bail!(CryptoError::NotImplemented)
     }
 
@@ -78,7 +78,7 @@ impl RSASignatureKeyPairBuilder {
         handles: &HandleManagers,
         encoded: &[u8],
         encoding: KeyPairEncoding,
-    ) -> Result<Handle, Error> {
+    ) -> Result<Handle, CryptoError> {
         match encoding {
             KeyPairEncoding::PKCS8 => {}
             _ => bail!(CryptoError::UnsupportedEncoding),
@@ -119,12 +119,12 @@ impl RSASignatureState {
         }
     }
 
-    pub fn update(&self, input: &[u8]) -> Result<(), Error> {
+    pub fn update(&self, input: &[u8]) -> Result<(), CryptoError> {
         self.input.lock().extend_from_slice(input);
         Ok(())
     }
 
-    pub fn sign(&self) -> Result<RSASignature, Error> {
+    pub fn sign(&self) -> Result<RSASignature, CryptoError> {
         let rng = ring::rand::SystemRandom::new();
         let input = self.input.lock();
         let mut signature_u8 = vec![];
@@ -158,12 +158,12 @@ impl RSASignatureVerificationState {
         }
     }
 
-    pub fn update(&self, input: &[u8]) -> Result<(), Error> {
+    pub fn update(&self, input: &[u8]) -> Result<(), CryptoError> {
         self.input.lock().extend_from_slice(input);
         Ok(())
     }
 
-    pub fn verify(&self, signature: &RSASignature) -> Result<(), Error> {
+    pub fn verify(&self, signature: &RSASignature) -> Result<(), CryptoError> {
         let ring_alg = match self.pk.alg {
             SignatureAlgorithm::RSA_PKCS1_2048_8192_SHA256 => {
                 &ring::signature::RSA_PKCS1_2048_8192_SHA256
@@ -194,7 +194,7 @@ pub struct RSASignaturePublicKey {
 }
 
 impl RSASignaturePublicKey {
-    pub fn from_raw(alg: SignatureAlgorithm, raw: &[u8]) -> Result<Self, Error> {
+    pub fn from_raw(alg: SignatureAlgorithm, raw: &[u8]) -> Result<Self, CryptoError> {
         let pk = RSASignaturePublicKey {
             alg,
             raw: raw.to_vec(),
@@ -202,7 +202,7 @@ impl RSASignaturePublicKey {
         Ok(pk)
     }
 
-    pub fn as_raw(&self) -> Result<&[u8], Error> {
+    pub fn as_raw(&self) -> Result<&[u8], CryptoError> {
         Ok(&self.raw)
     }
 }

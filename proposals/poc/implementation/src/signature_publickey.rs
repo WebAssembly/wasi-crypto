@@ -5,17 +5,34 @@ use super::error::*;
 use super::handles::*;
 use super::rsa::*;
 use super::signature_op::*;
-use super::{HandleManagers, WasiCryptoCtx};
+use super::types as guest_types;
+use super::{CryptoCtx, HandleManagers, WasiCryptoCtx};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[repr(u16)]
 pub enum PublicKeyEncoding {
-    Raw = 1,
-    Hex = 2,
-    Base64Original = 3,
-    Base64OriginalNoPadding = 4,
-    Base64URLSafe = 5,
-    Base64URLSafeNoPadding = 6,
+    Raw,
+    Hex,
+    Base64Original,
+    Base64OriginalNoPadding,
+    Base64URLSafe,
+    Base64URLSafeNoPadding,
+}
+
+impl From<guest_types::PublickeyEncoding> for PublicKeyEncoding {
+    fn from(encoding: guest_types::PublickeyEncoding) -> Self {
+        match encoding {
+            guest_types::PublickeyEncoding::Raw => PublicKeyEncoding::Raw,
+            guest_types::PublickeyEncoding::Hex => PublicKeyEncoding::Hex,
+            guest_types::PublickeyEncoding::Base64Original => PublicKeyEncoding::Base64Original,
+            guest_types::PublickeyEncoding::Base64OriginalNopadding => {
+                PublicKeyEncoding::Base64OriginalNoPadding
+            }
+            guest_types::PublickeyEncoding::Base64Urlsafe => PublicKeyEncoding::Base64URLSafe,
+            guest_types::PublickeyEncoding::Base64UrlsafeNopadding => {
+                PublicKeyEncoding::Base64URLSafeNoPadding
+            }
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -31,7 +48,7 @@ impl SignaturePublicKey {
         signature_op: Handle,
         encoded: &[u8],
         encoding: PublicKeyEncoding,
-    ) -> Result<Handle, Error> {
+    ) -> Result<Handle, CryptoError> {
         match encoding {
             PublicKeyEncoding::Raw => {}
             _ => bail!(CryptoError::UnsupportedEncoding),
@@ -58,7 +75,7 @@ impl SignaturePublicKey {
         handles: &HandleManagers,
         pk: Handle,
         encoding: PublicKeyEncoding,
-    ) -> Result<Vec<u8>, Error> {
+    ) -> Result<Vec<u8>, CryptoError> {
         match encoding {
             PublicKeyEncoding::Raw => {}
             _ => bail!(CryptoError::UnsupportedEncoding),
@@ -72,18 +89,18 @@ impl SignaturePublicKey {
         Ok(raw_pk)
     }
 
-    fn verify(_pk_handle: Handle) -> Result<(), Error> {
+    fn verify(_pk_handle: Handle) -> Result<(), CryptoError> {
         bail!(CryptoError::NotImplemented)
     }
 }
 
-impl WasiCryptoCtx {
+impl CryptoCtx {
     pub fn signature_publickey_import(
         &self,
         signature_op: Handle,
         encoded: &[u8],
         encoding: PublicKeyEncoding,
-    ) -> Result<Handle, Error> {
+    ) -> Result<Handle, CryptoError> {
         SignaturePublicKey::import(&self.handles, signature_op, encoded, encoding)
     }
 
@@ -91,17 +108,63 @@ impl WasiCryptoCtx {
         &self,
         pk: Handle,
         encoding: PublicKeyEncoding,
-    ) -> Result<Handle, Error> {
+    ) -> Result<Handle, CryptoError> {
         let encoded = SignaturePublicKey::export(&self.handles, pk, encoding)?;
         let array_output_handle = ArrayOutput::register(&self.handles, encoded)?;
         Ok(array_output_handle)
     }
 
-    pub fn signature_publickey_verify(&self, pk: Handle) -> Result<(), Error> {
+    pub fn signature_publickey_verify(&self, pk: Handle) -> Result<(), CryptoError> {
         SignaturePublicKey::verify(pk)
     }
 
-    pub fn signature_publickey_close(&self, handle: Handle) -> Result<(), Error> {
-        self.handles.signature_publickey.close(handle)
+    pub fn signature_publickey_close(&self, pk: Handle) -> Result<(), CryptoError> {
+        self.handles.signature_publickey.close(pk)
+    }
+}
+
+impl WasiCryptoCtx {
+    pub fn signature_publickey_import(
+        &self,
+        signature_op: guest_types::SignatureOp,
+        encoded_ptr: wiggle_runtime::GuestPtr<'_, u8>,
+        encoded_len: guest_types::Size,
+        encoding: guest_types::PublickeyEncoding,
+    ) -> Result<guest_types::SignaturePublickey, CryptoError> {
+        let mut guest_borrow = wiggle_runtime::GuestBorrows::new();
+        let encoded: &[u8] = unsafe {
+            &*encoded_ptr
+                .as_array(encoded_len as _)
+                .as_raw(&mut guest_borrow)?
+        };
+        Ok(self
+            .ctx
+            .signature_publickey_import(signature_op.into(), encoded, encoding.into())?
+            .into())
+    }
+
+    pub fn signature_publickey_export(
+        &self,
+        pk: guest_types::SignaturePublickey,
+        encoding: guest_types::PublickeyEncoding,
+    ) -> Result<guest_types::ArrayOutput, CryptoError> {
+        Ok(self
+            .ctx
+            .signature_publickey_export(pk.into(), encoding.into())?
+            .into())
+    }
+
+    pub fn signature_publickey_verify(
+        &self,
+        pk: guest_types::SignaturePublickey,
+    ) -> Result<(), CryptoError> {
+        Ok(self.ctx.signature_publickey_verify(pk.into())?.into())
+    }
+
+    pub fn signature_publickey_close(
+        &self,
+        pk: guest_types::SignaturePublickey,
+    ) -> Result<(), CryptoError> {
+        Ok(self.ctx.signature_publickey_close(pk.into())?.into())
     }
 }

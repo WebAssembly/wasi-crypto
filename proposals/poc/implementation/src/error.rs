@@ -1,7 +1,14 @@
-pub use anyhow::{bail, ensure, Error};
+use super::types as guest_types;
+use super::WasiCryptoCtx;
+
+pub use anyhow::Error;
 
 #[derive(thiserror::Error, Debug)]
 pub enum CryptoError {
+    #[error("Success")]
+    Success,
+    #[error("Guest error")]
+    GuestError(#[from] wiggle_runtime::GuestError),
     #[error("Not implemented")]
     NotImplemented,
     #[error("Unsupported feature")]
@@ -34,45 +41,71 @@ pub enum CryptoError {
     TooManyHandles,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[repr(u16)]
-pub enum WasiCryptoError {
-    Success = 0,
-    NotImplemented = 1,
-    UnsupportedFeature = 2,
-    ProhibitedOperation = 3,
-    UnsupportedEncoding = 4,
-    UnsupportedAlgorithm = 5,
-    InvalidKey = 6,
-    VerificationFailed = 7,
-    RNGError = 8,
-    AlgorithmFailure = 9,
-    InvalidSignature = 10,
-    Closed = 11,
-    InvalidHandle = 12,
-    Overflow = 13,
-    InternalError = 14,
-    TooManyHandles = 15,
+impl From<CryptoError> for guest_types::CryptoErrno {
+    fn from(e: CryptoError) -> Self {
+        match e {
+            CryptoError::Success => guest_types::CryptoErrno::Success,
+            CryptoError::GuestError(_wiggle_runtime) => guest_types::CryptoErrno::GuestError,
+            CryptoError::NotImplemented => guest_types::CryptoErrno::NotImplemented,
+            CryptoError::UnsupportedFeature => guest_types::CryptoErrno::UnsupportedFeature,
+            CryptoError::ProhibitedOperation => guest_types::CryptoErrno::ProhibitedOperation,
+            CryptoError::UnsupportedEncoding => guest_types::CryptoErrno::UnsupportedEncoding,
+            CryptoError::UnsupportedAlgorithm => guest_types::CryptoErrno::UnsupportedAlgorithm,
+            CryptoError::InvalidKey => guest_types::CryptoErrno::InvalidKey,
+            CryptoError::VerificationFailed => guest_types::CryptoErrno::VerificationFailed,
+            CryptoError::RNGError => guest_types::CryptoErrno::RngError,
+            CryptoError::AlgorithmFailure => guest_types::CryptoErrno::AlgorithmFailure,
+            CryptoError::InvalidSignature => guest_types::CryptoErrno::InvalidSignature,
+            CryptoError::Closed => guest_types::CryptoErrno::Closed,
+            CryptoError::InvalidHandle => guest_types::CryptoErrno::InvalidHandle,
+            CryptoError::Overflow => guest_types::CryptoErrno::Overflow,
+            CryptoError::InternalError => guest_types::CryptoErrno::InternalError,
+            CryptoError::TooManyHandles => guest_types::CryptoErrno::TooManyHandles,
+        }
+    }
 }
 
-impl CryptoError {
-    pub fn as_raw_errno(&self) -> WasiCryptoError {
-        match self {
-            CryptoError::NotImplemented => WasiCryptoError::NotImplemented,
-            CryptoError::UnsupportedFeature => WasiCryptoError::UnsupportedFeature,
-            CryptoError::ProhibitedOperation => WasiCryptoError::ProhibitedOperation,
-            CryptoError::UnsupportedEncoding => WasiCryptoError::UnsupportedEncoding,
-            CryptoError::UnsupportedAlgorithm => WasiCryptoError::UnsupportedAlgorithm,
-            CryptoError::InvalidKey => WasiCryptoError::InvalidKey,
-            CryptoError::VerificationFailed => WasiCryptoError::VerificationFailed,
-            CryptoError::RNGError => WasiCryptoError::RNGError,
-            CryptoError::AlgorithmFailure => WasiCryptoError::AlgorithmFailure,
-            CryptoError::InvalidSignature => WasiCryptoError::InvalidSignature,
-            CryptoError::Closed => WasiCryptoError::Closed,
-            CryptoError::InvalidHandle => WasiCryptoError::InvalidHandle,
-            CryptoError::Overflow => WasiCryptoError::Overflow,
-            CryptoError::InternalError => WasiCryptoError::InternalError,
-            CryptoError::TooManyHandles => WasiCryptoError::TooManyHandles,
+#[macro_export]
+macro_rules! ensure {
+    ($cond:expr, $err:expr $(,)?) => {
+        if !$cond {
+            return Err($err);
         }
+    };
+    ($cond:expr, $fmt:expr, $($arg:tt)*) => {
+        if !$cond {
+            return Err($fmt, $($arg)*);
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! bail {
+    ($err:expr $(,)?) => {
+        return Err($err);
+    };
+    ($fmt:expr, $($arg:tt)*) => {
+        return Err($fmt, $($arg)*);
+    };
+}
+
+pub use {bail, ensure};
+
+impl From<CryptoError> for i32 {
+    fn from(e: CryptoError) -> Self {
+        e.into()
+    }
+}
+
+impl<'a> wiggle_runtime::GuestErrorType<'a> for guest_types::CryptoErrno {
+    type Context = WasiCryptoCtx;
+
+    fn success() -> Self {
+        guest_types::CryptoErrno::Success
+    }
+
+    fn from_error(e: wiggle_runtime::GuestError, _ctx: &Self::Context) -> Self {
+        eprintln!("GUEST ERROR: {:?}", e);
+        guest_types::CryptoErrno::GuestError
     }
 }

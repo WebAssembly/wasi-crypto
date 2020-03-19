@@ -2,7 +2,8 @@ use std::io::{Cursor, Read};
 
 use super::error::*;
 use super::handles::*;
-use super::{HandleManagers, WasiCryptoCtx};
+use super::types as guest_types;
+use super::{CryptoCtx, HandleManagers, WasiCryptoCtx};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ArrayOutput(Cursor<Vec<u8>>);
@@ -12,7 +13,7 @@ impl ArrayOutput {
         self.0.get_ref().len()
     }
 
-    fn pull(&self, buf: &mut [u8]) -> Result<usize, Error> {
+    fn pull(&self, buf: &mut [u8]) -> Result<usize, CryptoError> {
         let data = self.0.get_ref();
         let data_len = data.len();
         let buf_len = buf.len();
@@ -25,7 +26,7 @@ impl ArrayOutput {
         ArrayOutput(Cursor::new(data))
     }
 
-    pub fn register(handles: &HandleManagers, data: Vec<u8>) -> Result<Handle, Error> {
+    pub fn register(handles: &HandleManagers, data: Vec<u8>) -> Result<Handle, CryptoError> {
         let array_output = ArrayOutput::new(data);
         let handle = handles.array_output.register(array_output)?;
         Ok(handle)
@@ -38,8 +39,8 @@ impl Read for ArrayOutput {
     }
 }
 
-impl WasiCryptoCtx {
-    pub fn array_output_len(&self, array_output_handle: Handle) -> Result<usize, Error> {
+impl CryptoCtx {
+    pub fn array_output_len(&self, array_output_handle: Handle) -> Result<usize, CryptoError> {
         let array_output = self.handles.array_output.get(array_output_handle)?;
         Ok(array_output.len())
     }
@@ -48,10 +49,31 @@ impl WasiCryptoCtx {
         &self,
         array_output_handle: Handle,
         buf: &mut [u8],
-    ) -> Result<usize, Error> {
+    ) -> Result<usize, CryptoError> {
         let array_output = self.handles.array_output.get(array_output_handle)?;
         let len = array_output.pull(buf)?;
         self.handles.array_output.close(array_output_handle)?;
         Ok(len)
+    }
+}
+
+impl WasiCryptoCtx {
+    pub fn array_output_len(
+        &self,
+        array_output_handle: guest_types::ArrayOutput,
+    ) -> Result<usize, CryptoError> {
+        self.ctx.array_output_len(array_output_handle.into())
+    }
+
+    pub fn array_output_pull(
+        &self,
+        array_output_handle: guest_types::ArrayOutput,
+        buf_ptr: wiggle_runtime::GuestPtr<'_, u8>,
+        buf_len: guest_types::Size,
+    ) -> Result<usize, CryptoError> {
+        let mut guest_borrow = wiggle_runtime::GuestBorrows::new();
+        let buf: &mut [u8] =
+            unsafe { &mut *buf_ptr.as_array(buf_len as _).as_raw(&mut guest_borrow)? };
+        self.ctx.array_output_pull(array_output_handle.into(), buf)
     }
 }

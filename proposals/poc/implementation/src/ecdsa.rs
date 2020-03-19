@@ -36,7 +36,7 @@ impl Drop for ECDSASignatureKeyPair {
 impl ECDSASignatureKeyPair {
     fn ring_alg_from_alg(
         alg: SignatureAlgorithm,
-    ) -> Result<&'static ring::signature::EcdsaSigningAlgorithm, Error> {
+    ) -> Result<&'static ring::signature::EcdsaSigningAlgorithm, CryptoError> {
         let ring_alg = match alg {
             SignatureAlgorithm::ECDSA_P256_SHA256 => {
                 &ring::signature::ECDSA_P256_SHA256_FIXED_SIGNING
@@ -49,7 +49,7 @@ impl ECDSASignatureKeyPair {
         Ok(ring_alg)
     }
 
-    pub fn from_pkcs8(alg: SignatureAlgorithm, pkcs8: &[u8]) -> Result<Self, Error> {
+    pub fn from_pkcs8(alg: SignatureAlgorithm, pkcs8: &[u8]) -> Result<Self, CryptoError> {
         let ring_alg = Self::ring_alg_from_alg(alg)?;
         let ring_kp = ring::signature::EcdsaKeyPair::from_pkcs8(ring_alg, pkcs8)
             .map_err(|_| CryptoError::InvalidKey)?;
@@ -61,11 +61,11 @@ impl ECDSASignatureKeyPair {
         Ok(kp)
     }
 
-    pub fn as_pkcs8(&self) -> Result<&[u8], Error> {
+    pub fn as_pkcs8(&self) -> Result<&[u8], CryptoError> {
         Ok(&self.pkcs8)
     }
 
-    pub fn generate(alg: SignatureAlgorithm) -> Result<Self, Error> {
+    pub fn generate(alg: SignatureAlgorithm) -> Result<Self, CryptoError> {
         let ring_alg = Self::ring_alg_from_alg(alg)?;
         let rng = ring::rand::SystemRandom::new();
         let pkcs8 = ring::signature::EcdsaKeyPair::generate_pkcs8(ring_alg, &rng)
@@ -88,7 +88,7 @@ impl ECDSASignatureKeyPairBuilder {
         ECDSASignatureKeyPairBuilder { alg }
     }
 
-    pub fn generate(&self, handles: &HandleManagers) -> Result<Handle, Error> {
+    pub fn generate(&self, handles: &HandleManagers) -> Result<Handle, CryptoError> {
         let kp = ECDSASignatureKeyPair::generate(self.alg)?;
         let handle = handles
             .signature_keypair
@@ -101,7 +101,7 @@ impl ECDSASignatureKeyPairBuilder {
         handles: &HandleManagers,
         encoded: &[u8],
         encoding: KeyPairEncoding,
-    ) -> Result<Handle, Error> {
+    ) -> Result<Handle, CryptoError> {
         match encoding {
             KeyPairEncoding::PKCS8 => {}
             _ => bail!(CryptoError::UnsupportedEncoding),
@@ -146,12 +146,12 @@ impl ECDSASignatureState {
         }
     }
 
-    pub fn update(&self, input: &[u8]) -> Result<(), Error> {
+    pub fn update(&self, input: &[u8]) -> Result<(), CryptoError> {
         self.input.lock().extend_from_slice(input);
         Ok(())
     }
 
-    pub fn sign(&self) -> Result<ECDSASignature, Error> {
+    pub fn sign(&self) -> Result<ECDSASignature, CryptoError> {
         let rng = ring::rand::SystemRandom::new();
         let input = self.input.lock();
         let encoded_signature = self
@@ -180,12 +180,12 @@ impl ECDSASignatureVerificationState {
         }
     }
 
-    pub fn update(&self, input: &[u8]) -> Result<(), Error> {
+    pub fn update(&self, input: &[u8]) -> Result<(), CryptoError> {
         self.input.lock().extend_from_slice(input);
         Ok(())
     }
 
-    pub fn verify(&self, signature: &ECDSASignature) -> Result<(), Error> {
+    pub fn verify(&self, signature: &ECDSASignature) -> Result<(), CryptoError> {
         let ring_alg = match (self.pk.alg, signature.encoding) {
             (SignatureAlgorithm::ECDSA_P256_SHA256, SignatureEncoding::Raw) => {
                 &ring::signature::ECDSA_P256_SHA256_FIXED
@@ -216,7 +216,7 @@ pub struct ECDSASignaturePublicKey {
 }
 
 impl ECDSASignaturePublicKey {
-    pub fn from_raw(alg: SignatureAlgorithm, raw: &[u8]) -> Result<Self, Error> {
+    pub fn from_raw(alg: SignatureAlgorithm, raw: &[u8]) -> Result<Self, CryptoError> {
         let pk = ECDSASignaturePublicKey {
             alg,
             raw: raw.to_vec(),
@@ -224,7 +224,7 @@ impl ECDSASignaturePublicKey {
         Ok(pk)
     }
 
-    pub fn as_raw(&self) -> Result<&[u8], Error> {
+    pub fn as_raw(&self) -> Result<&[u8], CryptoError> {
         Ok(&self.raw)
     }
 }

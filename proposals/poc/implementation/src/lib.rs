@@ -25,11 +25,11 @@ pub use signature_publickey::PublicKeyEncoding;
 #[allow(unused)]
 static REBUILD_IF_WITX_FILE_IS_UPDATED: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/../witx/wasi_ephemeral_crypto.witx"
+    "/../witx/proposal_signatures.witx"
 ));
 
 wiggle::from_witx!({
-    witx: ["../witx/wasi_ephemeral_crypto.witx"],
+    witx: ["../witx/proposal_signatures.witx"],
     ctx: WasiCryptoCtx
 });
 

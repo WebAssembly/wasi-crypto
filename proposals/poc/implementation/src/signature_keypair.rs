@@ -33,36 +33,36 @@ impl From<Version> for guest_types::Version {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum KeyPairEncoding {
     Raw,
-    PKCS8,
-    DER,
-    PEM,
+    Pkcs8,
+    Der,
+    Pem,
 }
 
 impl From<guest_types::KeypairEncoding> for KeyPairEncoding {
     fn from(encoding: guest_types::KeypairEncoding) -> Self {
         match encoding {
             guest_types::KeypairEncoding::Raw => KeyPairEncoding::Raw,
-            guest_types::KeypairEncoding::Pkcs8 => KeyPairEncoding::PKCS8,
-            guest_types::KeypairEncoding::Der => KeyPairEncoding::DER,
-            guest_types::KeypairEncoding::Pem => KeyPairEncoding::PEM,
+            guest_types::KeypairEncoding::Pkcs8 => KeyPairEncoding::Pkcs8,
+            guest_types::KeypairEncoding::Der => KeyPairEncoding::Der,
+            guest_types::KeypairEncoding::Pem => KeyPairEncoding::Pem,
         }
     }
 }
 
 #[derive(Clone, Debug)]
 pub enum SignatureKeyPair {
-    ECDSA(ECDSASignatureKeyPair),
-    EdDSA(EdDSASignatureKeyPair),
-    RSA(RSASignatureKeyPair),
+    Ecdsa(EcdsaSignatureKeyPair),
+    Eddsa(EddsaSignatureKeyPair),
+    Rsa(RsaSignatureKeyPair),
 }
 
 impl SignatureKeyPair {
     fn export(&self, encoding: KeyPairEncoding) -> Result<Vec<u8>, CryptoError> {
         let encoded = match encoding {
-            KeyPairEncoding::PKCS8 => match self {
-                SignatureKeyPair::ECDSA(kp) => kp.as_pkcs8()?.to_vec(),
-                SignatureKeyPair::EdDSA(kp) => kp.as_pkcs8()?.to_vec(),
-                SignatureKeyPair::RSA(kp) => kp.as_pkcs8()?.to_vec(),
+            KeyPairEncoding::Pkcs8 => match self {
+                SignatureKeyPair::Ecdsa(kp) => kp.as_pkcs8()?.to_vec(),
+                SignatureKeyPair::Eddsa(kp) => kp.as_pkcs8()?.to_vec(),
+                SignatureKeyPair::Rsa(kp) => kp.as_pkcs8()?.to_vec(),
             },
             _ => bail!(CryptoError::UnsupportedEncoding),
         };
@@ -75,9 +75,9 @@ impl SignatureKeyPair {
     ) -> Result<Handle, CryptoError> {
         let kp_builder = handles.signature_keypair_builder.get(kp_builder_handle)?;
         let handle = match kp_builder {
-            SignatureKeyPairBuilder::ECDSA(kp_builder) => kp_builder.generate(handles)?,
-            SignatureKeyPairBuilder::EdDSA(kp_builder) => kp_builder.generate(handles)?,
-            SignatureKeyPairBuilder::RSA(kp_builder) => kp_builder.generate(handles)?,
+            SignatureKeyPairBuilder::Ecdsa(kp_builder) => kp_builder.generate(handles)?,
+            SignatureKeyPairBuilder::Eddsa(kp_builder) => kp_builder.generate(handles)?,
+            SignatureKeyPairBuilder::Rsa(kp_builder) => kp_builder.generate(handles)?,
         };
         Ok(handle)
     }
@@ -90,13 +90,13 @@ impl SignatureKeyPair {
     ) -> Result<Handle, CryptoError> {
         let kp_builder = handles.signature_keypair_builder.get(kp_builder_handle)?;
         let handle = match kp_builder {
-            SignatureKeyPairBuilder::ECDSA(kp_builder) => {
+            SignatureKeyPairBuilder::Ecdsa(kp_builder) => {
                 kp_builder.import(handles, encoded, encoding)?
             }
-            SignatureKeyPairBuilder::EdDSA(kp_builder) => {
+            SignatureKeyPairBuilder::Eddsa(kp_builder) => {
                 kp_builder.import(handles, encoded, encoding)?
             }
-            SignatureKeyPairBuilder::RSA(kp_builder) => {
+            SignatureKeyPairBuilder::Rsa(kp_builder) => {
                 kp_builder.import(handles, encoded, encoding)?
             }
         };
@@ -105,17 +105,17 @@ impl SignatureKeyPair {
 
     fn public_key(&self, handles: &HandleManagers) -> Result<Handle, CryptoError> {
         let pk = match self {
-            SignatureKeyPair::ECDSA(kp) => {
+            SignatureKeyPair::Ecdsa(kp) => {
                 let raw_pk = kp.raw_public_key();
-                SignaturePublicKey::ECDSA(ECDSASignaturePublicKey::from_raw(kp.alg, raw_pk)?)
+                SignaturePublicKey::Ecdsa(EcdsaSignaturePublicKey::from_raw(kp.alg, raw_pk)?)
             }
-            SignatureKeyPair::EdDSA(kp) => {
+            SignatureKeyPair::Eddsa(kp) => {
                 let raw_pk = kp.raw_public_key();
-                SignaturePublicKey::EdDSA(EdDSASignaturePublicKey::from_raw(kp.alg, raw_pk)?)
+                SignaturePublicKey::Eddsa(EddsaSignaturePublicKey::from_raw(kp.alg, raw_pk)?)
             }
-            SignatureKeyPair::RSA(kp) => {
+            SignatureKeyPair::Rsa(kp) => {
                 let raw_pk = kp.raw_public_key();
-                SignaturePublicKey::RSA(RSASignaturePublicKey::from_raw(kp.alg, raw_pk)?)
+                SignaturePublicKey::Rsa(RsaSignaturePublicKey::from_raw(kp.alg, raw_pk)?)
             }
         };
         let handle = handles.signature_publickey.register(pk)?;
@@ -125,23 +125,23 @@ impl SignatureKeyPair {
 
 #[derive(Clone, Copy, Debug)]
 pub enum SignatureKeyPairBuilder {
-    ECDSA(ECDSASignatureKeyPairBuilder),
-    EdDSA(EdDSASignatureKeyPairBuilder),
-    RSA(RSASignatureKeyPairBuilder),
+    Ecdsa(EcdsaSignatureKeyPairBuilder),
+    Eddsa(EddsaSignatureKeyPairBuilder),
+    Rsa(RsaSignatureKeyPairBuilder),
 }
 
 impl SignatureKeyPairBuilder {
     fn open(handles: &HandleManagers, op_handle: Handle) -> Result<Handle, CryptoError> {
         let signature_op = handles.signature_op.get(op_handle)?;
         let kp_builder = match signature_op {
-            SignatureOp::ECDSA(_) => SignatureKeyPairBuilder::ECDSA(
-                ECDSASignatureKeyPairBuilder::new(signature_op.alg()),
+            SignatureOp::Ecdsa(_) => SignatureKeyPairBuilder::Ecdsa(
+                EcdsaSignatureKeyPairBuilder::new(signature_op.alg()),
             ),
-            SignatureOp::EdDSA(_) => SignatureKeyPairBuilder::EdDSA(
-                EdDSASignatureKeyPairBuilder::new(signature_op.alg()),
+            SignatureOp::Eddsa(_) => SignatureKeyPairBuilder::Eddsa(
+                EddsaSignatureKeyPairBuilder::new(signature_op.alg()),
             ),
-            SignatureOp::RSA(_) => {
-                SignatureKeyPairBuilder::RSA(RSASignatureKeyPairBuilder::new(signature_op.alg()))
+            SignatureOp::Rsa(_) => {
+                SignatureKeyPairBuilder::Rsa(RsaSignatureKeyPairBuilder::new(signature_op.alg()))
             }
         };
         let handle = handles.signature_keypair_builder.register(kp_builder)?;

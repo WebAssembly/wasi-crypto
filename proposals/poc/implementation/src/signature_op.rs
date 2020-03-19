@@ -9,39 +9,39 @@ use super::{CryptoCtx, HandleManagers, WasiCryptoCtx};
 
 #[derive(Clone, Copy, Debug)]
 pub enum SignatureOp {
-    ECDSA(ECDSASignatureOp),
-    EdDSA(EdDSASignatureOp),
-    RSA(RSASignatureOp),
+    Ecdsa(EcdsaSignatureOp),
+    Eddsa(EddsaSignatureOp),
+    Rsa(RsaSignatureOp),
 }
 
 impl SignatureOp {
     pub fn alg(self) -> SignatureAlgorithm {
         match self {
-            SignatureOp::ECDSA(op) => op.alg,
-            SignatureOp::EdDSA(op) => op.alg,
-            SignatureOp::RSA(op) => op.alg,
+            SignatureOp::Ecdsa(op) => op.alg,
+            SignatureOp::Eddsa(op) => op.alg,
+            SignatureOp::Rsa(op) => op.alg,
         }
     }
 
     fn open(handles: &HandleManagers, alg_str: &str) -> Result<Handle, CryptoError> {
         let signature_op = match alg_str {
             "ECDSA_P256_SHA256" => {
-                SignatureOp::ECDSA(ECDSASignatureOp::new(SignatureAlgorithm::ECDSA_P256_SHA256))
+                SignatureOp::Ecdsa(EcdsaSignatureOp::new(SignatureAlgorithm::ECDSA_P256_SHA256))
             }
             "ECDSA_P384_SHA384" => {
-                SignatureOp::ECDSA(ECDSASignatureOp::new(SignatureAlgorithm::ECDSA_P384_SHA384))
+                SignatureOp::Ecdsa(EcdsaSignatureOp::new(SignatureAlgorithm::ECDSA_P384_SHA384))
             }
-            "Ed25519" => SignatureOp::EdDSA(EdDSASignatureOp::new(SignatureAlgorithm::Ed25519)),
-            "RSA_PKCS1_2048_8192_SHA256" => SignatureOp::RSA(RSASignatureOp::new(
+            "Ed25519" => SignatureOp::Eddsa(EddsaSignatureOp::new(SignatureAlgorithm::Ed25519)),
+            "RSA_PKCS1_2048_8192_SHA256" => SignatureOp::Rsa(RsaSignatureOp::new(
                 SignatureAlgorithm::RSA_PKCS1_2048_8192_SHA256,
             )),
-            "RSA_PKCS1_2048_8192_SHA384" => SignatureOp::RSA(RSASignatureOp::new(
+            "RSA_PKCS1_2048_8192_SHA384" => SignatureOp::Rsa(RsaSignatureOp::new(
                 SignatureAlgorithm::RSA_PKCS1_2048_8192_SHA384,
             )),
-            "RSA_PKCS1_2048_8192_SHA512" => SignatureOp::RSA(RSASignatureOp::new(
+            "RSA_PKCS1_2048_8192_SHA512" => SignatureOp::Rsa(RsaSignatureOp::new(
                 SignatureAlgorithm::RSA_PKCS1_2048_8192_SHA512,
             )),
-            "RSA_PKCS1_3072_8192_SHA384" => SignatureOp::RSA(RSASignatureOp::new(
+            "RSA_PKCS1_3072_8192_SHA384" => SignatureOp::Rsa(RsaSignatureOp::new(
                 SignatureAlgorithm::RSA_PKCS1_3072_8192_SHA384,
             )),
             _ => bail!(CryptoError::UnsupportedAlgorithm),

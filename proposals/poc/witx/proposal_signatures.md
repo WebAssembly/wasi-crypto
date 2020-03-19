@@ -56,11 +56,11 @@
 
 - <a href="#publickey_encoding.base64_original" name="publickey_encoding.base64_original"></a> `base64_original`
 
-- <a href="#publickey_encoding.base64_original_nopadding" name="publickey_encoding.base64_original_nopadding"></a> `base64_original_nopadding`
+- <a href="#publickey_encoding.base64_original_no_padding" name="publickey_encoding.base64_original_no_padding"></a> `base64_original_no_padding`
 
-- <a href="#publickey_encoding.base64_urlsafe" name="publickey_encoding.base64_urlsafe"></a> `base64_urlsafe`
+- <a href="#publickey_encoding.base64_url_safe" name="publickey_encoding.base64_url_safe"></a> `base64_url_safe`
 
-- <a href="#publickey_encoding.base64_urlsafe_nopadding" name="publickey_encoding.base64_urlsafe_nopadding"></a> `base64_urlsafe_nopadding`
+- <a href="#publickey_encoding.base64_url_safe_no_padding" name="publickey_encoding.base64_url_safe_no_padding"></a> `base64_url_safe_no_padding`
 
 ## <a href="#signature_encoding" name="signature_encoding"></a> `signature_encoding`: Enum(`u16`)
 
@@ -71,11 +71,11 @@
 
 - <a href="#signature_encoding.base64_original" name="signature_encoding.base64_original"></a> `base64_original`
 
-- <a href="#signature_encoding.base64_original_nopadding" name="signature_encoding.base64_original_nopadding"></a> `base64_original_nopadding`
+- <a href="#signature_encoding.base64_original_no_padding" name="signature_encoding.base64_original_no_padding"></a> `base64_original_no_padding`
 
-- <a href="#signature_encoding.base64_urlsafe" name="signature_encoding.base64_urlsafe"></a> `base64_urlsafe`
+- <a href="#signature_encoding.base64_url_safe" name="signature_encoding.base64_url_safe"></a> `base64_url_safe`
 
-- <a href="#signature_encoding.base64_urlsafe_nopadding" name="signature_encoding.base64_urlsafe_nopadding"></a> `base64_urlsafe_nopadding`
+- <a href="#signature_encoding.base64_url_safe_no_padding" name="signature_encoding.base64_url_safe_no_padding"></a> `base64_url_safe_no_padding`
 
 - <a href="#signature_encoding.der" name="signature_encoding.der"></a> `der`
 

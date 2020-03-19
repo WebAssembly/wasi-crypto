@@ -10,30 +10,30 @@ use super::signature_keypair::*;
 use super::HandleManagers;
 
 #[derive(Clone, Copy, Debug)]
-pub struct ECDSASignatureOp {
+pub struct EcdsaSignatureOp {
     pub alg: SignatureAlgorithm,
 }
 
-impl ECDSASignatureOp {
+impl EcdsaSignatureOp {
     pub fn new(alg: SignatureAlgorithm) -> Self {
-        ECDSASignatureOp { alg }
+        EcdsaSignatureOp { alg }
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct ECDSASignatureKeyPair {
+pub struct EcdsaSignatureKeyPair {
     pub alg: SignatureAlgorithm,
     pub pkcs8: Vec<u8>,
     pub ring_kp: Arc<ring::signature::EcdsaKeyPair>,
 }
 
-impl Drop for ECDSASignatureKeyPair {
+impl Drop for EcdsaSignatureKeyPair {
     fn drop(&mut self) {
         self.pkcs8.zeroize();
     }
 }
 
-impl ECDSASignatureKeyPair {
+impl EcdsaSignatureKeyPair {
     fn ring_alg_from_alg(
         alg: SignatureAlgorithm,
     ) -> Result<&'static ring::signature::EcdsaSigningAlgorithm, CryptoError> {
@@ -53,7 +53,7 @@ impl ECDSASignatureKeyPair {
         let ring_alg = Self::ring_alg_from_alg(alg)?;
         let ring_kp = ring::signature::EcdsaKeyPair::from_pkcs8(ring_alg, pkcs8)
             .map_err(|_| CryptoError::InvalidKey)?;
-        let kp = ECDSASignatureKeyPair {
+        let kp = EcdsaSignatureKeyPair {
             alg,
             pkcs8: pkcs8.to_vec(),
             ring_kp: Arc::new(ring_kp),
@@ -79,20 +79,20 @@ impl ECDSASignatureKeyPair {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct ECDSASignatureKeyPairBuilder {
+pub struct EcdsaSignatureKeyPairBuilder {
     pub alg: SignatureAlgorithm,
 }
 
-impl ECDSASignatureKeyPairBuilder {
+impl EcdsaSignatureKeyPairBuilder {
     pub fn new(alg: SignatureAlgorithm) -> Self {
-        ECDSASignatureKeyPairBuilder { alg }
+        EcdsaSignatureKeyPairBuilder { alg }
     }
 
     pub fn generate(&self, handles: &HandleManagers) -> Result<Handle, CryptoError> {
-        let kp = ECDSASignatureKeyPair::generate(self.alg)?;
+        let kp = EcdsaSignatureKeyPair::generate(self.alg)?;
         let handle = handles
             .signature_keypair
-            .register(SignatureKeyPair::ECDSA(kp))?;
+            .register(SignatureKeyPair::Ecdsa(kp))?;
         Ok(handle)
     }
 
@@ -103,44 +103,44 @@ impl ECDSASignatureKeyPairBuilder {
         encoding: KeyPairEncoding,
     ) -> Result<Handle, CryptoError> {
         match encoding {
-            KeyPairEncoding::PKCS8 => {}
+            KeyPairEncoding::Pkcs8 => {}
             _ => bail!(CryptoError::UnsupportedEncoding),
         };
-        let kp = ECDSASignatureKeyPair::from_pkcs8(self.alg, encoded)?;
+        let kp = EcdsaSignatureKeyPair::from_pkcs8(self.alg, encoded)?;
         let handle = handles
             .signature_keypair
-            .register(SignatureKeyPair::ECDSA(kp))?;
+            .register(SignatureKeyPair::Ecdsa(kp))?;
         Ok(handle)
     }
 }
 
 #[derive(Debug)]
-pub struct ECDSASignatureState {
-    pub kp: ECDSASignatureKeyPair,
+pub struct EcdsaSignatureState {
+    pub kp: EcdsaSignatureKeyPair,
     pub input: Mutex<Vec<u8>>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ECDSASignature {
+pub struct EcdsaSignature {
     pub encoding: SignatureEncoding,
     pub encoded: Vec<u8>,
 }
 
-impl AsRef<[u8]> for ECDSASignature {
+impl AsRef<[u8]> for EcdsaSignature {
     fn as_ref(&self) -> &[u8] {
         &self.encoded
     }
 }
 
-impl ECDSASignature {
+impl EcdsaSignature {
     pub fn new(encoding: SignatureEncoding, encoded: Vec<u8>) -> Self {
-        ECDSASignature { encoding, encoded }
+        EcdsaSignature { encoding, encoded }
     }
 }
 
-impl ECDSASignatureState {
-    pub fn new(kp: ECDSASignatureKeyPair) -> Self {
-        ECDSASignatureState {
+impl EcdsaSignatureState {
+    pub fn new(kp: EcdsaSignatureKeyPair) -> Self {
+        EcdsaSignatureState {
             kp,
             input: Mutex::new(vec![]),
         }
@@ -151,7 +151,7 @@ impl ECDSASignatureState {
         Ok(())
     }
 
-    pub fn sign(&self) -> Result<ECDSASignature, CryptoError> {
+    pub fn sign(&self) -> Result<EcdsaSignature, CryptoError> {
         let rng = ring::rand::SystemRandom::new();
         let input = self.input.lock();
         let encoded_signature = self
@@ -161,20 +161,20 @@ impl ECDSASignatureState {
             .map_err(|_| CryptoError::AlgorithmFailure)?
             .as_ref()
             .to_vec();
-        let signature = ECDSASignature::new(SignatureEncoding::Raw, encoded_signature);
+        let signature = EcdsaSignature::new(SignatureEncoding::Raw, encoded_signature);
         Ok(signature)
     }
 }
 
 #[derive(Debug)]
-pub struct ECDSASignatureVerificationState {
-    pub pk: ECDSASignaturePublicKey,
+pub struct EcdsaSignatureVerificationState {
+    pub pk: EcdsaSignaturePublicKey,
     pub input: Mutex<Vec<u8>>,
 }
 
-impl ECDSASignatureVerificationState {
-    pub fn new(pk: ECDSASignaturePublicKey) -> Self {
-        ECDSASignatureVerificationState {
+impl EcdsaSignatureVerificationState {
+    pub fn new(pk: EcdsaSignaturePublicKey) -> Self {
+        EcdsaSignatureVerificationState {
             pk,
             input: Mutex::new(vec![]),
         }
@@ -185,7 +185,7 @@ impl ECDSASignatureVerificationState {
         Ok(())
     }
 
-    pub fn verify(&self, signature: &ECDSASignature) -> Result<(), CryptoError> {
+    pub fn verify(&self, signature: &EcdsaSignature) -> Result<(), CryptoError> {
         let ring_alg = match (self.pk.alg, signature.encoding) {
             (SignatureAlgorithm::ECDSA_P256_SHA256, SignatureEncoding::Raw) => {
                 &ring::signature::ECDSA_P256_SHA256_FIXED
@@ -193,10 +193,10 @@ impl ECDSASignatureVerificationState {
             (SignatureAlgorithm::ECDSA_P384_SHA384, SignatureEncoding::Raw) => {
                 &ring::signature::ECDSA_P384_SHA384_FIXED
             }
-            (SignatureAlgorithm::ECDSA_P256_SHA256, SignatureEncoding::DER) => {
+            (SignatureAlgorithm::ECDSA_P256_SHA256, SignatureEncoding::Der) => {
                 &ring::signature::ECDSA_P256_SHA256_ASN1
             }
-            (SignatureAlgorithm::ECDSA_P384_SHA384, SignatureEncoding::DER) => {
+            (SignatureAlgorithm::ECDSA_P384_SHA384, SignatureEncoding::Der) => {
                 &ring::signature::ECDSA_P384_SHA384_ASN1
             }
             _ => bail!(CryptoError::UnsupportedAlgorithm),
@@ -210,14 +210,14 @@ impl ECDSASignatureVerificationState {
 }
 
 #[derive(Clone, Debug)]
-pub struct ECDSASignaturePublicKey {
+pub struct EcdsaSignaturePublicKey {
     pub alg: SignatureAlgorithm,
     pub raw: Vec<u8>,
 }
 
-impl ECDSASignaturePublicKey {
+impl EcdsaSignaturePublicKey {
     pub fn from_raw(alg: SignatureAlgorithm, raw: &[u8]) -> Result<Self, CryptoError> {
-        let pk = ECDSASignaturePublicKey {
+        let pk = EcdsaSignaturePublicKey {
             alg,
             raw: raw.to_vec(),
         };

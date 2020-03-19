@@ -13,7 +13,6 @@ use super::{CryptoCtx, HandleManagers, WasiCryptoCtx};
 
 #[allow(non_camel_case_types)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[repr(u16)]
 pub enum SignatureAlgorithm {
     ECDSA_P256_SHA256,
     ECDSA_P384_SHA384,
@@ -26,17 +25,17 @@ pub enum SignatureAlgorithm {
 
 #[derive(Clone, Debug)]
 pub enum Signature {
-    ECDSA(ECDSASignature),
-    EdDSA(EdDSASignature),
-    RSA(RSASignature),
+    Ecdsa(EcdsaSignature),
+    Eddsa(EddsaSignature),
+    Rsa(RsaSignature),
 }
 
 impl AsRef<[u8]> for Signature {
     fn as_ref(&self) -> &[u8] {
         match self {
-            Signature::ECDSA(signature) => signature.as_ref(),
-            Signature::EdDSA(signature) => signature.as_ref(),
-            Signature::RSA(signature) => signature.as_ref(),
+            Signature::Ecdsa(signature) => signature.as_ref(),
+            Signature::Eddsa(signature) => signature.as_ref(),
+            Signature::Rsa(signature) => signature.as_ref(),
         }
     }
 }
@@ -54,55 +53,55 @@ impl Signature {
         let signature = match alg {
             SignatureAlgorithm::ECDSA_P256_SHA256 => {
                 ensure!(encoded.len() == 64, CryptoError::InvalidSignature);
-                Signature::ECDSA(ECDSASignature::new(
+                Signature::Ecdsa(EcdsaSignature::new(
                     SignatureEncoding::Raw,
                     encoded.to_vec(),
                 ))
             }
             SignatureAlgorithm::ECDSA_P384_SHA384 => {
                 ensure!(encoded.len() == 96, CryptoError::InvalidSignature);
-                Signature::ECDSA(ECDSASignature::new(
+                Signature::Ecdsa(EcdsaSignature::new(
                     SignatureEncoding::Raw,
                     encoded.to_vec(),
                 ))
             }
             SignatureAlgorithm::Ed25519 => {
                 ensure!(encoded.len() == 64, CryptoError::InvalidSignature);
-                Signature::EdDSA(EdDSASignature::new(encoded.to_vec()))
+                Signature::Eddsa(EddsaSignature::new(encoded.to_vec()))
             }
             SignatureAlgorithm::RSA_PKCS1_2048_8192_SHA256 => {
-                Signature::RSA(RSASignature::new(encoded.to_vec()))
+                Signature::Rsa(RsaSignature::new(encoded.to_vec()))
             }
             SignatureAlgorithm::RSA_PKCS1_2048_8192_SHA384 => {
-                Signature::RSA(RSASignature::new(encoded.to_vec()))
+                Signature::Rsa(RsaSignature::new(encoded.to_vec()))
             }
             SignatureAlgorithm::RSA_PKCS1_2048_8192_SHA512 => {
-                Signature::RSA(RSASignature::new(encoded.to_vec()))
+                Signature::Rsa(RsaSignature::new(encoded.to_vec()))
             }
             SignatureAlgorithm::RSA_PKCS1_3072_8192_SHA384 => {
-                Signature::RSA(RSASignature::new(encoded.to_vec()))
+                Signature::Rsa(RsaSignature::new(encoded.to_vec()))
             }
         };
         Ok(signature)
     }
 
-    fn as_ecdsa(&self) -> Result<&ECDSASignature, CryptoError> {
+    fn as_ecdsa(&self) -> Result<&EcdsaSignature, CryptoError> {
         match self {
-            Signature::ECDSA(signature) => Ok(signature),
+            Signature::Ecdsa(signature) => Ok(signature),
             _ => bail!(CryptoError::InvalidSignature),
         }
     }
 
-    fn as_eddsa(&self) -> Result<&EdDSASignature, CryptoError> {
+    fn as_eddsa(&self) -> Result<&EddsaSignature, CryptoError> {
         match self {
-            Signature::EdDSA(signature) => Ok(signature),
+            Signature::Eddsa(signature) => Ok(signature),
             _ => bail!(CryptoError::InvalidSignature),
         }
     }
 
-    fn as_rsa(&self) -> Result<&RSASignature, CryptoError> {
+    fn as_rsa(&self) -> Result<&RsaSignature, CryptoError> {
         match self {
-            Signature::RSA(signature) => Ok(signature),
+            Signature::Rsa(signature) => Ok(signature),
             _ => bail!(CryptoError::InvalidSignature),
         }
     }
@@ -110,9 +109,9 @@ impl Signature {
 
 #[derive(Debug)]
 pub enum SignatureState {
-    ECDSA(ECDSASignatureState),
-    EdDSA(EdDSASignatureState),
-    RSA(RSASignatureState),
+    Ecdsa(EcdsaSignatureState),
+    Eddsa(EddsaSignatureState),
+    Rsa(RsaSignatureState),
 }
 
 #[derive(Debug, Clone)]
@@ -130,14 +129,14 @@ impl ExclusiveSignatureState {
     fn open(handles: &HandleManagers, kp_handle: Handle) -> Result<Handle, CryptoError> {
         let kp = handles.signature_keypair.get(kp_handle)?;
         let signature_state = match kp {
-            SignatureKeyPair::ECDSA(kp) => {
-                ExclusiveSignatureState::new(SignatureState::ECDSA(ECDSASignatureState::new(kp)))
+            SignatureKeyPair::Ecdsa(kp) => {
+                ExclusiveSignatureState::new(SignatureState::Ecdsa(EcdsaSignatureState::new(kp)))
             }
-            SignatureKeyPair::EdDSA(kp) => {
-                ExclusiveSignatureState::new(SignatureState::EdDSA(EdDSASignatureState::new(kp)))
+            SignatureKeyPair::Eddsa(kp) => {
+                ExclusiveSignatureState::new(SignatureState::Eddsa(EddsaSignatureState::new(kp)))
             }
-            SignatureKeyPair::RSA(kp) => {
-                ExclusiveSignatureState::new(SignatureState::RSA(RSASignatureState::new(kp)))
+            SignatureKeyPair::Rsa(kp) => {
+                ExclusiveSignatureState::new(SignatureState::Rsa(RsaSignatureState::new(kp)))
             }
         };
         let handle = handles.signature_state.register(signature_state)?;
@@ -146,17 +145,17 @@ impl ExclusiveSignatureState {
 
     fn update(&mut self, input: &[u8]) -> Result<(), CryptoError> {
         match self.state.as_ref() {
-            SignatureState::ECDSA(state) => state.update(input),
-            SignatureState::EdDSA(state) => state.update(input),
-            SignatureState::RSA(state) => state.update(input),
+            SignatureState::Ecdsa(state) => state.update(input),
+            SignatureState::Eddsa(state) => state.update(input),
+            SignatureState::Rsa(state) => state.update(input),
         }
     }
 
     fn sign(&mut self) -> Result<Signature, CryptoError> {
         let signature = match self.state.as_ref() {
-            SignatureState::ECDSA(state) => Signature::ECDSA(state.sign()?),
-            SignatureState::EdDSA(state) => Signature::EdDSA(state.sign()?),
-            SignatureState::RSA(state) => Signature::RSA(state.sign()?),
+            SignatureState::Ecdsa(state) => Signature::Ecdsa(state.sign()?),
+            SignatureState::Eddsa(state) => Signature::Eddsa(state.sign()?),
+            SignatureState::Rsa(state) => Signature::Rsa(state.sign()?),
         };
         Ok(signature)
     }
@@ -170,7 +169,7 @@ pub enum SignatureEncoding {
     Base64OriginalNoPadding,
     Base64URLSafe,
     Base64URLSafeNoPadding,
-    DER,
+    Der,
 }
 
 impl From<guest_types::SignatureEncoding> for SignatureEncoding {
@@ -179,23 +178,23 @@ impl From<guest_types::SignatureEncoding> for SignatureEncoding {
             guest_types::SignatureEncoding::Raw => SignatureEncoding::Raw,
             guest_types::SignatureEncoding::Hex => SignatureEncoding::Hex,
             guest_types::SignatureEncoding::Base64Original => SignatureEncoding::Base64Original,
-            guest_types::SignatureEncoding::Base64OriginalNopadding => {
+            guest_types::SignatureEncoding::Base64OriginalNoPadding => {
                 SignatureEncoding::Base64OriginalNoPadding
             }
-            guest_types::SignatureEncoding::Base64Urlsafe => SignatureEncoding::Base64URLSafe,
-            guest_types::SignatureEncoding::Base64UrlsafeNopadding => {
+            guest_types::SignatureEncoding::Base64UrlSafe => SignatureEncoding::Base64URLSafe,
+            guest_types::SignatureEncoding::Base64UrlSafeNoPadding => {
                 SignatureEncoding::Base64URLSafeNoPadding
             }
-            guest_types::SignatureEncoding::Der => SignatureEncoding::DER,
+            guest_types::SignatureEncoding::Der => SignatureEncoding::Der,
         }
     }
 }
 
 #[derive(Debug)]
 pub enum SignatureVerificationState {
-    ECDSA(ECDSASignatureVerificationState),
-    EdDSA(EdDSASignatureVerificationState),
-    RSA(RSASignatureVerificationState),
+    Ecdsa(EcdsaSignatureVerificationState),
+    Eddsa(EddsaSignatureVerificationState),
+    Rsa(RsaSignatureVerificationState),
 }
 
 #[derive(Debug, Clone)]
@@ -213,14 +212,14 @@ impl ExclusiveSignatureVerificationState {
     fn open(handles: &HandleManagers, pk_handle: Handle) -> Result<Handle, CryptoError> {
         let pk = handles.signature_publickey.get(pk_handle)?;
         let signature_verification_state = match pk {
-            SignaturePublicKey::ECDSA(pk) => ExclusiveSignatureVerificationState::new(
-                SignatureVerificationState::ECDSA(ECDSASignatureVerificationState::new(pk)),
+            SignaturePublicKey::Ecdsa(pk) => ExclusiveSignatureVerificationState::new(
+                SignatureVerificationState::Ecdsa(EcdsaSignatureVerificationState::new(pk)),
             ),
-            SignaturePublicKey::EdDSA(pk) => ExclusiveSignatureVerificationState::new(
-                SignatureVerificationState::EdDSA(EdDSASignatureVerificationState::new(pk)),
+            SignaturePublicKey::Eddsa(pk) => ExclusiveSignatureVerificationState::new(
+                SignatureVerificationState::Eddsa(EddsaSignatureVerificationState::new(pk)),
             ),
-            SignaturePublicKey::RSA(pk) => ExclusiveSignatureVerificationState::new(
-                SignatureVerificationState::RSA(RSASignatureVerificationState::new(pk)),
+            SignaturePublicKey::Rsa(pk) => ExclusiveSignatureVerificationState::new(
+                SignatureVerificationState::Rsa(RsaSignatureVerificationState::new(pk)),
             ),
         };
         let handle = handles
@@ -231,9 +230,9 @@ impl ExclusiveSignatureVerificationState {
 
     fn update(&mut self, input: &[u8]) -> Result<(), CryptoError> {
         match self.state.as_ref() {
-            SignatureVerificationState::ECDSA(state) => state.update(input),
-            SignatureVerificationState::EdDSA(state) => state.update(input),
-            SignatureVerificationState::RSA(state) => state.update(input),
+            SignatureVerificationState::Ecdsa(state) => state.update(input),
+            SignatureVerificationState::Eddsa(state) => state.update(input),
+            SignatureVerificationState::Rsa(state) => state.update(input),
         }
     }
 
@@ -244,9 +243,9 @@ impl ExclusiveSignatureVerificationState {
     ) -> Result<(), CryptoError> {
         let signature = handles.signature.get(signature_handle)?;
         match self.state.as_ref() {
-            SignatureVerificationState::ECDSA(state) => state.verify(signature.as_ecdsa()?),
-            SignatureVerificationState::EdDSA(state) => state.verify(signature.as_eddsa()?),
-            SignatureVerificationState::RSA(state) => state.verify(signature.as_rsa()?),
+            SignatureVerificationState::Ecdsa(state) => state.verify(signature.as_ecdsa()?),
+            SignatureVerificationState::Eddsa(state) => state.verify(signature.as_eddsa()?),
+            SignatureVerificationState::Rsa(state) => state.verify(signature.as_rsa()?),
         }
     }
 }

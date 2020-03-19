@@ -10,34 +10,34 @@ use super::signature_keypair::*;
 use super::HandleManagers;
 
 #[derive(Clone, Copy, Debug)]
-pub struct RSASignatureOp {
+pub struct RsaSignatureOp {
     pub alg: SignatureAlgorithm,
 }
 
-impl RSASignatureOp {
+impl RsaSignatureOp {
     pub fn new(alg: SignatureAlgorithm) -> Self {
-        RSASignatureOp { alg }
+        RsaSignatureOp { alg }
     }
 }
 
 #[derive(Clone, Debug)]
-pub struct RSASignatureKeyPair {
+pub struct RsaSignatureKeyPair {
     pub alg: SignatureAlgorithm,
     pub pkcs8: Vec<u8>,
     pub ring_kp: Arc<ring::signature::RsaKeyPair>,
 }
 
-impl Drop for RSASignatureKeyPair {
+impl Drop for RsaSignatureKeyPair {
     fn drop(&mut self) {
         self.pkcs8.zeroize();
     }
 }
 
-impl RSASignatureKeyPair {
-    pub fn from_pkcs8(alg: SignatureAlgorithm, pkcs8: &[u8]) -> Result<Self, Error> {
+impl RsaSignatureKeyPair {
+    pub fn from_pkcs8(alg: SignatureAlgorithm, pkcs8: &[u8]) -> Result<Self, CryptoError> {
         let ring_kp =
             ring::signature::RsaKeyPair::from_pkcs8(pkcs8).map_err(|_| CryptoError::InvalidKey)?;
-        let kp = RSASignatureKeyPair {
+        let kp = RsaSignatureKeyPair {
             alg,
             pkcs8: pkcs8.to_vec(),
             ring_kp: Arc::new(ring_kp),
@@ -45,12 +45,12 @@ impl RSASignatureKeyPair {
         Ok(kp)
     }
 
-    pub fn as_pkcs8(&self) -> Result<&[u8], Error> {
+    pub fn as_pkcs8(&self) -> Result<&[u8], CryptoError> {
         Ok(&self.pkcs8)
     }
 
     #[allow(dead_code)]
-    pub fn generate(_alg: SignatureAlgorithm) -> Result<Self, Error> {
+    pub fn generate(_alg: SignatureAlgorithm) -> Result<Self, CryptoError> {
         bail!(CryptoError::NotImplemented)
     }
 
@@ -60,16 +60,16 @@ impl RSASignatureKeyPair {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct RSASignatureKeyPairBuilder {
+pub struct RsaSignatureKeyPairBuilder {
     pub alg: SignatureAlgorithm,
 }
 
-impl RSASignatureKeyPairBuilder {
+impl RsaSignatureKeyPairBuilder {
     pub fn new(alg: SignatureAlgorithm) -> Self {
-        RSASignatureKeyPairBuilder { alg }
+        RsaSignatureKeyPairBuilder { alg }
     }
 
-    pub fn generate(&self, _handles: &HandleManagers) -> Result<Handle, Error> {
+    pub fn generate(&self, _handles: &HandleManagers) -> Result<Handle, CryptoError> {
         bail!(CryptoError::NotImplemented)
     }
 
@@ -78,53 +78,53 @@ impl RSASignatureKeyPairBuilder {
         handles: &HandleManagers,
         encoded: &[u8],
         encoding: KeyPairEncoding,
-    ) -> Result<Handle, Error> {
+    ) -> Result<Handle, CryptoError> {
         match encoding {
-            KeyPairEncoding::PKCS8 => {}
+            KeyPairEncoding::Pkcs8 => {}
             _ => bail!(CryptoError::UnsupportedEncoding),
         };
-        let kp = RSASignatureKeyPair::from_pkcs8(self.alg, encoded)?;
+        let kp = RsaSignatureKeyPair::from_pkcs8(self.alg, encoded)?;
         let handle = handles
             .signature_keypair
-            .register(SignatureKeyPair::RSA(kp))?;
+            .register(SignatureKeyPair::Rsa(kp))?;
         Ok(handle)
     }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct RSASignature(pub Vec<u8>);
+pub struct RsaSignature(pub Vec<u8>);
 
-impl AsRef<[u8]> for RSASignature {
+impl AsRef<[u8]> for RsaSignature {
     fn as_ref(&self) -> &[u8] {
         &self.0
     }
 }
 
-impl RSASignature {
+impl RsaSignature {
     pub fn new(encoded: Vec<u8>) -> Self {
-        RSASignature(encoded)
+        RsaSignature(encoded)
     }
 }
 #[derive(Debug)]
-pub struct RSASignatureState {
-    pub kp: RSASignatureKeyPair,
+pub struct RsaSignatureState {
+    pub kp: RsaSignatureKeyPair,
     pub input: Mutex<Vec<u8>>,
 }
 
-impl RSASignatureState {
-    pub fn new(kp: RSASignatureKeyPair) -> Self {
-        RSASignatureState {
+impl RsaSignatureState {
+    pub fn new(kp: RsaSignatureKeyPair) -> Self {
+        RsaSignatureState {
             kp,
             input: Mutex::new(vec![]),
         }
     }
 
-    pub fn update(&self, input: &[u8]) -> Result<(), Error> {
+    pub fn update(&self, input: &[u8]) -> Result<(), CryptoError> {
         self.input.lock().extend_from_slice(input);
         Ok(())
     }
 
-    pub fn sign(&self) -> Result<RSASignature, Error> {
+    pub fn sign(&self) -> Result<RsaSignature, CryptoError> {
         let rng = ring::rand::SystemRandom::new();
         let input = self.input.lock();
         let mut signature_u8 = vec![];
@@ -139,31 +139,31 @@ impl RSASignatureState {
             .ring_kp
             .sign(padding_alg, &rng, &input, &mut signature_u8)
             .map_err(|_| CryptoError::AlgorithmFailure)?;
-        let signature = RSASignature(signature_u8);
+        let signature = RsaSignature(signature_u8);
         Ok(signature)
     }
 }
 
 #[derive(Debug)]
-pub struct RSASignatureVerificationState {
-    pub pk: RSASignaturePublicKey,
+pub struct RsaSignatureVerificationState {
+    pub pk: RsaSignaturePublicKey,
     pub input: Mutex<Vec<u8>>,
 }
 
-impl RSASignatureVerificationState {
-    pub fn new(pk: RSASignaturePublicKey) -> Self {
-        RSASignatureVerificationState {
+impl RsaSignatureVerificationState {
+    pub fn new(pk: RsaSignaturePublicKey) -> Self {
+        RsaSignatureVerificationState {
             pk,
             input: Mutex::new(vec![]),
         }
     }
 
-    pub fn update(&self, input: &[u8]) -> Result<(), Error> {
+    pub fn update(&self, input: &[u8]) -> Result<(), CryptoError> {
         self.input.lock().extend_from_slice(input);
         Ok(())
     }
 
-    pub fn verify(&self, signature: &RSASignature) -> Result<(), Error> {
+    pub fn verify(&self, signature: &RsaSignature) -> Result<(), CryptoError> {
         let ring_alg = match self.pk.alg {
             SignatureAlgorithm::RSA_PKCS1_2048_8192_SHA256 => {
                 &ring::signature::RSA_PKCS1_2048_8192_SHA256
@@ -188,21 +188,21 @@ impl RSASignatureVerificationState {
 }
 
 #[derive(Clone, Debug)]
-pub struct RSASignaturePublicKey {
+pub struct RsaSignaturePublicKey {
     pub alg: SignatureAlgorithm,
     pub raw: Vec<u8>,
 }
 
-impl RSASignaturePublicKey {
-    pub fn from_raw(alg: SignatureAlgorithm, raw: &[u8]) -> Result<Self, Error> {
-        let pk = RSASignaturePublicKey {
+impl RsaSignaturePublicKey {
+    pub fn from_raw(alg: SignatureAlgorithm, raw: &[u8]) -> Result<Self, CryptoError> {
+        let pk = RsaSignaturePublicKey {
             alg,
             raw: raw.to_vec(),
         };
         Ok(pk)
     }
 
-    pub fn as_raw(&self) -> Result<&[u8], Error> {
+    pub fn as_raw(&self) -> Result<&[u8], CryptoError> {
         Ok(&self.raw)
     }
 }

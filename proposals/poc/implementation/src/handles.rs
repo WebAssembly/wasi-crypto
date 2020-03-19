@@ -22,15 +22,15 @@ impl<HandleType: Clone + Sync> HandlesManager<HandleType> {
         }
     }
 
-    pub fn close(&self, handle: Handle) -> Result<(), Error> {
+    pub fn close(&self, handle: Handle) -> Result<(), CryptoError> {
         self.inner.lock().close(handle)
     }
 
-    pub fn register(&self, op: HandleType) -> Result<Handle, Error> {
+    pub fn register(&self, op: HandleType) -> Result<Handle, CryptoError> {
         self.inner.lock().register(op)
     }
 
-    pub fn get(&self, handle: Handle) -> Result<HandleType, Error> {
+    pub fn get(&self, handle: Handle) -> Result<HandleType, CryptoError> {
         self.inner.lock().get(handle).map(|x| x.clone())
     }
 }
@@ -44,7 +44,7 @@ impl<HandleType: Clone + Sync> HandlesManagerInner<HandleType> {
         }
     }
 
-    pub fn close(&mut self, handle: Handle) -> Result<(), Error> {
+    pub fn close(&mut self, handle: Handle) -> Result<(), CryptoError> {
         self.map.remove(&handle).ok_or(CryptoError::Closed)?;
         Ok(())
     }
@@ -53,7 +53,7 @@ impl<HandleType: Clone + Sync> HandlesManagerInner<HandleType> {
         ((handle.wrapping_add(1) << 8) | (self.type_id as Handle)).rotate_right(8)
     }
 
-    pub fn register(&mut self, op: HandleType) -> Result<Handle, Error> {
+    pub fn register(&mut self, op: HandleType) -> Result<Handle, CryptoError> {
         let mut handle = self.next_handle(self.last_handle);
         loop {
             if !self.map.contains_key(&handle) {
@@ -70,7 +70,7 @@ impl<HandleType: Clone + Sync> HandlesManagerInner<HandleType> {
         Ok(handle)
     }
 
-    pub fn get(&mut self, handle: Handle) -> Result<&HandleType, Error> {
+    pub fn get(&mut self, handle: Handle) -> Result<&HandleType, CryptoError> {
         let op = self.map.get(&handle).ok_or(CryptoError::InvalidHandle)?;
         Ok(op)
     }

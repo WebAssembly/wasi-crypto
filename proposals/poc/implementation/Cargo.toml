@@ -9,5 +9,6 @@ anyhow = "1.0"
 parking_lot = "0.10"
 ring = "0.16"
 thiserror = "1.0"
+wiggle = "0.1"
+wiggle-runtime = "0.1"
 zeroize = "1.1"
-

@@ -16,11 +16,22 @@ use signature_keypair::*;
 use signature_op::*;
 use signature_publickey::*;
 
-pub use error::{CryptoError, WasiCryptoError};
+pub use error::CryptoError;
 pub use handles::Handle;
 pub use signature::SignatureEncoding;
 pub use signature_keypair::{KeyPairEncoding, Version};
 pub use signature_publickey::PublicKeyEncoding;
+
+#[allow(unused)]
+static REBUILD_IF_WITX_FILE_IS_UPDATED: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../witx/proposal_signatures.witx"
+));
+
+wiggle::from_witx!({
+    witx: ["../witx/proposal_signatures.witx"],
+    ctx: WasiCryptoCtx
+});
 
 pub struct HandleManagers {
     pub signature_op: HandlesManager<SignatureOp>,
@@ -33,13 +44,17 @@ pub struct HandleManagers {
     pub array_output: HandlesManager<ArrayOutput>,
 }
 
-pub struct WasiCryptoCtx {
+pub struct CryptoCtx {
     pub(crate) handles: HandleManagers,
 }
 
-impl WasiCryptoCtx {
+pub struct WasiCryptoCtx {
+    ctx: CryptoCtx,
+}
+
+impl CryptoCtx {
     pub fn new() -> Self {
-        WasiCryptoCtx {
+        CryptoCtx {
             handles: HandleManagers {
                 array_output: HandlesManager::new(0x00),
                 signature_op: HandlesManager::new(0x01),
@@ -54,9 +69,17 @@ impl WasiCryptoCtx {
     }
 }
 
+impl WasiCryptoCtx {
+    pub fn new() -> Self {
+        WasiCryptoCtx {
+            ctx: CryptoCtx::new(),
+        }
+    }
+}
+
 #[test]
 fn test_signatures() {
-    let ctx = WasiCryptoCtx::new();
+    let ctx = CryptoCtx::new();
     let op_handle = ctx.signature_op_open("ECDSA_P256_SHA256").unwrap();
     let kp_builder_handle = ctx.signature_keypair_builder_open(op_handle).unwrap();
     let kp_handle = ctx.signature_keypair_generate(kp_builder_handle).unwrap();

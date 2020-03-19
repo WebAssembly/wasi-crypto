@@ -3,6 +3,7 @@
 (typename $crypto_errno
   (enum u16
     $success
+    $guest_error
     $not_implemented
     $unsupported_feature
     $prohibited_operation
@@ -81,6 +82,7 @@
   ;;; Return the length of an array_output object.
   (@interface func (export "array_output_len")
     (param $array_output $array_output)
+    (result $error $crypto_errno)
     (result $len $size)
   )
 
@@ -146,7 +148,7 @@
   ;;; or $crypto_errno.unsupported_feature if not.
   (@interface func (export "signature_keypair_id")
     (param $kp $signature_keypair)
-    (param $kp_id (@witx const_pointer u8))
+    (param $kp_id (@witx pointer u8))
     (param $kp_id_max_len $size)
     (result $error $crypto_errno)
     (result $kp_id_len $size)

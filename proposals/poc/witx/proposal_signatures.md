@@ -4,6 +4,8 @@
 ### Variants
 - <a href="#crypto_errno.success" name="crypto_errno.success"></a> `success`
 
+- <a href="#crypto_errno.guest_error" name="crypto_errno.guest_error"></a> `guest_error`
+
 - <a href="#crypto_errno.not_implemented" name="crypto_errno.not_implemented"></a> `not_implemented`
 
 - <a href="#crypto_errno.unsupported_feature" name="crypto_errno.unsupported_feature"></a> `unsupported_feature`
@@ -123,13 +125,15 @@ Perform an operation over all versions of a key.
 
 ---
 
-#### <a href="#array_output_len" name="array_output_len"></a> `array_output_len(array_output: array_output) -> size`
+#### <a href="#array_output_len" name="array_output_len"></a> `array_output_len(array_output: array_output) -> (crypto_errno, size)`
 Return the length of an array_output object.
 
 ##### Params
 - <a href="#array_output_len.array_output" name="array_output_len.array_output"></a> `array_output`: [`array_output`](#array_output)
 
 ##### Results
+- <a href="#array_output_len.error" name="array_output_len.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
 - <a href="#array_output_len.len" name="array_output_len.len"></a> `len`: [`size`](#size)
 
 
@@ -243,7 +247,7 @@ cannot be decoded.
 
 ---
 
-#### <a href="#signature_keypair_id" name="signature_keypair_id"></a> `signature_keypair_id(kp: signature_keypair, kp_id: ConstPointer<u8>, kp_id_max_len: size) -> (crypto_errno, size, version)`
+#### <a href="#signature_keypair_id" name="signature_keypair_id"></a> `signature_keypair_id(kp: signature_keypair, kp_id: Pointer<u8>, kp_id_max_len: size) -> (crypto_errno, size, version)`
 [OPTIONAL IMPORT]
 Return the key identifier and version, if these are available
 or $crypto_errno.unsupported_feature if not.
@@ -251,7 +255,7 @@ or $crypto_errno.unsupported_feature if not.
 ##### Params
 - <a href="#signature_keypair_id.kp" name="signature_keypair_id.kp"></a> `kp`: [`signature_keypair`](#signature_keypair)
 
-- <a href="#signature_keypair_id.kp_id" name="signature_keypair_id.kp_id"></a> `kp_id`: `ConstPointer<u8>`
+- <a href="#signature_keypair_id.kp_id" name="signature_keypair_id.kp_id"></a> `kp_id`: `Pointer<u8>`
 
 - <a href="#signature_keypair_id.kp_id_max_len" name="signature_keypair_id.kp_id_max_len"></a> `kp_id_max_len`: [`size`](#size)
 

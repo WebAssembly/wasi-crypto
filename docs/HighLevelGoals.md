@@ -1,5 +1,35 @@
 # WASI-crypto High-Level Goals
 
+## Motivations behind WASI-crypto
+
+While optimizing compilers could allow efficient implementation of
+cryptographic features in WebAssembly, there are several occasions as
+below where a host implementation is more desirable. WASI-crypto aims
+to fill those gaps by defining a standard interface as a set of APIs.
+
+1. Hardware acceleration: Modern computing devices are equipped with
+dedicated hardware support for major cryptographic primitives, such as
+AES and SHA-2. Leveraging those accelerators is important for
+performance critical applications.
+2. System level secret isolation: Smartcards and Hardware Security
+Modules (HSM) are becoming popular as they can properly isolate users'
+private keys from the rest of the system or cloud. To operate on those
+private keys, applications need to use the standard interface provided
+at the system level.
+3. Software certification: Governments and enterprise often require
+certification of crypto implementations. Notable examples are
+FIPS-140, Common Criteria, and PCI-DSS. Usually, such certifications
+are given to the common system libraries, as it is impractical to
+certify every program.
+4. Resilience against side channel attacks: In recent years, several
+attacks had been developed by utilizing side channels in the crypto
+implementations, such as the use of non constant-time operations and
+non-uniform cache access. At WebAssembly level, it is currently not
+possible to ensure non-existence of side channels until the final
+machine code is generated for the target architecture.
+
+## WASI-crypto goals
+
 1. Define portable, modular, runtime-independent, and
 WebAssembly-native APIs which can be used by WebAssembly code to
 perform cryptographic operations while preserving the sandboxed nature

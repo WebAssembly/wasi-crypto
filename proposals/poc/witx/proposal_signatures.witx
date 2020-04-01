@@ -97,7 +97,7 @@
 
   ;;; Create a context for a signature-related operation.
   (@interface func (export "signature_op_open")
-    (param $op_str string)
+    (param $algorithm string)
     (result $error $crypto_errno)
     (result $signature_op $signature_op)
   )

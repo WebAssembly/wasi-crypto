@@ -366,10 +366,10 @@ impl WasiCryptoCtx {
         &self,
         op_handle: guest_types::SignatureOp,
         encoding: guest_types::SignatureEncoding,
-        encoded_ptr: wiggle_runtime::GuestPtr<'_, u8>,
+        encoded_ptr: &wiggle::GuestPtr<'_, u8>,
         encoded_len: guest_types::Size,
     ) -> Result<guest_types::Signature, CryptoError> {
-        let mut guest_borrow = wiggle_runtime::GuestBorrows::new();
+        let mut guest_borrow = wiggle::GuestBorrows::new();
         let encoded: &[u8] = unsafe {
             &*encoded_ptr
                 .as_array(encoded_len as _)
@@ -391,10 +391,10 @@ impl WasiCryptoCtx {
     pub fn signature_state_update(
         &self,
         state_handle: guest_types::SignatureState,
-        input_ptr: wiggle_runtime::GuestPtr<'_, u8>,
+        input_ptr: &wiggle::GuestPtr<'_, u8>,
         input_len: guest_types::Size,
     ) -> Result<(), CryptoError> {
-        let mut guest_borrow = wiggle_runtime::GuestBorrows::new();
+        let mut guest_borrow = wiggle::GuestBorrows::new();
         let input: &[u8] = unsafe {
             &*input_ptr
                 .as_array(input_len as _)
@@ -433,10 +433,10 @@ impl WasiCryptoCtx {
     pub fn signature_verification_state_update(
         &self,
         verification_state_handle: guest_types::SignatureVerificationState,
-        input_ptr: wiggle_runtime::GuestPtr<'_, u8>,
+        input_ptr: &wiggle::GuestPtr<'_, u8>,
         input_len: guest_types::Size,
     ) -> Result<(), CryptoError> {
-        let mut guest_borrow = wiggle_runtime::GuestBorrows::new();
+        let mut guest_borrow = wiggle::GuestBorrows::new();
         let input: &[u8] = unsafe {
             &*input_ptr
                 .as_array(input_len as _)

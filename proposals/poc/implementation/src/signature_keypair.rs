@@ -1,3 +1,5 @@
+use std::convert::TryInto;
+
 use super::array_output::*;
 use super::ecdsa::*;
 use super::eddsa::*;
@@ -259,11 +261,11 @@ impl WasiCryptoCtx {
     pub fn signature_keypair_import(
         &self,
         kp_builder_handle: guest_types::SignatureKeypairBuilder,
-        encoded_ptr: wiggle_runtime::GuestPtr<'_, u8>,
+        encoded_ptr: &wiggle::GuestPtr<'_, u8>,
         encoded_len: guest_types::Size,
         encoding: guest_types::KeypairEncoding,
     ) -> Result<guest_types::SignatureKeypair, CryptoError> {
-        let mut guest_borrow = wiggle_runtime::GuestBorrows::new();
+        let mut guest_borrow = wiggle::GuestBorrows::new();
         let encoded: &[u8] = unsafe {
             &*encoded_ptr
                 .as_array(encoded_len as _)
@@ -278,11 +280,11 @@ impl WasiCryptoCtx {
     pub fn signature_keypair_from_id(
         &self,
         kp_builder_handle: guest_types::SignatureKeypairBuilder,
-        kp_id_ptr: wiggle_runtime::GuestPtr<'_, u8>,
+        kp_id_ptr: &wiggle::GuestPtr<'_, u8>,
         kp_id_len: guest_types::Size,
         kp_version: guest_types::Version,
     ) -> Result<guest_types::SignatureKeypair, CryptoError> {
-        let mut guest_borrow = wiggle_runtime::GuestBorrows::new();
+        let mut guest_borrow = wiggle::GuestBorrows::new();
         let kp_id: &[u8] = unsafe {
             &*kp_id_ptr
                 .as_array(kp_id_len as _)
@@ -297,10 +299,10 @@ impl WasiCryptoCtx {
     pub fn signature_keypair_id(
         &self,
         kp_handle: guest_types::SignatureKeypair,
-        kp_id_ptr: wiggle_runtime::GuestPtr<'_, u8>,
+        kp_id_ptr: &wiggle::GuestPtr<'_, u8>,
         kp_id_max_len: guest_types::Size,
     ) -> Result<(guest_types::Size, guest_types::Version), CryptoError> {
-        let mut guest_borrow = wiggle_runtime::GuestBorrows::new();
+        let mut guest_borrow = wiggle::GuestBorrows::new();
         let kp_id_buf: &mut [u8] = unsafe {
             &mut *kp_id_ptr
                 .as_array(kp_id_max_len as _)
@@ -309,17 +311,17 @@ impl WasiCryptoCtx {
         let (kp_id, version) = self.ctx.signature_keypair_id(kp_handle.into())?;
         ensure!(kp_id.len() <= kp_id_buf.len(), CryptoError::Overflow);
         kp_id_buf.copy_from_slice(&kp_id);
-        Ok((kp_id.len(), version.into()))
+        Ok((kp_id.len().try_into()?, version.into()))
     }
 
     pub fn signature_keypair_invalidate(
         &self,
         kp_builder_handle: guest_types::SignatureKeypairBuilder,
-        kp_id_ptr: wiggle_runtime::GuestPtr<'_, u8>,
+        kp_id_ptr: &wiggle::GuestPtr<'_, u8>,
         kp_id_len: guest_types::Size,
         kp_version: guest_types::Version,
     ) -> Result<(), CryptoError> {
-        let mut guest_borrow = wiggle_runtime::GuestBorrows::new();
+        let mut guest_borrow = wiggle::GuestBorrows::new();
         let kp_id: &[u8] = unsafe {
             &*kp_id_ptr
                 .as_array(kp_id_len as _)

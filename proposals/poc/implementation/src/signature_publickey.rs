@@ -127,11 +127,11 @@ impl WasiCryptoCtx {
     pub fn signature_publickey_import(
         &self,
         signature_op: guest_types::SignatureOp,
-        encoded_ptr: wiggle_runtime::GuestPtr<'_, u8>,
+        encoded_ptr: &wiggle::GuestPtr<'_, u8>,
         encoded_len: guest_types::Size,
         encoding: guest_types::PublickeyEncoding,
     ) -> Result<guest_types::SignaturePublickey, CryptoError> {
-        let mut guest_borrow = wiggle_runtime::GuestBorrows::new();
+        let mut guest_borrow = wiggle::GuestBorrows::new();
         let encoded: &[u8] = unsafe {
             &*encoded_ptr
                 .as_array(encoded_len as _)

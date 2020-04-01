@@ -3,12 +3,14 @@ use super::WasiCryptoCtx;
 
 pub use anyhow::Error;
 
+use std::num::TryFromIntError;
+
 #[derive(thiserror::Error, Debug)]
 pub enum CryptoError {
     #[error("Success")]
     Success,
     #[error("Guest error")]
-    GuestError(#[from] wiggle_runtime::GuestError),
+    GuestError(#[from] wiggle::GuestError),
     #[error("Not implemented")]
     NotImplemented,
     #[error("Unsupported feature")]
@@ -41,11 +43,17 @@ pub enum CryptoError {
     TooManyHandles,
 }
 
+impl From<TryFromIntError> for CryptoError {
+    fn from(_: TryFromIntError) -> Self {
+        CryptoError::Overflow
+    }
+}
+
 impl From<CryptoError> for guest_types::CryptoErrno {
     fn from(e: CryptoError) -> Self {
         match e {
             CryptoError::Success => guest_types::CryptoErrno::Success,
-            CryptoError::GuestError(_wiggle_runtime) => guest_types::CryptoErrno::GuestError,
+            CryptoError::GuestError(_wiggle_error) => guest_types::CryptoErrno::GuestError,
             CryptoError::NotImplemented => guest_types::CryptoErrno::NotImplemented,
             CryptoError::UnsupportedFeature => guest_types::CryptoErrno::UnsupportedFeature,
             CryptoError::ProhibitedOperation => guest_types::CryptoErrno::ProhibitedOperation,
@@ -97,14 +105,14 @@ impl From<CryptoError> for i32 {
     }
 }
 
-impl<'a> wiggle_runtime::GuestErrorType<'a> for guest_types::CryptoErrno {
+impl<'a> wiggle::GuestErrorType<'a> for guest_types::CryptoErrno {
     type Context = WasiCryptoCtx;
 
     fn success() -> Self {
         guest_types::CryptoErrno::Success
     }
 
-    fn from_error(e: wiggle_runtime::GuestError, _ctx: &Self::Context) -> Self {
+    fn from_error(e: wiggle::GuestError, _ctx: &Self::Context) -> Self {
         eprintln!("GUEST ERROR: {:?}", e);
         guest_types::CryptoErrno::GuestError
     }

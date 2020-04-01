@@ -1,3 +1,4 @@
+use std::convert::TryInto;
 use std::io::{Cursor, Read};
 
 use super::error::*;
@@ -61,19 +62,25 @@ impl WasiCryptoCtx {
     pub fn array_output_len(
         &self,
         array_output_handle: guest_types::ArrayOutput,
-    ) -> Result<usize, CryptoError> {
-        self.ctx.array_output_len(array_output_handle.into())
+    ) -> Result<guest_types::Size, CryptoError> {
+        Ok(self
+            .ctx
+            .array_output_len(array_output_handle.into())?
+            .try_into()?)
     }
 
     pub fn array_output_pull(
         &self,
         array_output_handle: guest_types::ArrayOutput,
-        buf_ptr: wiggle_runtime::GuestPtr<'_, u8>,
+        buf_ptr: &wiggle::GuestPtr<'_, u8>,
         buf_len: guest_types::Size,
-    ) -> Result<usize, CryptoError> {
-        let mut guest_borrow = wiggle_runtime::GuestBorrows::new();
+    ) -> Result<guest_types::Size, CryptoError> {
+        let mut guest_borrow = wiggle::GuestBorrows::new();
         let buf: &mut [u8] =
             unsafe { &mut *buf_ptr.as_array(buf_len as _).as_raw(&mut guest_borrow)? };
-        self.ctx.array_output_pull(array_output_handle.into(), buf)
+        Ok(self
+            .ctx
+            .array_output_pull(array_output_handle.into(), buf)?
+            .try_into()?)
     }
 }

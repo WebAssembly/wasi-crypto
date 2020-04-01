@@ -156,11 +156,11 @@ The array_output handle becomes invalid after this operation.
 
 ---
 
-#### <a href="#signature_op_open" name="signature_op_open"></a> `signature_op_open(op_str: string) -> (crypto_errno, signature_op)`
+#### <a href="#signature_op_open" name="signature_op_open"></a> `signature_op_open(algorithm: string) -> (crypto_errno, signature_op)`
 Create a context for a signature-related operation.
 
 ##### Params
-- <a href="#signature_op_open.op_str" name="signature_op_open.op_str"></a> `op_str`: `string`
+- <a href="#signature_op_open.algorithm" name="signature_op_open.algorithm"></a> `algorithm`: `string`
 
 ##### Results
 - <a href="#signature_op_open.error" name="signature_op_open.error"></a> `error`: [`crypto_errno`](#crypto_errno)

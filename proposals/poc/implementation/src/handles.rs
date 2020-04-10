@@ -1,7 +1,7 @@
 use parking_lot::Mutex;
 use std::collections::HashMap;
 
-use super::error::*;
+use crate::error::*;
 
 pub type Handle = u32;
 

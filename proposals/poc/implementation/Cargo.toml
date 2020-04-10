@@ -5,10 +5,12 @@ authors = ["Frank Denis <github@pureftpd.org>"]
 edition = "2018"
 
 [dependencies]
-anyhow = "1.0"
-parking_lot = "0.10"
-ring = "0.16"
-thiserror = "1.0"
+anyhow = "1.0.28"
+byteorder = "1.3.4"
+derivative = "2.1.0"
+parking_lot = "0.10.0"
+ring = "0.16.12"
+thiserror = "1.0.14"
 wiggle = "0.15.0"
 wiggle-runtime = "0.13.0"
-zeroize = "1.1"
+zeroize = "1.1.0"

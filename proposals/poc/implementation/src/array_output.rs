@@ -1,10 +1,10 @@
 use std::convert::TryInto;
 use std::io::{Cursor, Read};
 
-use super::error::*;
-use super::handles::*;
-use super::types as guest_types;
-use super::{CryptoCtx, HandleManagers, WasiCryptoCtx};
+use crate::error::*;
+use crate::handles::*;
+use crate::types as guest_types;
+use crate::{CryptoCtx, HandleManagers, WasiCryptoCtx};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ArrayOutput(Cursor<Vec<u8>>);
@@ -20,7 +20,7 @@ impl ArrayOutput {
         let buf_len = buf.len();
         ensure!(buf_len >= data_len, CryptoError::Overflow);
         buf.copy_from_slice(data);
-        Ok(buf_len)
+        Ok(data_len)
     }
 
     pub fn new(data: Vec<u8>) -> Self {

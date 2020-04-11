@@ -1,3 +1,4 @@
+use parking_lot::{Mutex, MutexGuard};
 use std::convert::TryFrom;
 use std::sync::Arc;
 
@@ -13,136 +14,119 @@ use crate::handles::*;
 use crate::types as guest_types;
 use crate::{CryptoCtx, HandleManagers, WasiCryptoCtx};
 
-#[derive(Clone, Debug)]
-pub enum Signature {
-    Ecdsa(EcdsaSignature),
-    Eddsa(EddsaSignature),
-    Rsa(RsaSignature),
-}
-
-impl AsRef<[u8]> for Signature {
-    fn as_ref(&self) -> &[u8] {
-        match self {
-            Signature::Ecdsa(signature) => signature.as_ref(),
-            Signature::Eddsa(signature) => signature.as_ref(),
-            Signature::Rsa(signature) => signature.as_ref(),
-        }
-    }
+#[derive(Clone)]
+pub struct Signature {
+    inner: Arc<Mutex<Box<dyn SignatureLike>>>,
 }
 
 impl PartialEq for Signature {
     fn eq(&self, other: &Self) -> bool {
-        ring::constant_time::verify_slices_are_equal(self.as_ref(), other.as_ref()).is_ok()
+        let v1 = self.inner();
+        let v1 = v1.as_ref();
+        let v2 = other.inner();
+        let v2 = v2.as_ref();
+        ring::constant_time::verify_slices_are_equal(v1.as_ref(), v2.as_ref()).is_ok()
     }
 }
 
 impl Eq for Signature {}
 
 impl Signature {
+    pub fn new(signature_like: Box<dyn SignatureLike>) -> Self {
+        Signature {
+            inner: Arc::new(Mutex::new(signature_like)),
+        }
+    }
+
     fn from_raw(alg: SignatureAlgorithm, encoded: &[u8]) -> Result<Self, CryptoError> {
         let signature = match alg {
             SignatureAlgorithm::ECDSA_P256_SHA256 => {
                 ensure!(encoded.len() == 64, CryptoError::InvalidSignature);
-                Signature::Ecdsa(EcdsaSignature::new(
+                Signature::new(Box::new(EcdsaSignature::new(
                     SignatureEncoding::Raw,
                     encoded.to_vec(),
-                ))
+                )))
             }
             SignatureAlgorithm::ECDSA_P384_SHA384 => {
                 ensure!(encoded.len() == 96, CryptoError::InvalidSignature);
-                Signature::Ecdsa(EcdsaSignature::new(
+                Signature::new(Box::new(EcdsaSignature::new(
                     SignatureEncoding::Raw,
                     encoded.to_vec(),
-                ))
+                )))
             }
             SignatureAlgorithm::Ed25519 => {
                 ensure!(encoded.len() == 64, CryptoError::InvalidSignature);
-                Signature::Eddsa(EddsaSignature::new(encoded.to_vec()))
+                Signature::new(Box::new(EddsaSignature::new(encoded.to_vec())))
             }
             SignatureAlgorithm::RSA_PKCS1_2048_8192_SHA256
             | SignatureAlgorithm::RSA_PKCS1_2048_8192_SHA384
             | SignatureAlgorithm::RSA_PKCS1_2048_8192_SHA512
             | SignatureAlgorithm::RSA_PKCS1_3072_8192_SHA384 => {
-                Signature::Rsa(RsaSignature::new(encoded.to_vec()))
+                Signature::new(Box::new(RsaSignature::new(encoded.to_vec())))
             }
         };
         Ok(signature)
     }
 
-    fn as_ecdsa(&self) -> Result<&EcdsaSignature, CryptoError> {
-        match self {
-            Signature::Ecdsa(signature) => Ok(signature),
-            _ => bail!(CryptoError::InvalidSignature),
-        }
+    pub fn inner(&self) -> MutexGuard<Box<dyn SignatureLike>> {
+        self.inner.lock()
     }
 
-    fn as_eddsa(&self) -> Result<&EddsaSignature, CryptoError> {
-        match self {
-            Signature::Eddsa(signature) => Ok(signature),
-            _ => bail!(CryptoError::InvalidSignature),
-        }
-    }
-
-    fn as_rsa(&self) -> Result<&RsaSignature, CryptoError> {
-        match self {
-            Signature::Rsa(signature) => Ok(signature),
-            _ => bail!(CryptoError::InvalidSignature),
-        }
+    pub fn locked<T, U>(&self, mut f: T) -> U
+    where
+        T: FnMut(MutexGuard<Box<dyn SignatureLike>>) -> U,
+    {
+        f(self.inner())
     }
 }
 
-#[derive(Debug)]
-pub enum SignatureState {
-    Ecdsa(EcdsaSignatureState),
-    Eddsa(EddsaSignatureState),
-    Rsa(RsaSignatureState),
+pub trait SignatureLike: Sync + Send {
+    fn as_any(&self) -> &dyn Any;
+    fn as_ref(&self) -> &[u8];
 }
 
-#[derive(Debug, Clone)]
-pub struct ExclusiveSignatureState {
-    state: Arc<SignatureState>,
+#[derive(Clone)]
+pub struct SignatureState {
+    inner: Arc<Mutex<Box<dyn SignatureStateLike>>>,
 }
 
-impl ExclusiveSignatureState {
-    fn new(signature_state: SignatureState) -> Self {
-        ExclusiveSignatureState {
-            state: Arc::new(signature_state),
+impl SignatureState {
+    fn new(signature_state_like: Box<dyn SignatureStateLike>) -> Self {
+        SignatureState {
+            inner: Arc::new(Mutex::new(signature_state_like)),
         }
+    }
+
+    fn inner(&self) -> MutexGuard<Box<dyn SignatureStateLike>> {
+        self.inner.lock()
+    }
+
+    fn locked<T, U>(&self, mut f: T) -> U
+    where
+        T: FnMut(MutexGuard<Box<dyn SignatureStateLike>>) -> U,
+    {
+        f(self.inner())
     }
 
     fn open(handles: &HandleManagers, kp_handle: Handle) -> Result<Handle, CryptoError> {
         let kp = handles.signature_keypair.get(kp_handle)?;
         let signature_state = match kp {
             SignatureKeyPair::Ecdsa(kp) => {
-                ExclusiveSignatureState::new(SignatureState::Ecdsa(EcdsaSignatureState::new(kp)))
+                SignatureState::new(Box::new(EcdsaSignatureState::new(kp)))
             }
             SignatureKeyPair::Eddsa(kp) => {
-                ExclusiveSignatureState::new(SignatureState::Eddsa(EddsaSignatureState::new(kp)))
+                SignatureState::new(Box::new(EddsaSignatureState::new(kp)))
             }
-            SignatureKeyPair::Rsa(kp) => {
-                ExclusiveSignatureState::new(SignatureState::Rsa(RsaSignatureState::new(kp)))
-            }
+            SignatureKeyPair::Rsa(kp) => SignatureState::new(Box::new(RsaSignatureState::new(kp))),
         };
         let handle = handles.signature_state.register(signature_state)?;
         Ok(handle)
     }
+}
 
-    fn update(&mut self, input: &[u8]) -> Result<(), CryptoError> {
-        match self.state.as_ref() {
-            SignatureState::Ecdsa(state) => state.update(input),
-            SignatureState::Eddsa(state) => state.update(input),
-            SignatureState::Rsa(state) => state.update(input),
-        }
-    }
-
-    fn sign(&mut self) -> Result<Signature, CryptoError> {
-        let signature = match self.state.as_ref() {
-            SignatureState::Ecdsa(state) => Signature::Ecdsa(state.sign()?),
-            SignatureState::Eddsa(state) => Signature::Eddsa(state.sign()?),
-            SignatureState::Rsa(state) => Signature::Rsa(state.sign()?),
-        };
-        Ok(signature)
-    }
+pub trait SignatureStateLike: Sync + Send {
+    fn update(&mut self, input: &[u8]) -> Result<(), CryptoError>;
+    fn sign(&mut self) -> Result<Signature, CryptoError>;
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -160,64 +144,52 @@ impl From<guest_types::SignatureEncoding> for SignatureEncoding {
     }
 }
 
-#[derive(Debug)]
-pub enum SignatureVerificationState {
-    Ecdsa(EcdsaSignatureVerificationState),
-    Eddsa(EddsaSignatureVerificationState),
-    Rsa(RsaSignatureVerificationState),
+#[derive(Clone)]
+pub struct SignatureVerificationState {
+    inner: Arc<Mutex<Box<dyn SignatureVerificationStateLike>>>,
 }
 
-#[derive(Debug, Clone)]
-pub struct ExclusiveSignatureVerificationState {
-    state: Arc<SignatureVerificationState>,
-}
-
-impl ExclusiveSignatureVerificationState {
-    fn new(signature_verification_state: SignatureVerificationState) -> Self {
-        ExclusiveSignatureVerificationState {
-            state: Arc::new(signature_verification_state),
+impl SignatureVerificationState {
+    fn new(signature_verification_state_like: Box<dyn SignatureVerificationStateLike>) -> Self {
+        SignatureVerificationState {
+            inner: Arc::new(Mutex::new(signature_verification_state_like)),
         }
+    }
+
+    fn inner(&self) -> MutexGuard<Box<dyn SignatureVerificationStateLike>> {
+        self.inner.lock()
+    }
+
+    fn locked<T, U>(&self, mut f: T) -> U
+    where
+        T: FnMut(MutexGuard<Box<dyn SignatureVerificationStateLike>>) -> U,
+    {
+        f(self.inner())
     }
 
     fn open(handles: &HandleManagers, pk_handle: Handle) -> Result<Handle, CryptoError> {
         let pk = handles.signature_publickey.get(pk_handle)?;
         let signature_verification_state = match pk {
-            SignaturePublicKey::Ecdsa(pk) => ExclusiveSignatureVerificationState::new(
-                SignatureVerificationState::Ecdsa(EcdsaSignatureVerificationState::new(pk)),
-            ),
-            SignaturePublicKey::Eddsa(pk) => ExclusiveSignatureVerificationState::new(
-                SignatureVerificationState::Eddsa(EddsaSignatureVerificationState::new(pk)),
-            ),
-            SignaturePublicKey::Rsa(pk) => ExclusiveSignatureVerificationState::new(
-                SignatureVerificationState::Rsa(RsaSignatureVerificationState::new(pk)),
-            ),
+            SignaturePublicKey::Ecdsa(pk) => {
+                SignatureVerificationState::new(Box::new(EcdsaSignatureVerificationState::new(pk)))
+            }
+            SignaturePublicKey::Eddsa(pk) => {
+                SignatureVerificationState::new(Box::new(EddsaSignatureVerificationState::new(pk)))
+            }
+            SignaturePublicKey::Rsa(pk) => {
+                SignatureVerificationState::new(Box::new(RsaSignatureVerificationState::new(pk)))
+            }
         };
         let handle = handles
             .signature_verification_state
             .register(signature_verification_state)?;
         Ok(handle)
     }
+}
 
-    fn update(&mut self, input: &[u8]) -> Result<(), CryptoError> {
-        match self.state.as_ref() {
-            SignatureVerificationState::Ecdsa(state) => state.update(input),
-            SignatureVerificationState::Eddsa(state) => state.update(input),
-            SignatureVerificationState::Rsa(state) => state.update(input),
-        }
-    }
-
-    fn verify(
-        &self,
-        handles: &HandleManagers,
-        signature_handle: Handle,
-    ) -> Result<(), CryptoError> {
-        let signature = handles.signature.get(signature_handle)?;
-        match self.state.as_ref() {
-            SignatureVerificationState::Ecdsa(state) => state.verify(signature.as_ecdsa()?),
-            SignatureVerificationState::Eddsa(state) => state.verify(signature.as_eddsa()?),
-            SignatureVerificationState::Rsa(state) => state.verify(signature.as_rsa()?),
-        }
-    }
+pub trait SignatureVerificationStateLike: Sync + Send {
+    fn update(&mut self, input: &[u8]) -> Result<(), CryptoError>;
+    fn verify(&self, signature: &Signature) -> Result<(), CryptoError>;
 }
 
 impl CryptoCtx {
@@ -232,7 +204,7 @@ impl CryptoCtx {
         }
         let signature = self.handles.signature.get(signature_handle)?;
         let array_output_handle =
-            ArrayOutput::register(&self.handles, signature.as_ref().to_vec())?;
+            ArrayOutput::register(&self.handles, signature.inner().as_ref().as_ref().to_vec())?;
         Ok(array_output_handle)
     }
 
@@ -252,7 +224,7 @@ impl CryptoCtx {
     }
 
     pub fn signature_state_open(&self, kp_handle: Handle) -> Result<Handle, CryptoError> {
-        ExclusiveSignatureState::open(&self.handles, kp_handle)
+        SignatureState::open(&self.handles, kp_handle)
     }
 
     pub fn signature_state_update(
@@ -260,13 +232,13 @@ impl CryptoCtx {
         state_handle: Handle,
         input: &[u8],
     ) -> Result<(), CryptoError> {
-        let mut state = self.handles.signature_state.get(state_handle)?;
-        state.update(input)
+        let state = self.handles.signature_state.get(state_handle)?;
+        state.locked(|mut state| state.update(input))
     }
 
     pub fn signature_state_sign(&self, state_handle: Handle) -> Result<Handle, CryptoError> {
-        let mut state = self.handles.signature_state.get(state_handle)?;
-        let signature = state.sign()?;
+        let state = self.handles.signature_state.get(state_handle)?;
+        let signature = state.locked(|mut state| state.sign())?;
         let handle = self.handles.signature.register(signature)?;
         Ok(handle)
     }
@@ -279,7 +251,7 @@ impl CryptoCtx {
         &self,
         pk_handle: Handle,
     ) -> Result<Handle, CryptoError> {
-        ExclusiveSignatureVerificationState::open(&self.handles, pk_handle)
+        SignatureVerificationState::open(&self.handles, pk_handle)
     }
 
     pub fn signature_verification_state_update(
@@ -287,11 +259,11 @@ impl CryptoCtx {
         verification_state_handle: Handle,
         input: &[u8],
     ) -> Result<(), CryptoError> {
-        let mut state = self
+        let state = self
             .handles
             .signature_verification_state
             .get(verification_state_handle)?;
-        state.update(input)
+        state.locked(|mut state| state.update(input))
     }
 
     pub fn signature_verification_state_verify(
@@ -303,7 +275,8 @@ impl CryptoCtx {
             .handles
             .signature_verification_state
             .get(verification_state_handle)?;
-        state.verify(&self.handles, signature_handle)
+        let signature = self.handles.signature.get(signature_handle)?;
+        state.locked(|state| state.verify(&signature))
     }
 
     pub fn signature_verification_state_close(

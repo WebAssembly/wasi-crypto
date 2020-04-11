@@ -1,4 +1,3 @@
-use parking_lot::Mutex;
 use ring::signature::KeyPair as _;
 use std::sync::Arc;
 use zeroize::Zeroize;
@@ -65,39 +64,42 @@ impl RsaSignatureKeyPair {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RsaSignature(pub Vec<u8>);
 
-impl AsRef<[u8]> for RsaSignature {
-    fn as_ref(&self) -> &[u8] {
-        &self.0
-    }
-}
-
 impl RsaSignature {
     pub fn new(encoded: Vec<u8>) -> Self {
         RsaSignature(encoded)
     }
 }
+
+impl SignatureLike for RsaSignature {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn as_ref(&self) -> &[u8] {
+        &self.0
+    }
+}
+
 #[derive(Debug)]
 pub struct RsaSignatureState {
     pub kp: RsaSignatureKeyPair,
-    pub input: Mutex<Vec<u8>>,
+    pub input: Vec<u8>,
 }
 
 impl RsaSignatureState {
     pub fn new(kp: RsaSignatureKeyPair) -> Self {
-        RsaSignatureState {
-            kp,
-            input: Mutex::new(vec![]),
-        }
+        RsaSignatureState { kp, input: vec![] }
     }
+}
 
-    pub fn update(&self, input: &[u8]) -> Result<(), CryptoError> {
-        self.input.lock().extend_from_slice(input);
+impl SignatureStateLike for RsaSignatureState {
+    fn update(&mut self, input: &[u8]) -> Result<(), CryptoError> {
+        self.input.extend_from_slice(input);
         Ok(())
     }
 
-    pub fn sign(&self) -> Result<RsaSignature, CryptoError> {
+    fn sign(&mut self) -> Result<Signature, CryptoError> {
         let rng = ring::rand::SystemRandom::new();
-        let input = self.input.lock();
         let mut signature_u8 = vec![];
         let padding_alg = match self.kp.alg {
             SignatureAlgorithm::RSA_PKCS1_2048_8192_SHA256 => &ring::signature::RSA_PKCS1_SHA256,
@@ -108,33 +110,37 @@ impl RsaSignatureState {
         };
         self.kp
             .ring_kp
-            .sign(padding_alg, &rng, &input, &mut signature_u8)
+            .sign(padding_alg, &rng, &self.input, &mut signature_u8)
             .map_err(|_| CryptoError::AlgorithmFailure)?;
         let signature = RsaSignature(signature_u8);
-        Ok(signature)
+        Ok(Signature::new(Box::new(signature)))
     }
 }
 
 #[derive(Debug)]
 pub struct RsaSignatureVerificationState {
     pub pk: RsaSignaturePublicKey,
-    pub input: Mutex<Vec<u8>>,
+    pub input: Vec<u8>,
 }
 
 impl RsaSignatureVerificationState {
     pub fn new(pk: RsaSignaturePublicKey) -> Self {
-        RsaSignatureVerificationState {
-            pk,
-            input: Mutex::new(vec![]),
-        }
+        RsaSignatureVerificationState { pk, input: vec![] }
     }
+}
 
-    pub fn update(&self, input: &[u8]) -> Result<(), CryptoError> {
-        self.input.lock().extend_from_slice(input);
+impl SignatureVerificationStateLike for RsaSignatureVerificationState {
+    fn update(&mut self, input: &[u8]) -> Result<(), CryptoError> {
+        self.input.extend_from_slice(input);
         Ok(())
     }
 
-    pub fn verify(&self, signature: &RsaSignature) -> Result<(), CryptoError> {
+    fn verify(&self, signature: &Signature) -> Result<(), CryptoError> {
+        let signature = signature.inner();
+        let signature = signature
+            .as_any()
+            .downcast_ref::<RsaSignature>()
+            .ok_or(CryptoError::InvalidSignature)?;
         let ring_alg = match self.pk.alg {
             SignatureAlgorithm::RSA_PKCS1_2048_8192_SHA256 => {
                 &ring::signature::RSA_PKCS1_2048_8192_SHA256
@@ -152,7 +158,7 @@ impl RsaSignatureVerificationState {
         };
         let ring_pk = ring::signature::UnparsedPublicKey::new(ring_alg, self.pk.as_raw()?);
         ring_pk
-            .verify(self.input.lock().as_ref(), signature.as_ref())
+            .verify(self.input.as_ref(), signature.as_ref())
             .map_err(|_| CryptoError::VerificationFailed)?;
         Ok(())
     }

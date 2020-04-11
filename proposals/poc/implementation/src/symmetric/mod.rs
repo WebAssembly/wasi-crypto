@@ -139,8 +139,8 @@ fn test_hash() {
     let mut out = [0u8; 32];
     ctx.symmetric_state_squeeze(state_handle, &mut out).unwrap();
     let expected = [
-        227, 176, 196, 66, 152, 252, 28, 20, 154, 251, 244, 200, 153, 111, 185, 36, 39, 174, 65,
-        228, 100, 155, 147, 76, 164, 149, 153, 27, 120, 82, 184, 85,
+        19, 196, 14, 236, 34, 84, 26, 21, 94, 23, 32, 16, 199, 253, 110, 246, 84, 228, 225, 56,
+        160, 194, 9, 35, 249, 169, 16, 98, 162, 127, 87, 182,
     ];
     assert_eq!(out, expected);
     ctx.symmetric_state_close(state_handle).unwrap();

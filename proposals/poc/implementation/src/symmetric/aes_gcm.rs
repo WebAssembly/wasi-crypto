@@ -2,25 +2,20 @@ use super::*;
 use state::*;
 
 use byteorder::{ByteOrder, LittleEndian};
-use parking_lot::Mutex;
 use ring::aead::BoundKey;
 use ring::rand::SecureRandom;
-use std::sync::Arc;
 use zeroize::Zeroize;
 
-pub struct AesGcmSymmetricStateInner {
-    ring_sealing_key: ring::aead::SealingKey<AesGcmNonceSequence>,
-    ring_opening_key: ring::aead::OpeningKey<AesGcmNonceSequence>,
-    ad: Vec<u8>,
-}
-
-#[derive(Clone, Derivative)]
+#[derive(Derivative)]
 #[derivative(Debug)]
 pub struct AesGcmSymmetricState {
     pub alg: SymmetricAlgorithm,
     options: SymmetricOptions,
     #[derivative(Debug = "ignore")]
-    inner: Arc<Mutex<AesGcmSymmetricStateInner>>,
+    ring_sealing_key: ring::aead::SealingKey<AesGcmNonceSequence>,
+    #[derivative(Debug = "ignore")]
+    ring_opening_key: ring::aead::OpeningKey<AesGcmNonceSequence>,
+    ad: Vec<u8>,
 }
 
 #[derive(Clone, Debug, Eq)]
@@ -133,20 +128,18 @@ impl AesGcmSymmetricState {
         let ring_unbound_key = ring::aead::UnboundKey::new(ring_alg, key.as_raw()?)
             .map_err(|_| CryptoError::InvalidKey)?;
         let ring_opening_key = ring::aead::OpeningKey::new(ring_unbound_key, nonce_sequence);
-        let inner = AesGcmSymmetricStateInner {
+        let state = AesGcmSymmetricState {
+            alg,
+            options: options.clone(),
             ring_sealing_key,
             ring_opening_key,
             ad: vec![],
         };
-        Ok(AesGcmSymmetricState {
-            alg,
-            options: options.clone(),
-            inner: Arc::new(Mutex::new(inner)),
-        })
+        Ok(state)
     }
 }
 
-impl SymmetricAlgorithmStateLike for AesGcmSymmetricState {
+impl SymmetricStateLike for AesGcmSymmetricState {
     fn alg(&self) -> SymmetricAlgorithm {
         self.alg
     }
@@ -160,7 +153,7 @@ impl SymmetricAlgorithmStateLike for AesGcmSymmetricState {
     }
 
     fn absorb(&mut self, data: &[u8]) -> Result<(), CryptoError> {
-        self.inner.lock().ad.extend_from_slice(data);
+        self.ad.extend_from_slice(data);
         Ok(())
     }
 
@@ -168,23 +161,22 @@ impl SymmetricAlgorithmStateLike for AesGcmSymmetricState {
         Ok(ring::aead::MAX_TAG_LEN)
     }
 
-    fn encrypt(&mut self, out: &mut [u8], data: &[u8]) -> Result<usize, CryptoError> {
+    fn encrypt_unchecked(&mut self, out: &mut [u8], data: &[u8]) -> Result<usize, CryptoError> {
         let data_len = data.len();
-        let tag = self.encrypt_detached(&mut out[..data_len], data)?;
+        let tag = self.encrypt_detached_unchecked(&mut out[..data_len], data)?;
         let out_len = data_len + tag.as_ref().len();
         out[data_len..out_len].copy_from_slice(tag.as_ref());
         Ok(out_len)
     }
 
-    fn encrypt_detached(
+    fn encrypt_detached_unchecked(
         &mut self,
         out: &mut [u8],
         data: &[u8],
     ) -> Result<SymmetricTag, CryptoError> {
         out[..data.len()].copy_from_slice(data);
-        let mut inner = self.inner.lock();
-        let ring_ad = ring::aead::Aad::from(inner.ad.clone());
-        let ring_tag = inner
+        let ring_ad = ring::aead::Aad::from(self.ad.clone());
+        let ring_tag = self
             .ring_sealing_key
             .seal_in_place_separate_tag(ring_ad, out)
             .map_err(|_| CryptoError::AlgorithmFailure)?;
@@ -192,11 +184,10 @@ impl SymmetricAlgorithmStateLike for AesGcmSymmetricState {
         Ok(symmetric_tag)
     }
 
-    fn decrypt(&mut self, out: &mut [u8], data: &[u8]) -> Result<usize, CryptoError> {
+    fn decrypt_unchecked(&mut self, out: &mut [u8], data: &[u8]) -> Result<usize, CryptoError> {
         let mut in_out = data.to_vec();
-        let mut inner = self.inner.lock();
-        let ring_ad = ring::aead::Aad::from(inner.ad.clone());
-        let out_len = inner
+        let ring_ad = ring::aead::Aad::from(self.ad.clone());
+        let out_len = self
             .ring_opening_key
             .open_in_place(ring_ad, &mut in_out)
             .map_err(|_| CryptoError::InvalidTag)?
@@ -205,7 +196,7 @@ impl SymmetricAlgorithmStateLike for AesGcmSymmetricState {
         Ok(out_len)
     }
 
-    fn decrypt_detached(
+    fn decrypt_detached_unchecked(
         &mut self,
         out: &mut [u8],
         data: &[u8],
@@ -213,9 +204,8 @@ impl SymmetricAlgorithmStateLike for AesGcmSymmetricState {
     ) -> Result<usize, CryptoError> {
         let mut in_out = data.to_vec();
         in_out.extend_from_slice(raw_tag);
-        let mut inner = self.inner.lock();
-        let ring_ad = ring::aead::Aad::from(inner.ad.clone());
-        let out_len = inner
+        let ring_ad = ring::aead::Aad::from(self.ad.clone());
+        let out_len = self
             .ring_opening_key
             .open_in_place(ring_ad, &mut in_out)
             .map_err(|_| CryptoError::InvalidTag)?

@@ -100,7 +100,7 @@ impl HmacSha2SymmetricState {
     }
 }
 
-impl SymmetricAlgorithmStateLike for HmacSha2SymmetricState {
+impl SymmetricStateLike for HmacSha2SymmetricState {
     fn alg(&self) -> SymmetricAlgorithm {
         self.alg
     }

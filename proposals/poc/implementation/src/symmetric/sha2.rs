@@ -34,7 +34,7 @@ impl Sha2SymmetricState {
     }
 }
 
-impl SymmetricAlgorithmStateLike for Sha2SymmetricState {
+impl SymmetricStateLike for Sha2SymmetricState {
     fn alg(&self) -> SymmetricAlgorithm {
         self.alg
     }

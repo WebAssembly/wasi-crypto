@@ -21,10 +21,20 @@ pub use signatures::{KeyPairEncoding, PublicKeyEncoding, SignatureEncoding};
 pub use version::Version;
 
 #[allow(unused)]
-static REBUILD_IF_WITX_FILE_IS_UPDATED: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/../witx/wasi_ephemeral_crypto.witx"
-));
+static REBUILD_IF_WITX_FILE_IS_UPDATED: [&str; 3] = [
+    include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../witx/proposal_common.witx"
+    )),
+    include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../witx/proposal_signatures.witx"
+    )),
+    include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../witx/proposal_symmetric.witx"
+    )),
+];
 
 wiggle::from_witx!({
     witx: ["../witx/wasi_ephemeral_crypto.witx"],

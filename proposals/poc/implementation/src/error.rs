@@ -69,12 +69,6 @@ impl From<TryFromIntError> for CryptoError {
     }
 }
 
-impl From<TryFromIntError> for CryptoError {
-    fn from(_: TryFromIntError) -> Self {
-        CryptoError::Overflow
-    }
-}
-
 impl From<CryptoError> for guest_types::CryptoErrno {
     fn from(e: CryptoError) -> Self {
         match e {

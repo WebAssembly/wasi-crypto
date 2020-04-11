@@ -1,4 +1,5 @@
 mod aes_gcm;
+mod hkdf;
 mod hmac_sha2;
 mod key;
 mod key_manager;
@@ -10,6 +11,7 @@ use crate::error::*;
 use crate::handles::*;
 use crate::options::*;
 use aes_gcm::*;
+use hkdf::*;
 use hmac_sha2::*;
 use parking_lot::Mutex;
 use sha2::*;
@@ -102,6 +104,10 @@ pub enum SymmetricAlgorithm {
     None,
     HmacSha256,
     HmacSha512,
+    HkdfSha256Extract,
+    HkdfSha512Extract,
+    HkdfSha256Expand,
+    HkdfSha512Expand,
     Sha256,
     Sha512,
     Sha512_256,
@@ -113,7 +119,11 @@ impl TryFrom<&str> for SymmetricAlgorithm {
     type Error = CryptoError;
 
     fn try_from(alg_str: &str) -> Result<Self, CryptoError> {
-        match alg_str {
+        match alg_str.to_uppercase().as_str() {
+            "HKDF-EXTRACT/SHA-256" => Ok(SymmetricAlgorithm::HkdfSha256Extract),
+            "HKDF-EXTRACT/SHA-512" => Ok(SymmetricAlgorithm::HkdfSha512Extract),
+            "HKDF-EXPAND/SHA-256" => Ok(SymmetricAlgorithm::HkdfSha256Expand),
+            "HKDF-EXPAND/SHA-512" => Ok(SymmetricAlgorithm::HkdfSha512Expand),
             "HMAC/SHA-256" => Ok(SymmetricAlgorithm::HmacSha256),
             "HMAC/SHA-512" => Ok(SymmetricAlgorithm::HmacSha512),
             "SHA-256" => Ok(SymmetricAlgorithm::Sha256),
@@ -169,6 +179,39 @@ fn test_hmac() {
     ctx.symmetric_state_close(state_handle).unwrap();
     ctx.symmetric_key_close(key_handle).unwrap();
     ctx.symmetric_tag_close(tag_handle).unwrap();
+}
+
+#[test]
+fn test_hkdf() {
+    use crate::CryptoCtx;
+
+    let ctx = CryptoCtx::new();
+
+    let mut prk = vec![0u8; 64];
+    let mut out = vec![0u8; 32];
+
+    let key_handle = ctx
+        .symmetric_key_import("HKDF-EXTRACT/SHA-512", b"IKM")
+        .unwrap();
+    let state_handle = ctx
+        .symmetric_state_open("HKDF-EXTRACT/SHA-512", Some(key_handle), None)
+        .unwrap();
+    ctx.symmetric_state_absorb(state_handle, b"salt").unwrap();
+    ctx.symmetric_state_squeeze_key(state_handle, &mut prk)
+        .unwrap();
+    ctx.symmetric_state_close(state_handle).unwrap();
+    ctx.symmetric_key_close(key_handle).unwrap();
+
+    let prk_handle = ctx
+        .symmetric_key_import("HKDF-EXPAND/SHA-512", &prk)
+        .unwrap();
+    let state_handle = ctx
+        .symmetric_state_open("HKDF-EXPAND/SHA-512", Some(prk_handle), None)
+        .unwrap();
+    ctx.symmetric_state_absorb(state_handle, b"info").unwrap();
+    ctx.symmetric_state_squeeze(state_handle, &mut out).unwrap();
+
+    ctx.symmetric_state_close(state_handle).unwrap();
 }
 
 #[test]

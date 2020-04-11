@@ -743,17 +743,20 @@ Unlike MACs and regular hash functions, inputs are domain separated instead of b
 Extract:
 
 ```rust
+let mut prk = vec![0u8; 64];
 let key_handle = ctx.symmetric_key_import("HKDF-EXTRACT/SHA-512", b"key")?;
 let state_handle = symmetric_state_open("HKDF-EXTRACT/SHA-512", Some(key_handle), None)?;
-ctx.symmetric_state_absorb(state_handle, b"seed")?;
-let prk_handle = ctx.symmetric_state_squeeze_key(state_handle)?;
+ctx.symmetric_state_absorb(state_handle, b"salt")?;
+ctx.symmetric_state_squeeze_key(state_handle, &mut prk)?;
 ```
+
 Expand:
 
 ```rust
 let mut subkey = vec![0u8; 32];
+let prk_handle = symmetric_key_import("HKDF-EXPAND/SHA-512", prk)?;
 let state_handle = symmetric_state_open("HKDF-EXPAND/SHA-512", Some(prk_handle), None)?;
-ctx.symmetric_state_absorb(state_handle, b"salt")?;
+ctx.symmetric_state_absorb(state_handle, b"info")?;
 ctx.symmetric_state_squeeze(state_handle, &mut subkey)?;
 ```
 

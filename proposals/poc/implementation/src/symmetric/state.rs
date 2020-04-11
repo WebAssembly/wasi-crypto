@@ -47,6 +47,12 @@ impl SymmetricState {
             | SymmetricAlgorithm::Sha512_256 => {
                 SymmetricState::new(Box::new(Sha2SymmetricState::new(alg, None, options)?))
             }
+            SymmetricAlgorithm::HkdfSha256Expand
+            | SymmetricAlgorithm::HkdfSha512Expand
+            | SymmetricAlgorithm::HkdfSha256Extract
+            | SymmetricAlgorithm::HkdfSha512Extract => {
+                SymmetricState::new(Box::new(HkdfSymmetricState::new(alg, key, options)?))
+            }
             SymmetricAlgorithm::Aes128Gcm | SymmetricAlgorithm::Aes256Gcm => {
                 SymmetricState::new(Box::new(AesGcmSymmetricState::new(alg, key, options)?))
             }

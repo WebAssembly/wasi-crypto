@@ -11,11 +11,11 @@ struct HandlesManagerInner<HandleType: Clone + Sync> {
     type_id: u8,
 }
 
-pub struct HandlesManager<HandleType: Clone + Sync> {
+pub struct HandlesManager<HandleType: Clone + Send + Sync> {
     inner: Mutex<HandlesManagerInner<HandleType>>,
 }
 
-impl<HandleType: Clone + Sync> HandlesManager<HandleType> {
+impl<HandleType: Clone + Send + Sync> HandlesManager<HandleType> {
     pub fn new(handle_type: u8) -> Self {
         HandlesManager {
             inner: Mutex::new(HandlesManagerInner::new(handle_type)),
@@ -35,7 +35,7 @@ impl<HandleType: Clone + Sync> HandlesManager<HandleType> {
     }
 }
 
-impl<HandleType: Clone + Sync> HandlesManagerInner<HandleType> {
+impl<HandleType: Clone + Send + Sync> HandlesManagerInner<HandleType> {
     pub fn new(type_id: u8) -> Self {
         HandlesManagerInner {
             last_handle: (type_id as Handle).rotate_right(8),

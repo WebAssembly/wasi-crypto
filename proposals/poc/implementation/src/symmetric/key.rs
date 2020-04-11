@@ -8,6 +8,7 @@ use std::convert::TryInto;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SymmetricKey {
     HmacSha2(HmacSha2SymmetricKey),
+    Hkdf(HkdfSymmetricKey),
     AesGcm(AesGcmSymmetricKey),
 }
 
@@ -15,6 +16,7 @@ impl SymmetricKey {
     pub fn alg(&self) -> SymmetricAlgorithm {
         match self {
             SymmetricKey::HmacSha2(key) => key.alg(),
+            SymmetricKey::Hkdf(key) => key.alg(),
             SymmetricKey::AesGcm(key) => key.alg(),
         }
     }
@@ -27,6 +29,12 @@ impl SymmetricKey {
         let symmetric_key = match alg {
             SymmetricAlgorithm::HmacSha256 | SymmetricAlgorithm::HmacSha512 => {
                 SymmetricKey::HmacSha2(HmacSha2SymmetricKey::generate(alg, options)?)
+            }
+            SymmetricAlgorithm::HkdfSha256Expand
+            | SymmetricAlgorithm::HkdfSha512Expand
+            | SymmetricAlgorithm::HkdfSha256Extract
+            | SymmetricAlgorithm::HkdfSha512Extract => {
+                SymmetricKey::Hkdf(HkdfSymmetricKey::generate(alg, options)?)
             }
             SymmetricAlgorithm::Aes128Gcm | SymmetricAlgorithm::Aes256Gcm => {
                 SymmetricKey::AesGcm(AesGcmSymmetricKey::generate(alg, options)?)
@@ -42,6 +50,12 @@ impl SymmetricKey {
             SymmetricAlgorithm::HmacSha256 | SymmetricAlgorithm::HmacSha512 => {
                 SymmetricKey::HmacSha2(HmacSha2SymmetricKey::import(alg, raw)?)
             }
+            SymmetricAlgorithm::HkdfSha256Expand
+            | SymmetricAlgorithm::HkdfSha512Expand
+            | SymmetricAlgorithm::HkdfSha256Extract
+            | SymmetricAlgorithm::HkdfSha512Extract => {
+                SymmetricKey::Hkdf(HkdfSymmetricKey::import(alg, raw)?)
+            }
             SymmetricAlgorithm::Aes128Gcm | SymmetricAlgorithm::Aes256Gcm => {
                 SymmetricKey::AesGcm(AesGcmSymmetricKey::import(alg, raw)?)
             }
@@ -53,6 +67,7 @@ impl SymmetricKey {
     pub fn as_raw(&self) -> Result<Vec<u8>, CryptoError> {
         let raw = match self {
             SymmetricKey::HmacSha2(key) => key.as_raw()?.to_vec(),
+            SymmetricKey::Hkdf(key) => key.as_raw()?.to_vec(),
             SymmetricKey::AesGcm(key) => key.as_raw()?.to_vec(),
         };
         Ok(raw)

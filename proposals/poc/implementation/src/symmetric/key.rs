@@ -16,6 +16,8 @@ pub trait SymmetricKeyBuilder {
     fn generate(&self, options: Option<SymmetricOptions>) -> Result<SymmetricKey, CryptoError>;
 
     fn import(&self, raw: &[u8]) -> Result<SymmetricKey, CryptoError>;
+
+    fn key_len(&self) -> Result<usize, CryptoError>;
 }
 
 impl SymmetricKey {

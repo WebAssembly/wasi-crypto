@@ -78,7 +78,7 @@ pub trait SymmetricStateLike: Sync + Send {
         bail!(CryptoError::InvalidOperation)
     }
 
-    fn squeeze_key(&mut self, _out: &mut [u8]) -> Result<(), CryptoError> {
+    fn squeeze_key(&mut self, _alg_str: &str) -> Result<SymmetricKey, CryptoError> {
         bail!(CryptoError::InvalidOperation)
     }
 
@@ -254,10 +254,12 @@ impl CryptoCtx {
     pub fn symmetric_state_squeeze_key(
         &self,
         symmetric_state_handle: Handle,
-        raw: &mut [u8],
-    ) -> Result<(), CryptoError> {
+        alg_str: &str,
+    ) -> Result<Handle, CryptoError> {
         let symmetric_state = self.handles.symmetric_state.get(symmetric_state_handle)?;
-        symmetric_state.locked(|mut state| state.squeeze_key(raw))
+        let symmetric_key = symmetric_state.locked(|mut state| state.squeeze_key(alg_str))?;
+        let handle = self.handles.symmetric_key.register(symmetric_key)?;
+        Ok(handle)
     }
 
     pub fn symmetric_state_max_tag_len(
@@ -431,15 +433,13 @@ impl WasiCryptoCtx {
     pub fn symmetric_state_squeeze_key(
         &self,
         symmetric_state_handle: guest_types::SymmetricState,
-        raw_ptr: &wiggle::GuestPtr<'_, u8>,
-        raw_len: guest_types::Size,
-    ) -> Result<(), CryptoError> {
+        alg_str: &wiggle::GuestPtr<'_, str>,
+    ) -> Result<guest_types::SymmetricKey, CryptoError> {
         let mut guest_borrow = wiggle::GuestBorrows::new();
-        let raw: &mut [u8] =
-            unsafe { &mut *raw_ptr.as_array(raw_len as _).as_raw(&mut guest_borrow)? };
+        let alg_str: &str = unsafe { &*alg_str.as_raw(&mut guest_borrow)? };
         Ok(self
             .ctx
-            .symmetric_state_squeeze_key(symmetric_state_handle.into(), raw)?
+            .symmetric_state_squeeze_key(symmetric_state_handle.into(), alg_str)?
             .into())
     }
 

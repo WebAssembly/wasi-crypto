@@ -193,7 +193,6 @@ fn test_hkdf() {
 
     let ctx = CryptoCtx::new();
 
-    let mut prk = vec![0u8; 64];
     let mut out = vec![0u8; 32];
 
     let key_handle = ctx
@@ -203,14 +202,12 @@ fn test_hkdf() {
         .symmetric_state_open("HKDF-EXTRACT/SHA-512", Some(key_handle), None)
         .unwrap();
     ctx.symmetric_state_absorb(state_handle, b"salt").unwrap();
-    ctx.symmetric_state_squeeze_key(state_handle, &mut prk)
+    let prk_handle = ctx
+        .symmetric_state_squeeze_key(state_handle, "HKDF-EXPAND/SHA-512")
         .unwrap();
     ctx.symmetric_state_close(state_handle).unwrap();
     ctx.symmetric_key_close(key_handle).unwrap();
 
-    let prk_handle = ctx
-        .symmetric_key_import("HKDF-EXPAND/SHA-512", &prk)
-        .unwrap();
     let state_handle = ctx
         .symmetric_state_open("HKDF-EXPAND/SHA-512", Some(prk_handle), None)
         .unwrap();

@@ -747,14 +747,13 @@ let mut prk = vec![0u8; 64];
 let key_handle = ctx.symmetric_key_import("HKDF-EXTRACT/SHA-512", b"key")?;
 let state_handle = symmetric_state_open("HKDF-EXTRACT/SHA-512", Some(key_handle), None)?;
 ctx.symmetric_state_absorb(state_handle, b"salt")?;
-ctx.symmetric_state_squeeze_key(state_handle, &mut prk)?;
+let prk_handle = ctx.symmetric_state_squeeze_key(state_handle, "HKDF-EXPAND/SHA-512")?;
 ```
 
 Expand:
 
 ```rust
 let mut subkey = vec![0u8; 32];
-let prk_handle = symmetric_key_import("HKDF-EXPAND/SHA-512", prk)?;
 let state_handle = symmetric_state_open("HKDF-EXPAND/SHA-512", Some(prk_handle), None)?;
 ctx.symmetric_state_absorb(state_handle, b"info")?;
 ctx.symmetric_state_squeeze(state_handle, &mut subkey)?;
@@ -835,7 +834,7 @@ ctx.symmetric_state_squeeze(state_handle, &mut out)?;
 ctx.symmetric_state_squeeze(state_handle, &mut out2)?;
 ctx.symmetric_state_ratchet(state_handle)?;
 ctx.symmetric_state_absorb(state_handle, b"more data")?;
-let next_key_handle = ctx.symmetric_state_squeeze_key(state_handle)?;
+let next_key_handle = ctx.symmetric_state_squeeze_key(state_handle, "Xoodyak-256")?;
 // ...
 ```
 
@@ -986,10 +985,8 @@ Other kinds of algorithms may return `invalid_operation` instead.
 
 ---
 
-#### <a href="#symmetric_state_squeeze_key" name="symmetric_state_squeeze_key"></a> `symmetric_state_squeeze_key(handle: symmetric_state, raw: Pointer<u8>, raw_len: size) -> crypto_errno`
+#### <a href="#symmetric_state_squeeze_key" name="symmetric_state_squeeze_key"></a> `symmetric_state_squeeze_key(handle: symmetric_state, alg_str: string) -> (crypto_errno, symmetric_key)`
 Compute a new key, that can be used to resume a session without storing a nonce.
-
-This is similar to `symmetric_state_squeeze()` with a different domain.
 
 For extract-then-expand constructions, this returns the PRK.
 
@@ -998,12 +995,12 @@ For extract-then-expand constructions, this returns the PRK.
 ##### Params
 - <a href="#symmetric_state_squeeze_key.handle" name="symmetric_state_squeeze_key.handle"></a> `handle`: [`symmetric_state`](#symmetric_state)
 
-- <a href="#symmetric_state_squeeze_key.raw" name="symmetric_state_squeeze_key.raw"></a> `raw`: `Pointer<u8>`
-
-- <a href="#symmetric_state_squeeze_key.raw_len" name="symmetric_state_squeeze_key.raw_len"></a> `raw_len`: [`size`](#size)
+- <a href="#symmetric_state_squeeze_key.alg_str" name="symmetric_state_squeeze_key.alg_str"></a> `alg_str`: `string`
 
 ##### Results
 - <a href="#symmetric_state_squeeze_key.error" name="symmetric_state_squeeze_key.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#symmetric_state_squeeze_key.symmetric_key" name="symmetric_state_squeeze_key.symmetric_key"></a> `symmetric_key`: [`symmetric_key`](#symmetric_key)
 
 
 ---

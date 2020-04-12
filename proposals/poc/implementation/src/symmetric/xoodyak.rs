@@ -66,13 +66,8 @@ impl XoodyakSymmetricKeyBuilder {
 
 impl SymmetricKeyBuilder for XoodyakSymmetricKeyBuilder {
     fn generate(&self, _options: Option<SymmetricOptions>) -> Result<SymmetricKey, CryptoError> {
-        let key_len = match self.alg {
-            SymmetricAlgorithm::Xoodyak128 => 16,
-            SymmetricAlgorithm::Xoodyak256 => 32,
-            _ => bail!(CryptoError::UnsupportedAlgorithm),
-        };
         let rng = ring::rand::SystemRandom::new();
-        let mut raw = vec![0u8; key_len];
+        let mut raw = vec![0u8; self.key_len()?];
         rng.fill(&mut raw).map_err(|_| CryptoError::RNGError)?;
         self.import(&raw)
     }
@@ -80,6 +75,14 @@ impl SymmetricKeyBuilder for XoodyakSymmetricKeyBuilder {
     fn import(&self, raw: &[u8]) -> Result<SymmetricKey, CryptoError> {
         let key = XoodyakSymmetricKey::new(self.alg, raw)?;
         Ok(SymmetricKey::new(Box::new(key)))
+    }
+
+    fn key_len(&self) -> Result<usize, CryptoError> {
+        match self.alg {
+            SymmetricAlgorithm::Xoodyak128 => Ok(16),
+            SymmetricAlgorithm::Xoodyak256 => Ok(32),
+            _ => bail!(CryptoError::UnsupportedAlgorithm),
+        }
     }
 }
 
@@ -149,9 +152,11 @@ impl SymmetricStateLike for XoodyakSymmetricState {
         Ok(())
     }
 
-    fn squeeze_key(&mut self, out: &mut [u8]) -> Result<(), CryptoError> {
-        self.xoodyak_state.squeeze_key(out);
-        Ok(())
+    fn squeeze_key(&mut self, alg_str: &str) -> Result<SymmetricKey, CryptoError> {
+        let builder = SymmetricKey::builder(alg_str)?;
+        let mut raw = vec![0u8; builder.key_len()?];
+        self.xoodyak_state.squeeze_key(&mut raw);
+        builder.import(&raw)
     }
 
     fn squeeze_tag(&mut self) -> Result<SymmetricTag, CryptoError> {

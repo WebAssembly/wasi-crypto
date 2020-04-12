@@ -215,14 +215,13 @@
   ;;; let key_handle = ctx.symmetric_key_import("HKDF-EXTRACT/SHA-512", b"key")?;
   ;;; let state_handle = symmetric_state_open("HKDF-EXTRACT/SHA-512", Some(key_handle), None)?;
   ;;; ctx.symmetric_state_absorb(state_handle, b"salt")?;
-  ;;; ctx.symmetric_state_squeeze_key(state_handle, &mut prk)?;
+  ;;; let prk_handle = ctx.symmetric_state_squeeze_key(state_handle, "HKDF-EXPAND/SHA-512")?;
   ;;; ```
   ;;;
   ;;; Expand:
   ;;;
   ;;; ```rust
   ;;; let mut subkey = vec![0u8; 32];
-  ;;; let prk_handle = symmetric_key_import("HKDF-EXPAND/SHA-512", prk)?;
   ;;; let state_handle = symmetric_state_open("HKDF-EXPAND/SHA-512", Some(prk_handle), None)?;
   ;;; ctx.symmetric_state_absorb(state_handle, b"info")?;
   ;;; ctx.symmetric_state_squeeze(state_handle, &mut subkey)?;
@@ -303,7 +302,7 @@
   ;;; ctx.symmetric_state_squeeze(state_handle, &mut out2)?;
   ;;; ctx.symmetric_state_ratchet(state_handle)?;
   ;;; ctx.symmetric_state_absorb(state_handle, b"more data")?;
-  ;;; let next_key_handle = ctx.symmetric_state_squeeze_key(state_handle)?;
+  ;;; let next_key_handle = ctx.symmetric_state_squeeze_key(state_handle, "Xoodyak-256")?;
   ;;; // ...
   ;;; ```
 
@@ -402,16 +401,14 @@
 
   ;;; Compute a new key, that can be used to resume a session without storing a nonce.
   ;;;
-  ;;; This is similar to `symmetric_state_squeeze()` with a different domain.
-  ;;;
   ;;; For extract-then-expand constructions, this returns the PRK.
   ;;;
   ;;; `invalid_operation` is returned for algorithms not supporting this operation.
   (@interface func (export "symmetric_state_squeeze_key")
     (param $handle $symmetric_state)
-    (param $raw (@witx pointer u8))
-    (param $raw_len $size)
+    (param $alg_str string)
     (result $error $crypto_errno)
+    (result $symmetric_key $symmetric_key)
   )
 
   ;;; Return the maximum length of an authentication tag for the current algorithm.

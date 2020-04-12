@@ -72,13 +72,8 @@ impl AesGcmSymmetricKeyBuilder {
 
 impl SymmetricKeyBuilder for AesGcmSymmetricKeyBuilder {
     fn generate(&self, _options: Option<SymmetricOptions>) -> Result<SymmetricKey, CryptoError> {
-        let key_len = match self.alg {
-            SymmetricAlgorithm::Aes128Gcm => ring::aead::AES_128_GCM.key_len(),
-            SymmetricAlgorithm::Aes256Gcm => ring::aead::AES_256_GCM.key_len(),
-            _ => bail!(CryptoError::UnsupportedAlgorithm),
-        };
         let rng = ring::rand::SystemRandom::new();
-        let mut raw = vec![0u8; key_len];
+        let mut raw = vec![0u8; self.key_len()?];
         rng.fill(&mut raw).map_err(|_| CryptoError::RNGError)?;
         self.import(&raw)
     }
@@ -86,6 +81,14 @@ impl SymmetricKeyBuilder for AesGcmSymmetricKeyBuilder {
     fn import(&self, raw: &[u8]) -> Result<SymmetricKey, CryptoError> {
         let key = AesGcmSymmetricKey::new(self.alg, raw)?;
         Ok(SymmetricKey::new(Box::new(key)))
+    }
+
+    fn key_len(&self) -> Result<usize, CryptoError> {
+        match self.alg {
+            SymmetricAlgorithm::Aes128Gcm => Ok(ring::aead::AES_128_GCM.key_len()),
+            SymmetricAlgorithm::Aes256Gcm => Ok(ring::aead::AES_256_GCM.key_len()),
+            _ => bail!(CryptoError::UnsupportedAlgorithm),
+        }
     }
 }
 

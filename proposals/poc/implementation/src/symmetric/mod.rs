@@ -6,23 +6,25 @@ mod key_manager;
 mod sha2;
 mod state;
 mod tag;
+mod xoodyak;
 
+use self::aes_gcm::*;
+use self::hkdf::*;
+use self::hmac_sha2::*;
+use self::key::*;
+use self::sha2::*;
+use self::xoodyak::*;
 use crate::error::*;
 use crate::handles::*;
 use crate::options::*;
-use aes_gcm::*;
-use hkdf::*;
-use hmac_sha2::*;
 use parking_lot::Mutex;
-use sha2::*;
 use std::any::Any;
 use std::convert::TryFrom;
 use std::sync::Arc;
 
-pub use key::SymmetricKey;
-pub use key_manager::*;
-pub use state::SymmetricState;
-pub use tag::SymmetricTag;
+pub use self::key::SymmetricKey;
+pub use self::state::SymmetricState;
+pub use self::tag::SymmetricTag;
 
 #[derive(Debug, Default)]
 pub struct SymmetricOptionsInner {
@@ -113,6 +115,8 @@ pub enum SymmetricAlgorithm {
     Sha512_256,
     Aes128Gcm,
     Aes256Gcm,
+    Xoodyak128,
+    Xoodyak256,
 }
 
 impl TryFrom<&str> for SymmetricAlgorithm {
@@ -131,6 +135,8 @@ impl TryFrom<&str> for SymmetricAlgorithm {
             "SHA-512/256" => Ok(SymmetricAlgorithm::Sha512_256),
             "AES-128-GCM" => Ok(SymmetricAlgorithm::Aes128Gcm),
             "AES-256-GCM" => Ok(SymmetricAlgorithm::Aes256Gcm),
+            "XOODYAK-128" => Ok(SymmetricAlgorithm::Xoodyak128),
+            "XOODYAK-256" => Ok(SymmetricAlgorithm::Xoodyak256),
             _ => bail!(CryptoError::UnsupportedAlgorithm),
         }
     }
@@ -276,4 +282,63 @@ fn tag_to_vec(ctx: &crate::CryptoCtx, symmetric_tag: Handle) -> Result<Vec<u8>, 
     let mut bytes = vec![0u8; ctx.symmetric_tag_len(symmetric_tag)?];
     ctx.symmetric_tag_pull(symmetric_tag, &mut bytes)?;
     Ok(bytes)
+}
+
+#[test]
+fn test_session() {
+    use crate::CryptoCtx;
+
+    let ctx = CryptoCtx::new();
+
+    let msg = b"test";
+    let mut msg2 = vec![0u8; msg.len()];
+    let mut squeezed = [0u8; 32];
+    let mut squeezed_2 = [0u8; 32];
+    let key_handle = ctx.symmetric_key_generate("XOODYAK-128", None).unwrap();
+
+    let symmetric_state = ctx
+        .symmetric_state_open("XOODYAK-128", Some(key_handle), None)
+        .unwrap();
+
+    ctx.symmetric_state_absorb(symmetric_state, b"data")
+        .unwrap();
+    ctx.symmetric_state_squeeze(symmetric_state, &mut squeezed)
+        .unwrap();
+
+    let mut ciphertext_with_tag =
+        vec![0u8; msg.len() + ctx.symmetric_state_max_tag_len(symmetric_state).unwrap()];
+    ctx.symmetric_state_encrypt(symmetric_state, &mut ciphertext_with_tag, msg)
+        .unwrap();
+
+    ctx.symmetric_state_absorb(symmetric_state, b"more_data")
+        .unwrap();
+
+    ctx.symmetric_state_ratchet(symmetric_state).unwrap();
+
+    ctx.symmetric_state_squeeze(symmetric_state, &mut squeezed)
+        .unwrap();
+    ctx.symmetric_state_close(symmetric_state).unwrap();
+
+    //
+
+    let symmetric_state = ctx
+        .symmetric_state_open("XOODYAK-128", Some(key_handle), None)
+        .unwrap();
+    ctx.symmetric_state_absorb(symmetric_state, b"data")
+        .unwrap();
+    ctx.symmetric_state_squeeze(symmetric_state, &mut squeezed_2)
+        .unwrap();
+
+    ctx.symmetric_state_decrypt(symmetric_state, &mut msg2, &ciphertext_with_tag)
+        .unwrap();
+
+    ctx.symmetric_state_absorb(symmetric_state, b"more_data")
+        .unwrap();
+
+    ctx.symmetric_state_ratchet(symmetric_state).unwrap();
+
+    ctx.symmetric_state_squeeze(symmetric_state, &mut squeezed_2)
+        .unwrap();
+    ctx.symmetric_state_close(symmetric_state).unwrap();
+    assert_eq!(squeezed, squeezed_2);
 }

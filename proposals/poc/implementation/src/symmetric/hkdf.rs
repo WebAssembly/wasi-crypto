@@ -4,8 +4,7 @@ use super::*;
 use ring::rand::SecureRandom;
 use zeroize::Zeroize;
 
-#[derive(Clone, Derivative)]
-#[derivative(Debug)]
+#[derive(Clone, Debug)]
 pub struct HkdfSymmetricState {
     pub alg: SymmetricAlgorithm,
     options: Option<SymmetricOptions>,
@@ -19,22 +18,36 @@ impl Drop for HkdfSymmetricState {
     }
 }
 
+impl SymmetricKeyLike for HkdfSymmetricKey {
+    fn alg(&self) -> SymmetricAlgorithm {
+        self.alg
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn as_raw(&self) -> Result<&[u8], CryptoError> {
+        Ok(&self.raw)
+    }
+}
+
 #[derive(Clone, Debug, Eq)]
 pub struct HkdfSymmetricKey {
     alg: SymmetricAlgorithm,
     raw: Vec<u8>,
 }
 
+impl Drop for HkdfSymmetricKey {
+    fn drop(&mut self) {
+        self.raw.zeroize();
+    }
+}
+
 impl PartialEq for HkdfSymmetricKey {
     fn eq(&self, other: &Self) -> bool {
         self.alg == other.alg
             && ring::constant_time::verify_slices_are_equal(&self.raw, &other.raw).is_ok()
-    }
-}
-
-impl Drop for HkdfSymmetricKey {
-    fn drop(&mut self) {
-        self.raw.zeroize();
     }
 }
 
@@ -45,20 +58,21 @@ impl HkdfSymmetricKey {
             raw: raw.to_vec(),
         })
     }
+}
 
-    pub fn alg(&self) -> SymmetricAlgorithm {
-        self.alg
+pub struct HkdfSymmetricKeyBuilder {
+    alg: SymmetricAlgorithm,
+}
+
+impl HkdfSymmetricKeyBuilder {
+    pub fn new(alg: SymmetricAlgorithm) -> Box<dyn SymmetricKeyBuilder> {
+        Box::new(Self { alg })
     }
+}
 
-    pub fn as_raw(&self) -> Result<&[u8], CryptoError> {
-        Ok(&self.raw)
-    }
-
-    pub fn generate(
-        alg: SymmetricAlgorithm,
-        _options: Option<SymmetricOptions>,
-    ) -> Result<HkdfSymmetricKey, CryptoError> {
-        let key_len = match alg {
+impl SymmetricKeyBuilder for HkdfSymmetricKeyBuilder {
+    fn generate(&self, _options: Option<SymmetricOptions>) -> Result<SymmetricKey, CryptoError> {
+        let key_len = match self.alg {
             SymmetricAlgorithm::HkdfSha256Expand | SymmetricAlgorithm::HkdfSha256Extract => {
                 ring::digest::SHA256_OUTPUT_LEN
             }
@@ -70,12 +84,12 @@ impl HkdfSymmetricKey {
         let rng = ring::rand::SystemRandom::new();
         let mut raw = vec![0u8; key_len];
         rng.fill(&mut raw).map_err(|_| CryptoError::RNGError)?;
-        Self::import(alg, &raw)
+        self.import(&raw)
     }
 
-    pub fn import(alg: SymmetricAlgorithm, raw: &[u8]) -> Result<HkdfSymmetricKey, CryptoError> {
-        let key = HkdfSymmetricKey::new(alg, raw)?;
-        Ok(key)
+    fn import(&self, raw: &[u8]) -> Result<SymmetricKey, CryptoError> {
+        let key = HkdfSymmetricKey::new(self.alg, raw)?;
+        Ok(SymmetricKey::new(Box::new(key)))
     }
 }
 
@@ -85,11 +99,12 @@ impl HkdfSymmetricState {
         key: Option<SymmetricKey>,
         options: Option<SymmetricOptions>,
     ) -> Result<Self, CryptoError> {
-        let key = match key {
-            None => bail!(CryptoError::KeyRequired),
-            Some(SymmetricKey::Hkdf(key)) => key,
-            _ => bail!(CryptoError::InvalidKey),
-        };
+        let key = key.ok_or(CryptoError::KeyRequired)?;
+        let key = key.inner();
+        let key = key
+            .as_any()
+            .downcast_ref::<HkdfSymmetricKey>()
+            .ok_or(CryptoError::InvalidKey)?;
         let key = key.as_raw()?.to_vec();
         Ok(HkdfSymmetricState {
             alg,

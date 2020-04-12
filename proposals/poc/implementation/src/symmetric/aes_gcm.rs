@@ -37,27 +37,42 @@ impl Drop for AesGcmSymmetricKey {
     }
 }
 
+impl SymmetricKeyLike for AesGcmSymmetricKey {
+    fn alg(&self) -> SymmetricAlgorithm {
+        self.alg
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn as_raw(&self) -> Result<&[u8], CryptoError> {
+        Ok(&self.raw)
+    }
+}
+
 impl AesGcmSymmetricKey {
-    pub fn new(alg: SymmetricAlgorithm, raw: &[u8]) -> Result<Self, CryptoError> {
+    fn new(alg: SymmetricAlgorithm, raw: &[u8]) -> Result<Self, CryptoError> {
         Ok(AesGcmSymmetricKey {
             alg,
             raw: raw.to_vec(),
         })
     }
+}
 
-    pub fn alg(&self) -> SymmetricAlgorithm {
-        self.alg
+pub struct AesGcmSymmetricKeyBuilder {
+    alg: SymmetricAlgorithm,
+}
+
+impl AesGcmSymmetricKeyBuilder {
+    pub fn new(alg: SymmetricAlgorithm) -> Box<dyn SymmetricKeyBuilder> {
+        Box::new(Self { alg })
     }
+}
 
-    pub fn as_raw(&self) -> Result<&[u8], CryptoError> {
-        Ok(&self.raw)
-    }
-
-    pub fn generate(
-        alg: SymmetricAlgorithm,
-        _options: Option<SymmetricOptions>,
-    ) -> Result<AesGcmSymmetricKey, CryptoError> {
-        let key_len = match alg {
+impl SymmetricKeyBuilder for AesGcmSymmetricKeyBuilder {
+    fn generate(&self, _options: Option<SymmetricOptions>) -> Result<SymmetricKey, CryptoError> {
+        let key_len = match self.alg {
             SymmetricAlgorithm::Aes128Gcm => ring::aead::AES_128_GCM.key_len(),
             SymmetricAlgorithm::Aes256Gcm => ring::aead::AES_256_GCM.key_len(),
             _ => bail!(CryptoError::UnsupportedAlgorithm),
@@ -65,12 +80,12 @@ impl AesGcmSymmetricKey {
         let rng = ring::rand::SystemRandom::new();
         let mut raw = vec![0u8; key_len];
         rng.fill(&mut raw).map_err(|_| CryptoError::RNGError)?;
-        Self::import(alg, &raw)
+        self.import(&raw)
     }
 
-    pub fn import(alg: SymmetricAlgorithm, raw: &[u8]) -> Result<AesGcmSymmetricKey, CryptoError> {
-        let key = AesGcmSymmetricKey::new(alg, raw)?;
-        Ok(key)
+    fn import(&self, raw: &[u8]) -> Result<SymmetricKey, CryptoError> {
+        let key = AesGcmSymmetricKey::new(self.alg, raw)?;
+        Ok(SymmetricKey::new(Box::new(key)))
     }
 }
 
@@ -105,11 +120,12 @@ impl AesGcmSymmetricState {
         key: Option<SymmetricKey>,
         options: Option<SymmetricOptions>,
     ) -> Result<Self, CryptoError> {
-        let key = match key {
-            None => bail!(CryptoError::KeyRequired),
-            Some(SymmetricKey::AesGcm(key)) => key,
-            _ => bail!(CryptoError::InvalidKey),
-        };
+        let key = key.ok_or(CryptoError::KeyRequired)?;
+        let key = key.inner();
+        let key = key
+            .as_any()
+            .downcast_ref::<AesGcmSymmetricKey>()
+            .ok_or(CryptoError::InvalidKey)?;
         let ring_alg = match alg {
             SymmetricAlgorithm::Aes128Gcm => &ring::aead::AES_128_GCM,
             SymmetricAlgorithm::Aes256Gcm => &ring::aead::AES_256_GCM,

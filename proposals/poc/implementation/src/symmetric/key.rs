@@ -3,75 +3,82 @@ use crate::types as guest_types;
 use crate::version::*;
 use crate::{CryptoCtx, WasiCryptoCtx};
 
+use parking_lot::{Mutex, MutexGuard};
 use std::convert::TryInto;
+use std::sync::Arc;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum SymmetricKey {
-    HmacSha2(HmacSha2SymmetricKey),
-    Hkdf(HkdfSymmetricKey),
-    AesGcm(AesGcmSymmetricKey),
+#[derive(Clone)]
+pub struct SymmetricKey {
+    inner: Arc<Mutex<Box<dyn SymmetricKeyLike>>>,
+}
+
+pub trait SymmetricKeyBuilder {
+    fn generate(&self, options: Option<SymmetricOptions>) -> Result<SymmetricKey, CryptoError>;
+
+    fn import(&self, raw: &[u8]) -> Result<SymmetricKey, CryptoError>;
 }
 
 impl SymmetricKey {
-    pub fn alg(&self) -> SymmetricAlgorithm {
-        match self {
-            SymmetricKey::HmacSha2(key) => key.alg(),
-            SymmetricKey::Hkdf(key) => key.alg(),
-            SymmetricKey::AesGcm(key) => key.alg(),
+    pub fn new(symmetric_key_like: Box<dyn SymmetricKeyLike>) -> Self {
+        SymmetricKey {
+            inner: Arc::new(Mutex::new(symmetric_key_like)),
         }
+    }
+
+    pub fn inner(&self) -> MutexGuard<Box<dyn SymmetricKeyLike>> {
+        self.inner.lock()
+    }
+
+    pub fn locked<T, U>(&self, mut f: T) -> U
+    where
+        T: FnMut(MutexGuard<Box<dyn SymmetricKeyLike>>) -> U,
+    {
+        f(self.inner())
+    }
+
+    pub fn alg(&self) -> SymmetricAlgorithm {
+        self.inner().alg()
+    }
+
+    pub fn builder(alg_str: &str) -> Result<Box<dyn SymmetricKeyBuilder>, CryptoError> {
+        let alg = SymmetricAlgorithm::try_from(alg_str)?;
+        let builder = match alg {
+            SymmetricAlgorithm::HmacSha256 | SymmetricAlgorithm::HmacSha512 => {
+                HmacSha2SymmetricKeyBuilder::new(alg)
+            }
+            SymmetricAlgorithm::HkdfSha256Expand
+            | SymmetricAlgorithm::HkdfSha256Extract
+            | SymmetricAlgorithm::HkdfSha512Expand
+            | SymmetricAlgorithm::HkdfSha512Extract => HkdfSymmetricKeyBuilder::new(alg),
+            SymmetricAlgorithm::Aes128Gcm | SymmetricAlgorithm::Aes256Gcm => {
+                AesGcmSymmetricKeyBuilder::new(alg)
+            }
+            SymmetricAlgorithm::Xoodyak128 | SymmetricAlgorithm::Xoodyak256 => {
+                XoodyakSymmetricKeyBuilder::new(alg)
+            }
+            _ => bail!(CryptoError::InvalidOperation),
+        };
+        Ok(builder)
     }
 
     fn generate(
         alg_str: &str,
         options: Option<SymmetricOptions>,
     ) -> Result<SymmetricKey, CryptoError> {
-        let alg = SymmetricAlgorithm::try_from(alg_str)?;
-        let symmetric_key = match alg {
-            SymmetricAlgorithm::HmacSha256 | SymmetricAlgorithm::HmacSha512 => {
-                SymmetricKey::HmacSha2(HmacSha2SymmetricKey::generate(alg, options)?)
-            }
-            SymmetricAlgorithm::HkdfSha256Expand
-            | SymmetricAlgorithm::HkdfSha512Expand
-            | SymmetricAlgorithm::HkdfSha256Extract
-            | SymmetricAlgorithm::HkdfSha512Extract => {
-                SymmetricKey::Hkdf(HkdfSymmetricKey::generate(alg, options)?)
-            }
-            SymmetricAlgorithm::Aes128Gcm | SymmetricAlgorithm::Aes256Gcm => {
-                SymmetricKey::AesGcm(AesGcmSymmetricKey::generate(alg, options)?)
-            }
-            _ => bail!(CryptoError::KeyNotSupported),
-        };
-        Ok(symmetric_key)
+        let builder = Self::builder(alg_str)?;
+        builder.generate(options)
     }
 
     fn import(alg_str: &str, raw: &[u8]) -> Result<SymmetricKey, CryptoError> {
-        let alg = SymmetricAlgorithm::try_from(alg_str)?;
-        let symmetric_key = match alg {
-            SymmetricAlgorithm::HmacSha256 | SymmetricAlgorithm::HmacSha512 => {
-                SymmetricKey::HmacSha2(HmacSha2SymmetricKey::import(alg, raw)?)
-            }
-            SymmetricAlgorithm::HkdfSha256Expand
-            | SymmetricAlgorithm::HkdfSha512Expand
-            | SymmetricAlgorithm::HkdfSha256Extract
-            | SymmetricAlgorithm::HkdfSha512Extract => {
-                SymmetricKey::Hkdf(HkdfSymmetricKey::import(alg, raw)?)
-            }
-            SymmetricAlgorithm::Aes128Gcm | SymmetricAlgorithm::Aes256Gcm => {
-                SymmetricKey::AesGcm(AesGcmSymmetricKey::import(alg, raw)?)
-            }
-            _ => bail!(CryptoError::KeyNotSupported),
-        };
-        Ok(symmetric_key)
+        let builder = Self::builder(alg_str)?;
+        builder.import(raw)
     }
+}
 
-    pub fn as_raw(&self) -> Result<Vec<u8>, CryptoError> {
-        let raw = match self {
-            SymmetricKey::HmacSha2(key) => key.as_raw()?.to_vec(),
-            SymmetricKey::Hkdf(key) => key.as_raw()?.to_vec(),
-            SymmetricKey::AesGcm(key) => key.as_raw()?.to_vec(),
-        };
-        Ok(raw)
-    }
+pub trait SymmetricKeyLike: Sync + Send {
+    fn as_any(&self) -> &dyn Any;
+    fn alg(&self) -> SymmetricAlgorithm;
+    fn as_raw(&self) -> Result<&[u8], CryptoError>;
 }
 
 impl CryptoCtx {

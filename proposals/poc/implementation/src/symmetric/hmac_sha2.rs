@@ -34,6 +34,20 @@ impl Drop for HmacSha2SymmetricKey {
     }
 }
 
+impl SymmetricKeyLike for HmacSha2SymmetricKey {
+    fn alg(&self) -> SymmetricAlgorithm {
+        self.alg
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn as_raw(&self) -> Result<&[u8], CryptoError> {
+        Ok(&self.raw)
+    }
+}
+
 impl HmacSha2SymmetricKey {
     pub fn new(alg: SymmetricAlgorithm, raw: &[u8]) -> Result<Self, CryptoError> {
         Ok(HmacSha2SymmetricKey {
@@ -41,20 +55,21 @@ impl HmacSha2SymmetricKey {
             raw: raw.to_vec(),
         })
     }
+}
 
-    pub fn alg(&self) -> SymmetricAlgorithm {
-        self.alg
+pub struct HmacSha2SymmetricKeyBuilder {
+    alg: SymmetricAlgorithm,
+}
+
+impl HmacSha2SymmetricKeyBuilder {
+    pub fn new(alg: SymmetricAlgorithm) -> Box<dyn SymmetricKeyBuilder> {
+        Box::new(Self { alg })
     }
+}
 
-    pub fn as_raw(&self) -> Result<&[u8], CryptoError> {
-        Ok(&self.raw)
-    }
-
-    pub fn generate(
-        alg: SymmetricAlgorithm,
-        _options: Option<SymmetricOptions>,
-    ) -> Result<HmacSha2SymmetricKey, CryptoError> {
-        let key_len = match alg {
+impl SymmetricKeyBuilder for HmacSha2SymmetricKeyBuilder {
+    fn generate(&self, _options: Option<SymmetricOptions>) -> Result<SymmetricKey, CryptoError> {
+        let key_len = match self.alg {
             SymmetricAlgorithm::HmacSha256 => ring::digest::SHA256_OUTPUT_LEN,
             SymmetricAlgorithm::HmacSha512 => ring::digest::SHA512_OUTPUT_LEN,
             _ => bail!(CryptoError::UnsupportedAlgorithm),
@@ -62,15 +77,12 @@ impl HmacSha2SymmetricKey {
         let rng = ring::rand::SystemRandom::new();
         let mut raw = vec![0u8; key_len];
         rng.fill(&mut raw).map_err(|_| CryptoError::RNGError)?;
-        Self::import(alg, &raw)
+        self.import(&raw)
     }
 
-    pub fn import(
-        alg: SymmetricAlgorithm,
-        raw: &[u8],
-    ) -> Result<HmacSha2SymmetricKey, CryptoError> {
-        let key = HmacSha2SymmetricKey::new(alg, raw)?;
-        Ok(key)
+    fn import(&self, raw: &[u8]) -> Result<SymmetricKey, CryptoError> {
+        let key = HmacSha2SymmetricKey::new(self.alg, raw)?;
+        Ok(SymmetricKey::new(Box::new(key)))
     }
 }
 
@@ -80,11 +92,12 @@ impl HmacSha2SymmetricState {
         key: Option<SymmetricKey>,
         options: Option<SymmetricOptions>,
     ) -> Result<Self, CryptoError> {
-        let key = match key {
-            None => bail!(CryptoError::KeyRequired),
-            Some(SymmetricKey::HmacSha2(key)) => key,
-            _ => bail!(CryptoError::InvalidKey),
-        };
+        let key = key.ok_or(CryptoError::KeyRequired)?;
+        let key = key.inner();
+        let key = key
+            .as_any()
+            .downcast_ref::<HmacSha2SymmetricKey>()
+            .ok_or(CryptoError::InvalidKey)?;
         let ring_alg = match alg {
             SymmetricAlgorithm::HmacSha256 => ring::hmac::HMAC_SHA256,
             SymmetricAlgorithm::HmacSha512 => ring::hmac::HMAC_SHA512,

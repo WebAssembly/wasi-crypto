@@ -986,9 +986,10 @@ Other kinds of algorithms may return `invalid_operation` instead.
 ---
 
 #### <a href="#symmetric_state_squeeze_key" name="symmetric_state_squeeze_key"></a> `symmetric_state_squeeze_key(handle: symmetric_state, alg_str: string) -> (crypto_errno, symmetric_key)`
-Compute a new key, that can be used to resume a session without storing a nonce.
+Use the current state to produce a key for a target algorithm.
 
 For extract-then-expand constructions, this returns the PRK.
+For session-base authentication encryption, this returns a key that can be used to resume a session without storing a nonce.
 
 `invalid_operation` is returned for algorithms not supporting this operation.
 

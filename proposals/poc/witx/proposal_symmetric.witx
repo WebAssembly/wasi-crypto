@@ -399,9 +399,10 @@
     (result $symmetric_tag $symmetric_tag)
   )
 
-  ;;; Compute a new key, that can be used to resume a session without storing a nonce.
+  ;;; Use the current state to produce a key for a target algorithm.
   ;;;
   ;;; For extract-then-expand constructions, this returns the PRK.
+  ;;; For session-base authentication encryption, this returns a key that can be used to resume a session without storing a nonce.
   ;;;
   ;;; `invalid_operation` is returned for algorithms not supporting this operation.
   (@interface func (export "symmetric_state_squeeze_key")

@@ -41,6 +41,13 @@ wiggle::from_witx!({
     ctx: WasiCryptoCtx
 });
 
+pub mod wasi_modules {
+    pub use crate::{
+        wasi_ephemeral_crypto_common, wasi_ephemeral_crypto_signatures,
+        wasi_ephemeral_crypto_symmetric,
+    };
+}
+
 pub struct HandleManagers {
     pub array_output: HandlesManager<ArrayOutput>,
     pub options: HandlesManager<Options>,

@@ -1,5 +1,5 @@
 [package]
-name = "wasi-cryptography"
+name = "wasi-crypto"
 version = "0.1.0"
 authors = ["Frank Denis <github@pureftpd.org>"]
 edition = "2018"
@@ -12,6 +12,5 @@ parking_lot = "0.10.2"
 ring = "0.16.12"
 thiserror = "1.0.15"
 wiggle = "0.15.0"
-wiggle-runtime = "0.13.0"
 xoodyak = "0.5.0"
 zeroize = "1.1.0"

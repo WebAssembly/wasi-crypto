@@ -774,8 +774,9 @@ ctx.squeeze(state_handle, &mut subkey2)?;
 - **Password hashing**
 
 ```rust
+let mut memory = vec![0u8; 1_000_000_000];
 let options_handle = ctx.symmetric_options_open()?;
-ctx.symmetric_options_set_u64(options_handle, "memlimit", 1 * 1024 * 1024 * 1024)?;
+ctx.symmetric_options_set(options_handle, "memory", &mut scratch_buffer)?;
 ctx.symmetric_options_set_u64(options_handle, "opslimit", 5)?;
 ctx.symmetric_options_set_u64(options_handle, "parallelism", 8)?;
 

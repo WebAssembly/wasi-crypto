@@ -129,6 +129,13 @@ The algorithm requires parameters that haven't been set.
 
 Non-generic options are required and must be given by building an [`options`](#options) set and giving that object to functions instantiating that algorithm.
 
+- <a href="#crypto_errno.in_progress" name="crypto_errno.in_progress"></a> `in_progress`
+A requested computation is not done yet, and additional calls to the function are required.
+
+Some functions, such as functions generating key pairs and password stretching functions, can take a long time to complete.
+
+In order to avoid a host call to be blocked for too long, these functions can return prematurely, requiring additional calls with the same parameters until they complete.
+
 ## <a href="#keypair_encoding" name="keypair_encoding"></a> `keypair_encoding`: Enum(`u16`)
 Encoding to use for importing or exporting a key pair.
 
@@ -221,10 +228,10 @@ This type is used to set non-default parameters.
 The exact set of allowed options depends on the algorithm being used.
 
 ### Supertypes
-## <a href="#signature_keypair_manager" name="signature_keypair_manager"></a> `signature_keypair_manager`
+## <a href="#key_manager" name="key_manager"></a> `key_manager`
 A handle to the optional key management facilities offered by a host.
 
-This is used to generate, retrieve and invalidate managed signature key pairs.
+This is used to generate, retrieve and invalidate managed keys.
 
 ### Supertypes
 ## <a href="#signature_keypair" name="signature_keypair"></a> `signature_keypair`
@@ -249,12 +256,6 @@ A public key that can be used to verify a signature.
 ### Supertypes
 ## <a href="#signature_verification_state" name="signature_verification_state"></a> `signature_verification_state`
 A state to absorb signed data to be verified.
-
-### Supertypes
-## <a href="#symmetric_key_manager" name="symmetric_key_manager"></a> `symmetric_key_manager`
-A handle to the optional key management facilities offered by a host.
-
-This is used to generate, retrieve and invalidate managed symmetric keys.
 
 ### Supertypes
 ## <a href="#symmetric_state" name="symmetric_state"></a> `symmetric_state`
@@ -334,11 +335,11 @@ Create a new object to set non-default options.
 Example usage:
 
 ```rust
-let options_handle = ctx.options_open()?;
-ctx.options_set(options_handle, "context", context)?;
-ctx.options_set_u64(options_handle, "threads", 4)?;
-let state = ctx.symmetric_state_open("BLAKE3", None, Some(options_handle))?;
-ctx.options_close(options_handle)?;
+let options_handle = options_open()?;
+options_set(options_handle, "context", context)?;
+options_set_u64(options_handle, "threads", 4)?;
+let state = symmetric_state_open("BLAKE3", None, Some(options_handle))?;
+options_close(options_handle)?;
 ```
 
 ##### Params
@@ -408,6 +409,28 @@ This function may return `unsupported_option` if an option that doesn't exist fo
 
 ---
 
+#### <a href="#options_set_guest_buffer" name="options_set_guest_buffer"></a> `options_set_guest_buffer(handle: options, name: string, buffer: Pointer<u8>, buffer_len: size) -> crypto_errno`
+Set or update a guest-allocated memory that the host can use or return data into.
+
+This is for example used to set the scratch buffer required by memory-hard functions.
+
+This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
+
+##### Params
+- <a href="#options_set_guest_buffer.handle" name="options_set_guest_buffer.handle"></a> `handle`: [`options`](#options)
+
+- <a href="#options_set_guest_buffer.name" name="options_set_guest_buffer.name"></a> `name`: `string`
+
+- <a href="#options_set_guest_buffer.buffer" name="options_set_guest_buffer.buffer"></a> `buffer`: `Pointer<u8>`
+
+- <a href="#options_set_guest_buffer.buffer_len" name="options_set_guest_buffer.buffer_len"></a> `buffer_len`: [`size`](#size)
+
+##### Results
+- <a href="#options_set_guest_buffer.error" name="options_set_guest_buffer.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+
+---
+
 #### <a href="#array_output_len" name="array_output_len"></a> `array_output_len(array_output: array_output) -> (crypto_errno, size)`
 Return the length of an [`array_output`](#array_output) object.
 
@@ -436,9 +459,9 @@ The handle is automatically closed after all the data has been consumed.
 Example usage:
 
 ```rust
-let len = ctx.array_output_len(output_handle)?;
+let len = array_output_len(output_handle)?;
 let mut out = vec![0u8; len];
-ctx.array_output_pull(output_handle, &mut out)?;
+array_output_pull(output_handle, &mut out)?;
 ```
 
 ##### Params
@@ -450,6 +473,69 @@ ctx.array_output_pull(output_handle, &mut out)?;
 
 ##### Results
 - <a href="#array_output_pull.error" name="array_output_pull.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+
+---
+
+#### <a href="#key_manager_open" name="key_manager_open"></a> `key_manager_open(options: opt_options) -> (crypto_errno, key_manager)`
+__(optional)__
+Create a context to use a key manager.
+
+The set of required and supported options is defined by the host.
+
+The function returns the `unsupported_feature` error code if key management facilities are not supported by the host.
+This is also an optional import, meaning that the function may not even exist.
+
+##### Params
+- <a href="#key_manager_open.options" name="key_manager_open.options"></a> `options`: [`opt_options`](#opt_options)
+
+##### Results
+- <a href="#key_manager_open.error" name="key_manager_open.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#key_manager_open.handle" name="key_manager_open.handle"></a> `handle`: [`key_manager`](#key_manager)
+
+
+---
+
+#### <a href="#key_manager_close" name="key_manager_close"></a> `key_manager_close(key_manager: key_manager) -> crypto_errno`
+__(optional)__
+Destroy a key manager context.
+
+The function returns the `unsupported_feature` error code if key management facilities are not supported by the host.
+This is also an optional import, meaning that the function may not even exist.
+
+##### Params
+- <a href="#key_manager_close.key_manager" name="key_manager_close.key_manager"></a> `key_manager`: [`key_manager`](#key_manager)
+
+##### Results
+- <a href="#key_manager_close.error" name="key_manager_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+
+---
+
+#### <a href="#key_manager_invalidate" name="key_manager_invalidate"></a> `key_manager_invalidate(key_manager: key_manager, key_id: ConstPointer<u8>, key_id_len: size, key_version: version) -> crypto_errno`
+__(optional)__
+Invalidate a managed key or key pair given an identifier and a version.
+
+This asks the key manager to delete or revoke a stored key, a specific version of a key..
+
+`key_version` can be set to a version number, to [`version.latest`](#version.latest) to invalidate the current version, or to [`version.all`](#version.all) to invalidate all versions of a key.
+
+The function returns `unsupported_feature` if this operation is not supported by the host, and `key_not_found` if the identifier and version don't match any existing key.
+
+This is an optional import, meaning that the function may not even exist.
+
+##### Params
+- <a href="#key_manager_invalidate.key_manager" name="key_manager_invalidate.key_manager"></a> `key_manager`: [`key_manager`](#key_manager)
+
+- <a href="#key_manager_invalidate.key_id" name="key_manager_invalidate.key_id"></a> `key_id`: `ConstPointer<u8>`
+
+- <a href="#key_manager_invalidate.key_id_len" name="key_manager_invalidate.key_id_len"></a> `key_id_len`: [`size`](#size)
+
+- <a href="#key_manager_invalidate.key_version" name="key_manager_invalidate.key_version"></a> `key_version`: [`version`](#version)
+
+##### Results
+- <a href="#key_manager_invalidate.error" name="key_manager_invalidate.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 ## <a href="#wasi_ephemeral_crypto_signatures" name="wasi_ephemeral_crypto_signatures"></a> wasi_ephemeral_crypto_signatures
 ### Imports
@@ -468,6 +554,9 @@ Trying to use that key pair with different parameters will throw an `invalid_key
 This function may return `$crypto_errno.unsupported_feature` if key generation is not supported by the host for the chosen algorithm.
 
 The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+
+Finally, if generating that type of key pair is an expensive operation, the function may return `in_progress`.
+In that case, the guest should retry with the same parameters until the function completes.
 
 Example usage:
 
@@ -520,6 +609,36 @@ let kp_handle = ctx.signature_keypair_import("RSA_PKCS1_2048_8192_SHA512", Keypa
 
 ---
 
+#### <a href="#signature_managed_keypair_generate" name="signature_managed_keypair_generate"></a> `signature_managed_keypair_generate(key_manager: key_manager, algorithm: string, options: opt_options) -> (crypto_errno, signature_keypair)`
+__(optional)__
+Generate a new managed key pair.
+
+The key pair is generated and stored by the key management facilities.
+
+It may be used through its identifier, but the host may not allow it to be exported.
+
+The function returns the `unsupported_feature` error code if key management facilities are not supported by the host,
+or `unsupported_algorithm` if a key cannot be created for the chosen algorithm.
+
+The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+
+This is also an optional import, meaning that the function may not even exist.
+
+##### Params
+- <a href="#signature_managed_keypair_generate.key_manager" name="signature_managed_keypair_generate.key_manager"></a> `key_manager`: [`key_manager`](#key_manager)
+
+- <a href="#signature_managed_keypair_generate.algorithm" name="signature_managed_keypair_generate.algorithm"></a> `algorithm`: `string`
+
+- <a href="#signature_managed_keypair_generate.options" name="signature_managed_keypair_generate.options"></a> `options`: [`opt_options`](#opt_options)
+
+##### Results
+- <a href="#signature_managed_keypair_generate.error" name="signature_managed_keypair_generate.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#signature_managed_keypair_generate.handle" name="signature_managed_keypair_generate.handle"></a> `handle`: [`signature_keypair`](#signature_keypair)
+
+
+---
+
 #### <a href="#signature_keypair_id" name="signature_keypair_id"></a> `signature_keypair_id(kp: signature_keypair, kp_id: Pointer<u8>, kp_id_max_len: size) -> (crypto_errno, size, version)`
 __(optional)__
 Return the key pair identifier and version of a managed signature key pair.
@@ -545,7 +664,7 @@ This is an optional import, meaning that the function may not even exist.
 
 ---
 
-#### <a href="#signature_keypair_from_id" name="signature_keypair_from_id"></a> `signature_keypair_from_id(kp_manager: signature_keypair_manager, kp_id: ConstPointer<u8>, kp_id_len: size, kp_version: version) -> (crypto_errno, signature_keypair)`
+#### <a href="#signature_keypair_from_id" name="signature_keypair_from_id"></a> `signature_keypair_from_id(key_manager: key_manager, kp_id: ConstPointer<u8>, kp_id_len: size, kp_version: version) -> (crypto_errno, signature_keypair)`
 __(optional)__
 Return a managed signature key pair from a key identifier.
 
@@ -556,7 +675,7 @@ If no key pair matching the provided information is found, `key_not_found` is re
 This is an optional import, meaning that the function may not even exist.
 ``
 ##### Params
-- <a href="#signature_keypair_from_id.kp_manager" name="signature_keypair_from_id.kp_manager"></a> `kp_manager`: [`signature_keypair_manager`](#signature_keypair_manager)
+- <a href="#signature_keypair_from_id.key_manager" name="signature_keypair_from_id.key_manager"></a> `key_manager`: [`key_manager`](#key_manager)
 
 - <a href="#signature_keypair_from_id.kp_id" name="signature_keypair_from_id.kp_id"></a> `kp_id`: `ConstPointer<u8>`
 
@@ -568,35 +687,6 @@ This is an optional import, meaning that the function may not even exist.
 - <a href="#signature_keypair_from_id.error" name="signature_keypair_from_id.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 - <a href="#signature_keypair_from_id.handle" name="signature_keypair_from_id.handle"></a> `handle`: [`signature_keypair`](#signature_keypair)
-
-
----
-
-#### <a href="#signature_keypair_invalidate" name="signature_keypair_invalidate"></a> `signature_keypair_invalidate(kp_manager: signature_keypair_manager, kp_id: ConstPointer<u8>, kp_id_len: size, kp_version: version) -> crypto_errno`
-__(optional)__
-Invalidate a managed key pair given a key pair identifier and a version.
-
-This asks the key manager to delete or revoke a key pair or a version of a key pair.
-
-Once this function returns, [`signature_keypair_from_id`](#signature_keypair_from_id) will return that key pair any longer.
-
-`kp_version` can be set to a version number, to [`version.latest`](#version.latest) to invalidate the current version, or to [`version.all`](#version.all) to invalidate all versions of a key.
-
-The function returns `unsupported_feature` if this operation is not supported by the host, and `key_not_found` if the identifier and version don't match any existing key pair.
-
-This is an optional import, meaning that the function may not even exist.
-
-##### Params
-- <a href="#signature_keypair_invalidate.kp_manager" name="signature_keypair_invalidate.kp_manager"></a> `kp_manager`: [`signature_keypair_manager`](#signature_keypair_manager)
-
-- <a href="#signature_keypair_invalidate.kp_id" name="signature_keypair_invalidate.kp_id"></a> `kp_id`: `ConstPointer<u8>`
-
-- <a href="#signature_keypair_invalidate.kp_id_len" name="signature_keypair_invalidate.kp_id_len"></a> `kp_id_len`: [`size`](#size)
-
-- <a href="#signature_keypair_invalidate.kp_version" name="signature_keypair_invalidate.kp_version"></a> `kp_version`: [`version`](#version)
-
-##### Results
-- <a href="#signature_keypair_invalidate.error" name="signature_keypair_invalidate.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 
 ---

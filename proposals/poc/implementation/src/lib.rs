@@ -4,6 +4,7 @@ extern crate derivative;
 mod array_output;
 mod error;
 mod handles;
+mod key_manager;
 mod options;
 mod signatures;
 mod symmetric;

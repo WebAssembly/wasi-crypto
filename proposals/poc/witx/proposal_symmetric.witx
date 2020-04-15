@@ -35,30 +35,7 @@
   )
 
   ;;; __(optional)__
-  ;;; Create a context for the key manager, for symmetric operations.
-  ;;;
-  ;;; The set of required and supported options is defined by the host.
-  ;;;
-  ;;; The function returns the `unsupported_feature` error code if key management facilities are not supported by the host.
-  ;;; This is also an optional import, meaning that the function may not even exist.
-  (@interface func (export "symmetric_key_manager_open")
-    (param $options $opt_options)
-    (result $error $crypto_errno)
-    (result $handle $symmetric_key_manager)
-  )
-
-  ;;; __(optional)__
-  ;;; Destroy a key manager context.
-  ;;;
-  ;;; The function returns the `unsupported_feature` error code if key management facilities are not supported by the host.
-  ;;; This is also an optional import, meaning that the function may not even exist.
-  (@interface func (export "symmetric_key_manager_close")
-    (param $symmetric_key_manager $symmetric_key_manager)
-    (result $error $crypto_errno)
-  )
-
-  ;;; __(optional)__
-  ;;; Generate a new symmetric key.
+  ;;; Generate a new managed symmetric key.
   ;;;
   ;;; The key is generated and stored by the key management facilities.
   ;;;
@@ -71,7 +48,7 @@
   ;;;
   ;;; This is also an optional import, meaning that the function may not even exist.
   (@interface func (export "symmetric_managed_key_generate")
-    (param $symmetric_key_manager $symmetric_key_manager)
+    (param $key_manager $key_manager)
     (param $algorithm string)
     (param $options $opt_options)
     (result $error $crypto_errno)
@@ -102,32 +79,12 @@
   ;;;
   ;;; This is an optional import, meaning that the function may not even exist.
   (@interface func (export "symmetric_key_from_id")
-    (param $symmetric_key_manager $symmetric_key_manager)
+    (param $key_manager $key_manager)
     (param $symmetric_key_id (@witx const_pointer u8))
     (param $symmetric_key_id_len $size)
     (param $symmetric_key_version $version)
     (result $error $crypto_errno)
     (result $handle $symmetric_key)
-  )
-
-  ;;; __(optional)__
-  ;;; Invalidate a symmetric key given a key identifier and a version.
-  ;;;
-  ;;; This asks the key manager to delete or revoke a key or a version of a key.
-  ;;;
-  ;;; Once this function returns, `symmetric_key_from_id` will return that key any longer.
-  ;;;
-  ;;; `kp_version` can be set to a version number, to `version.latest` to invalidate the current version, or to `version.all` to invalidate all versions of a key.
-  ;;;
-  ;;; The function returns `unsupported_feature` if this operation is not supported by the host, and `key_not_found` if the identifier and version don't match any existing key pair.
-  ;;;
-  ;;; This is an optional import, meaning that the function may not even exist.
-  (@interface func (export "symmetric_key_invalidate")
-    (param $symmetric_key_manager $symmetric_key_manager)
-    (param $symmetric_key_id (@witx const_pointer u8))
-    (param $symmetric_key_id_len $size)
-    (param $symmetric_key_version $version)
-    (result $error $crypto_errno)
   )
 
   ;;; Create a new state to aborb and produce data using symmetric operations.
@@ -213,7 +170,7 @@
   ;;; ```rust
   ;;; let mut prk = vec![0u8; 64];
   ;;; let key_handle = ctx.symmetric_key_import("HKDF-EXTRACT/SHA-512", b"key")?;
-  ;;; let state_handle = symmetric_state_open("HKDF-EXTRACT/SHA-512", Some(key_handle), None)?;
+  ;;; let state_handle = ctx.symmetric_state_open("HKDF-EXTRACT/SHA-512", Some(key_handle), None)?;
   ;;; ctx.symmetric_state_absorb(state_handle, b"salt")?;
   ;;; let prk_handle = ctx.symmetric_state_squeeze_key(state_handle, "HKDF-EXPAND/SHA-512")?;
   ;;; ```
@@ -222,7 +179,7 @@
   ;;;
   ;;; ```rust
   ;;; let mut subkey = vec![0u8; 32];
-  ;;; let state_handle = symmetric_state_open("HKDF-EXPAND/SHA-512", Some(prk_handle), None)?;
+  ;;; let state_handle = ctx.symmetric_state_open("HKDF-EXPAND/SHA-512", Some(prk_handle), None)?;
   ;;; ctx.symmetric_state_absorb(state_handle, b"info")?;
   ;;; ctx.symmetric_state_squeeze(state_handle, &mut subkey)?;
   ;;; ```
@@ -233,7 +190,7 @@
   ;;; let mut subkey1 = vec![0u8; 32];
   ;;; let mut subkey2 = vec![0u8; 32];
   ;;; let key_handle = ctx.symmetric_key_import("BLAKE3", b"key")?;
-  ;;; let state_handle = symmetric_state_open("BLAKE3", Some(key_handle), None)?;
+  ;;; let state_handle = ctx.symmetric_state_open("BLAKE3", Some(key_handle), None)?;
   ;;; ctx.symmetric_absorb(state_handle, b"context")?;
   ;;; ctx.squeeze(state_handle, &mut subkey1)?;
   ;;; ctx.squeeze(state_handle, &mut subkey2)?;
@@ -244,11 +201,11 @@
   ;;; ```rust
   ;;; let mut memory = vec![0u8; 1_000_000_000];
   ;;; let options_handle = ctx.symmetric_options_open()?;
-  ;;; ctx.symmetric_options_set(options_handle, "memory", &mut scratch_buffer)?;
+  ;;; ctx.symmetric_options_set_guest_buffer(options_handle, "memory", &mut memory)?;
   ;;; ctx.symmetric_options_set_u64(options_handle, "opslimit", 5)?;
   ;;; ctx.symmetric_options_set_u64(options_handle, "parallelism", 8)?;
   ;;;
-  ;;; let state_handle = ctx.symmetric_state_open("Argon2id", None, Some(options))?;
+  ;;; let state_handle = ctx.symmetric_state_open("ARGON2-ID-13", None, Some(options))?;
   ;;; ctx.symmtric_state_absorb(state_handle, b"password")?;
   ;;;
   ;;; let pw_str_handle = ctx.symmetric_state_squeeze_tag(state_handle)?;
@@ -274,11 +231,11 @@
   ;;; - **AEAD encryption with automatic nonce generation**
   ;;;
   ;;; ```rust
-  ;;; let key_handle = ctx.symmetric_key_generate("XChaCha20-Poly1305", None)?;
+  ;;; let key_handle = ctx.symmetric_key_generate("AES-256-GCM-SIV", None)?;
   ;;; let message = b"test";
   ;;; let mut nonce = [0u8; 24];
   ;;;
-  ;;; let state_handle = ctx.symmetric_state_open("XChaCha20-Poly1305", Some(key_handle), None)?;
+  ;;; let state_handle = ctx.symmetric_state_open("AES-256-GCM-SIV", Some(key_handle), None)?;
   ;;;
   ;;; let nonce_handle = ctx.symmetric_state_options_get(state_handle, "nonce")?;
   ;;; ctx.array_output_pull(nonce_handle, &mut nonce)?;
@@ -380,6 +337,9 @@
   ;;; - **Stateful hash objects, permutation-based constructions:** squeeze.
   ;;;
   ;;; Other kinds of algorithms may return `invalid_operation` instead.
+  ;;;
+  ;;; For password-stretching functions, the function may return `in_progress`.
+  ;;; In that case, the guest should retry with the same parameters until the function completes.
   (@interface func (export "symmetric_state_squeeze")
     (param $handle $symmetric_state)
     (param $out (@witx pointer u8))
@@ -394,6 +354,9 @@
   ;;; - **Password-hashing functions:** returns a standard string containing all the required parameters for password verification.
   ;;;
   ;;; Other kinds of algorithms may return `invalid_operation` instead.
+  ;;;
+  ;;; For password-stretching functions, the function may return `in_progress`.
+  ;;; In that case, the guest should retry with the same parameters until the function completes.
   (@interface func (export "symmetric_state_squeeze_tag")
     (param $handle $symmetric_state)
     (result $error $crypto_errno)

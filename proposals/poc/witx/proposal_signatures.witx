@@ -11,6 +11,9 @@
   ;;;
   ;;; The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
   ;;;
+  ;;; Finally, if generating that type of key pair is an expensive operation, the function may return `in_progress`.
+  ;;; In that case, the guest should retry with the same parameters until the function completes.
+  ;;;
   ;;; Example usage:
   ;;;
   ;;; ```rust
@@ -46,6 +49,27 @@
   )
 
   ;;; __(optional)__
+  ;;; Generate a new managed key pair.
+  ;;;
+  ;;; The key pair is generated and stored by the key management facilities.
+  ;;;
+  ;;; It may be used through its identifier, but the host may not allow it to be exported.
+  ;;;
+  ;;; The function returns the `unsupported_feature` error code if key management facilities are not supported by the host,
+  ;;; or `unsupported_algorithm` if a key cannot be created for the chosen algorithm.
+  ;;;
+  ;;; The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+  ;;;
+  ;;; This is also an optional import, meaning that the function may not even exist.
+  (@interface func (export "signature_managed_keypair_generate")
+    (param $key_manager $key_manager)
+    (param $algorithm string)
+    (param $options $opt_options)
+    (result $error $crypto_errno)
+    (result $handle $signature_keypair)
+  )
+
+  ;;; __(optional)__
   ;;; Return the key pair identifier and version of a managed signature key pair.
   ;;;
   ;;; If the key pair is not managed, `unsupported_feature` is returned instead.
@@ -70,32 +94,12 @@
   ;;; This is an optional import, meaning that the function may not even exist.
   ;;; ```
   (@interface func (export "signature_keypair_from_id")
-    (param $kp_manager $signature_keypair_manager)
+    (param $key_manager $key_manager)
     (param $kp_id (@witx const_pointer u8))
     (param $kp_id_len $size)
     (param $kp_version $version)
     (result $error $crypto_errno)
     (result $handle $signature_keypair)
-  )
-
-  ;;; __(optional)__
-  ;;; Invalidate a managed key pair given a key pair identifier and a version.
-  ;;;
-  ;;; This asks the key manager to delete or revoke a key pair or a version of a key pair.
-  ;;;
-  ;;; Once this function returns, `signature_keypair_from_id` will return that key pair any longer.
-  ;;;
-  ;;; `kp_version` can be set to a version number, to `version.latest` to invalidate the current version, or to `version.all` to invalidate all versions of a key.
-  ;;;
-  ;;; The function returns `unsupported_feature` if this operation is not supported by the host, and `key_not_found` if the identifier and version don't match any existing key pair.
-  ;;;
-  ;;; This is an optional import, meaning that the function may not even exist.
-  (@interface func (export "signature_keypair_invalidate")
-    (param $kp_manager $signature_keypair_manager)
-    (param $kp_id (@witx const_pointer u8))
-    (param $kp_id_len $size)
-    (param $kp_version $version)
-    (result $error $crypto_errno)
   )
 
   ;;; __(optional)__

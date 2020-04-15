@@ -126,6 +126,13 @@
     ;;;
     ;;; Non-generic options are required and must be given by building an `options` set and giving that object to functions instantiating that algorithm.
     $parameters_missing
+
+    ;;; A requested computation is not done yet, and additional calls to the function are required.
+    ;;;
+    ;;; Some functions, such as functions generating key pairs and password stretching functions, can take a long time to complete.
+    ;;;
+    ;;; In order to avoid a host call to be blocked for too long, these functions can return prematurely, requiring additional calls with the same parameters until they complete.
+    $in_progress
   )
 )
 
@@ -226,8 +233,8 @@
 
 ;;; A handle to the optional key management facilities offered by a host.
 ;;;
-;;; This is used to generate, retrieve and invalidate managed signature key pairs.
-(typename $signature_keypair_manager (handle))
+;;; This is used to generate, retrieve and invalidate managed keys.
+(typename $key_manager (handle))
 
 ;;; A key pair for signatures.
 (typename $signature_keypair (handle))
@@ -247,11 +254,6 @@
 
 ;;; A state to absorb signed data to be verified.
 (typename $signature_verification_state (handle))
-
-;;; A handle to the optional key management facilities offered by a host.
-;;;
-;;; This is used to generate, retrieve and invalidate managed symmetric keys.
-(typename $symmetric_key_manager (handle))
 
 ;;; A state to perform symmetric operations.
 ;;;
@@ -301,11 +303,11 @@
   ;;; Example usage:
   ;;;
   ;;; ```rust
-  ;;; let options_handle = ctx.options_open()?;
-  ;;; ctx.options_set(options_handle, "context", context)?;
-  ;;; ctx.options_set_u64(options_handle, "threads", 4)?;
-  ;;; let state = ctx.symmetric_state_open("BLAKE3", None, Some(options_handle))?;
-  ;;; ctx.options_close(options_handle)?;
+  ;;; let options_handle = options_open()?;
+  ;;; options_set(options_handle, "context", context)?;
+  ;;; options_set_u64(options_handle, "threads", 4)?;
+  ;;; let state = symmetric_state_open("BLAKE3", None, Some(options_handle))?;
+  ;;; options_close(options_handle)?;
   ;;; ```
   (@interface func (export "options_open")
     (param $options_type $options_type)
@@ -346,6 +348,19 @@
     (result $error $crypto_errno)
   )
 
+  ;;; Set or update a guest-allocated memory that the host can use or return data into.
+  ;;;
+  ;;; This is for example used to set the scratch buffer required by memory-hard functions.
+  ;;;
+  ;;; This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
+  (@interface func (export "options_set_guest_buffer")
+    (param $handle $options)
+    (param $name string)
+    (param $buffer (@witx pointer u8))
+    (param $buffer_len $size)
+    (result $error $crypto_errno)
+  )
+
   ;;; Return the length of an `array_output` object.
   ;;;
   ;;; This allows a guest to allocate a buffer of the correct size in order to copy the output of a function returning this object type.
@@ -366,14 +381,55 @@
   ;;; Example usage:
   ;;;
   ;;; ```rust
-  ;;; let len = ctx.array_output_len(output_handle)?;
+  ;;; let len = array_output_len(output_handle)?;
   ;;; let mut out = vec![0u8; len];
-  ;;; ctx.array_output_pull(output_handle, &mut out)?;
+  ;;; array_output_pull(output_handle, &mut out)?;
   ;;; ```
   (@interface func (export "array_output_pull")
     (param $array_output $array_output)
     (param $buf (@witx pointer u8))
     (param $buf_len $size)
+    (result $error $crypto_errno)
+  )
+
+  ;;; __(optional)__
+  ;;; Create a context to use a key manager.
+  ;;;
+  ;;; The set of required and supported options is defined by the host.
+  ;;;
+  ;;; The function returns the `unsupported_feature` error code if key management facilities are not supported by the host.
+  ;;; This is also an optional import, meaning that the function may not even exist.
+  (@interface func (export "key_manager_open")
+    (param $options $opt_options)
+    (result $error $crypto_errno)
+    (result $handle $key_manager)
+  )
+
+  ;;; __(optional)__
+  ;;; Destroy a key manager context.
+  ;;;
+  ;;; The function returns the `unsupported_feature` error code if key management facilities are not supported by the host.
+  ;;; This is also an optional import, meaning that the function may not even exist.
+  (@interface func (export "key_manager_close")
+    (param $key_manager $key_manager)
+    (result $error $crypto_errno)
+  )
+
+  ;;; __(optional)__
+  ;;; Invalidate a managed key or key pair given an identifier and a version.
+  ;;;
+  ;;; This asks the key manager to delete or revoke a stored key, a specific version of a key..
+  ;;;
+  ;;; `key_version` can be set to a version number, to `version.latest` to invalidate the current version, or to `version.all` to invalidate all versions of a key.
+  ;;;
+  ;;; The function returns `unsupported_feature` if this operation is not supported by the host, and `key_not_found` if the identifier and version don't match any existing key.
+  ;;;
+  ;;; This is an optional import, meaning that the function may not even exist.
+  (@interface func (export "key_manager_invalidate")
+    (param $key_manager $key_manager)
+    (param $key_id (@witx const_pointer u8))
+    (param $key_id_len $size)
+    (param $key_version $version)
     (result $error $crypto_errno)
   )
 )

@@ -129,6 +129,13 @@ The algorithm requires parameters that haven't been set.
 
 Non-generic options are required and must be given by building an [`options`](#options) set and giving that object to functions instantiating that algorithm.
 
+- <a href="#crypto_errno.in_progress" name="crypto_errno.in_progress"></a> `in_progress`
+A requested computation is not done yet, and additional calls to the function are required.
+
+Some functions, such as functions generating key pairs and password stretching functions, can take a long time to complete.
+
+In order to avoid a host call to be blocked for too long, these functions can return prematurely, requiring additional calls with the same parameters until they complete.
+
 ## <a href="#keypair_encoding" name="keypair_encoding"></a> `keypair_encoding`: Enum(`u16`)
 Encoding to use for importing or exporting a key pair.
 
@@ -221,10 +228,10 @@ This type is used to set non-default parameters.
 The exact set of allowed options depends on the algorithm being used.
 
 ### Supertypes
-## <a href="#signature_keypair_manager" name="signature_keypair_manager"></a> `signature_keypair_manager`
+## <a href="#key_manager" name="key_manager"></a> `key_manager`
 A handle to the optional key management facilities offered by a host.
 
-This is used to generate, retrieve and invalidate managed signature key pairs.
+This is used to generate, retrieve and invalidate managed keys.
 
 ### Supertypes
 ## <a href="#signature_keypair" name="signature_keypair"></a> `signature_keypair`
@@ -249,12 +256,6 @@ A public key that can be used to verify a signature.
 ### Supertypes
 ## <a href="#signature_verification_state" name="signature_verification_state"></a> `signature_verification_state`
 A state to absorb signed data to be verified.
-
-### Supertypes
-## <a href="#symmetric_key_manager" name="symmetric_key_manager"></a> `symmetric_key_manager`
-A handle to the optional key management facilities offered by a host.
-
-This is used to generate, retrieve and invalidate managed symmetric keys.
 
 ### Supertypes
 ## <a href="#symmetric_state" name="symmetric_state"></a> `symmetric_state`
@@ -334,11 +335,11 @@ Create a new object to set non-default options.
 Example usage:
 
 ```rust
-let options_handle = ctx.options_open()?;
-ctx.options_set(options_handle, "context", context)?;
-ctx.options_set_u64(options_handle, "threads", 4)?;
-let state = ctx.symmetric_state_open("BLAKE3", None, Some(options_handle))?;
-ctx.options_close(options_handle)?;
+let options_handle = options_open()?;
+options_set(options_handle, "context", context)?;
+options_set_u64(options_handle, "threads", 4)?;
+let state = symmetric_state_open("BLAKE3", None, Some(options_handle))?;
+options_close(options_handle)?;
 ```
 
 ##### Params
@@ -408,6 +409,28 @@ This function may return `unsupported_option` if an option that doesn't exist fo
 
 ---
 
+#### <a href="#options_set_guest_buffer" name="options_set_guest_buffer"></a> `options_set_guest_buffer(handle: options, name: string, buffer: Pointer<u8>, buffer_len: size) -> crypto_errno`
+Set or update a guest-allocated memory that the host can use or return data into.
+
+This is for example used to set the scratch buffer required by memory-hard functions.
+
+This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
+
+##### Params
+- <a href="#options_set_guest_buffer.handle" name="options_set_guest_buffer.handle"></a> `handle`: [`options`](#options)
+
+- <a href="#options_set_guest_buffer.name" name="options_set_guest_buffer.name"></a> `name`: `string`
+
+- <a href="#options_set_guest_buffer.buffer" name="options_set_guest_buffer.buffer"></a> `buffer`: `Pointer<u8>`
+
+- <a href="#options_set_guest_buffer.buffer_len" name="options_set_guest_buffer.buffer_len"></a> `buffer_len`: [`size`](#size)
+
+##### Results
+- <a href="#options_set_guest_buffer.error" name="options_set_guest_buffer.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+
+---
+
 #### <a href="#array_output_len" name="array_output_len"></a> `array_output_len(array_output: array_output) -> (crypto_errno, size)`
 Return the length of an [`array_output`](#array_output) object.
 
@@ -436,9 +459,9 @@ The handle is automatically closed after all the data has been consumed.
 Example usage:
 
 ```rust
-let len = ctx.array_output_len(output_handle)?;
+let len = array_output_len(output_handle)?;
 let mut out = vec![0u8; len];
-ctx.array_output_pull(output_handle, &mut out)?;
+array_output_pull(output_handle, &mut out)?;
 ```
 
 ##### Params
@@ -450,6 +473,69 @@ ctx.array_output_pull(output_handle, &mut out)?;
 
 ##### Results
 - <a href="#array_output_pull.error" name="array_output_pull.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+
+---
+
+#### <a href="#key_manager_open" name="key_manager_open"></a> `key_manager_open(options: opt_options) -> (crypto_errno, key_manager)`
+__(optional)__
+Create a context to use a key manager.
+
+The set of required and supported options is defined by the host.
+
+The function returns the `unsupported_feature` error code if key management facilities are not supported by the host.
+This is also an optional import, meaning that the function may not even exist.
+
+##### Params
+- <a href="#key_manager_open.options" name="key_manager_open.options"></a> `options`: [`opt_options`](#opt_options)
+
+##### Results
+- <a href="#key_manager_open.error" name="key_manager_open.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#key_manager_open.handle" name="key_manager_open.handle"></a> `handle`: [`key_manager`](#key_manager)
+
+
+---
+
+#### <a href="#key_manager_close" name="key_manager_close"></a> `key_manager_close(key_manager: key_manager) -> crypto_errno`
+__(optional)__
+Destroy a key manager context.
+
+The function returns the `unsupported_feature` error code if key management facilities are not supported by the host.
+This is also an optional import, meaning that the function may not even exist.
+
+##### Params
+- <a href="#key_manager_close.key_manager" name="key_manager_close.key_manager"></a> `key_manager`: [`key_manager`](#key_manager)
+
+##### Results
+- <a href="#key_manager_close.error" name="key_manager_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+
+---
+
+#### <a href="#key_manager_invalidate" name="key_manager_invalidate"></a> `key_manager_invalidate(key_manager: key_manager, key_id: ConstPointer<u8>, key_id_len: size, key_version: version) -> crypto_errno`
+__(optional)__
+Invalidate a managed key or key pair given an identifier and a version.
+
+This asks the key manager to delete or revoke a stored key, a specific version of a key..
+
+`key_version` can be set to a version number, to [`version.latest`](#version.latest) to invalidate the current version, or to [`version.all`](#version.all) to invalidate all versions of a key.
+
+The function returns `unsupported_feature` if this operation is not supported by the host, and `key_not_found` if the identifier and version don't match any existing key.
+
+This is an optional import, meaning that the function may not even exist.
+
+##### Params
+- <a href="#key_manager_invalidate.key_manager" name="key_manager_invalidate.key_manager"></a> `key_manager`: [`key_manager`](#key_manager)
+
+- <a href="#key_manager_invalidate.key_id" name="key_manager_invalidate.key_id"></a> `key_id`: `ConstPointer<u8>`
+
+- <a href="#key_manager_invalidate.key_id_len" name="key_manager_invalidate.key_id_len"></a> `key_id_len`: [`size`](#size)
+
+- <a href="#key_manager_invalidate.key_version" name="key_manager_invalidate.key_version"></a> `key_version`: [`version`](#version)
+
+##### Results
+- <a href="#key_manager_invalidate.error" name="key_manager_invalidate.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 ## <a href="#wasi_ephemeral_crypto_symmetric" name="wasi_ephemeral_crypto_symmetric"></a> wasi_ephemeral_crypto_symmetric
 ### Imports
@@ -514,45 +600,9 @@ Objects are reference counted. It is safe to close an object immediately after t
 
 ---
 
-#### <a href="#symmetric_key_manager_open" name="symmetric_key_manager_open"></a> `symmetric_key_manager_open(options: opt_options) -> (crypto_errno, symmetric_key_manager)`
+#### <a href="#symmetric_managed_key_generate" name="symmetric_managed_key_generate"></a> `symmetric_managed_key_generate(key_manager: key_manager, algorithm: string, options: opt_options) -> (crypto_errno, symmetric_key)`
 __(optional)__
-Create a context for the key manager, for symmetric operations.
-
-The set of required and supported options is defined by the host.
-
-The function returns the `unsupported_feature` error code if key management facilities are not supported by the host.
-This is also an optional import, meaning that the function may not even exist.
-
-##### Params
-- <a href="#symmetric_key_manager_open.options" name="symmetric_key_manager_open.options"></a> `options`: [`opt_options`](#opt_options)
-
-##### Results
-- <a href="#symmetric_key_manager_open.error" name="symmetric_key_manager_open.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-- <a href="#symmetric_key_manager_open.handle" name="symmetric_key_manager_open.handle"></a> `handle`: [`symmetric_key_manager`](#symmetric_key_manager)
-
-
----
-
-#### <a href="#symmetric_key_manager_close" name="symmetric_key_manager_close"></a> `symmetric_key_manager_close(symmetric_key_manager: symmetric_key_manager) -> crypto_errno`
-__(optional)__
-Destroy a key manager context.
-
-The function returns the `unsupported_feature` error code if key management facilities are not supported by the host.
-This is also an optional import, meaning that the function may not even exist.
-
-##### Params
-- <a href="#symmetric_key_manager_close.symmetric_key_manager" name="symmetric_key_manager_close.symmetric_key_manager"></a> `symmetric_key_manager`: [`symmetric_key_manager`](#symmetric_key_manager)
-
-##### Results
-- <a href="#symmetric_key_manager_close.error" name="symmetric_key_manager_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-
----
-
-#### <a href="#symmetric_managed_key_generate" name="symmetric_managed_key_generate"></a> `symmetric_managed_key_generate(symmetric_key_manager: symmetric_key_manager, algorithm: string, options: opt_options) -> (crypto_errno, symmetric_key)`
-__(optional)__
-Generate a new symmetric key.
+Generate a new managed symmetric key.
 
 The key is generated and stored by the key management facilities.
 
@@ -566,7 +616,7 @@ The function may also return `unsupported_algorithm` if the algorithm is not sup
 This is also an optional import, meaning that the function may not even exist.
 
 ##### Params
-- <a href="#symmetric_managed_key_generate.symmetric_key_manager" name="symmetric_managed_key_generate.symmetric_key_manager"></a> `symmetric_key_manager`: [`symmetric_key_manager`](#symmetric_key_manager)
+- <a href="#symmetric_managed_key_generate.key_manager" name="symmetric_managed_key_generate.key_manager"></a> `key_manager`: [`key_manager`](#key_manager)
 
 - <a href="#symmetric_managed_key_generate.algorithm" name="symmetric_managed_key_generate.algorithm"></a> `algorithm`: `string`
 
@@ -605,7 +655,7 @@ This is an optional import, meaning that the function may not even exist.
 
 ---
 
-#### <a href="#symmetric_key_from_id" name="symmetric_key_from_id"></a> `symmetric_key_from_id(symmetric_key_manager: symmetric_key_manager, symmetric_key_id: ConstPointer<u8>, symmetric_key_id_len: size, symmetric_key_version: version) -> (crypto_errno, symmetric_key)`
+#### <a href="#symmetric_key_from_id" name="symmetric_key_from_id"></a> `symmetric_key_from_id(key_manager: key_manager, symmetric_key_id: ConstPointer<u8>, symmetric_key_id_len: size, symmetric_key_version: version) -> (crypto_errno, symmetric_key)`
 __(optional)__
 Return a managed symmetric key from a key identifier.
 
@@ -616,7 +666,7 @@ If no key matching the provided information is found, `key_not_found` is returne
 This is an optional import, meaning that the function may not even exist.
 
 ##### Params
-- <a href="#symmetric_key_from_id.symmetric_key_manager" name="symmetric_key_from_id.symmetric_key_manager"></a> `symmetric_key_manager`: [`symmetric_key_manager`](#symmetric_key_manager)
+- <a href="#symmetric_key_from_id.key_manager" name="symmetric_key_from_id.key_manager"></a> `key_manager`: [`key_manager`](#key_manager)
 
 - <a href="#symmetric_key_from_id.symmetric_key_id" name="symmetric_key_from_id.symmetric_key_id"></a> `symmetric_key_id`: `ConstPointer<u8>`
 
@@ -628,35 +678,6 @@ This is an optional import, meaning that the function may not even exist.
 - <a href="#symmetric_key_from_id.error" name="symmetric_key_from_id.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 - <a href="#symmetric_key_from_id.handle" name="symmetric_key_from_id.handle"></a> `handle`: [`symmetric_key`](#symmetric_key)
-
-
----
-
-#### <a href="#symmetric_key_invalidate" name="symmetric_key_invalidate"></a> `symmetric_key_invalidate(symmetric_key_manager: symmetric_key_manager, symmetric_key_id: ConstPointer<u8>, symmetric_key_id_len: size, symmetric_key_version: version) -> crypto_errno`
-__(optional)__
-Invalidate a symmetric key given a key identifier and a version.
-
-This asks the key manager to delete or revoke a key or a version of a key.
-
-Once this function returns, [`symmetric_key_from_id`](#symmetric_key_from_id) will return that key any longer.
-
-`kp_version` can be set to a version number, to [`version.latest`](#version.latest) to invalidate the current version, or to [`version.all`](#version.all) to invalidate all versions of a key.
-
-The function returns `unsupported_feature` if this operation is not supported by the host, and `key_not_found` if the identifier and version don't match any existing key pair.
-
-This is an optional import, meaning that the function may not even exist.
-
-##### Params
-- <a href="#symmetric_key_invalidate.symmetric_key_manager" name="symmetric_key_invalidate.symmetric_key_manager"></a> `symmetric_key_manager`: [`symmetric_key_manager`](#symmetric_key_manager)
-
-- <a href="#symmetric_key_invalidate.symmetric_key_id" name="symmetric_key_invalidate.symmetric_key_id"></a> `symmetric_key_id`: `ConstPointer<u8>`
-
-- <a href="#symmetric_key_invalidate.symmetric_key_id_len" name="symmetric_key_invalidate.symmetric_key_id_len"></a> `symmetric_key_id_len`: [`size`](#size)
-
-- <a href="#symmetric_key_invalidate.symmetric_key_version" name="symmetric_key_invalidate.symmetric_key_version"></a> `symmetric_key_version`: [`version`](#version)
-
-##### Results
-- <a href="#symmetric_key_invalidate.error" name="symmetric_key_invalidate.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 
 ---
@@ -745,7 +766,7 @@ Extract:
 ```rust
 let mut prk = vec![0u8; 64];
 let key_handle = ctx.symmetric_key_import("HKDF-EXTRACT/SHA-512", b"key")?;
-let state_handle = symmetric_state_open("HKDF-EXTRACT/SHA-512", Some(key_handle), None)?;
+let state_handle = ctx.symmetric_state_open("HKDF-EXTRACT/SHA-512", Some(key_handle), None)?;
 ctx.symmetric_state_absorb(state_handle, b"salt")?;
 let prk_handle = ctx.symmetric_state_squeeze_key(state_handle, "HKDF-EXPAND/SHA-512")?;
 ```
@@ -754,7 +775,7 @@ Expand:
 
 ```rust
 let mut subkey = vec![0u8; 32];
-let state_handle = symmetric_state_open("HKDF-EXPAND/SHA-512", Some(prk_handle), None)?;
+let state_handle = ctx.symmetric_state_open("HKDF-EXPAND/SHA-512", Some(prk_handle), None)?;
 ctx.symmetric_state_absorb(state_handle, b"info")?;
 ctx.symmetric_state_squeeze(state_handle, &mut subkey)?;
 ```
@@ -765,7 +786,7 @@ ctx.symmetric_state_squeeze(state_handle, &mut subkey)?;
 let mut subkey1 = vec![0u8; 32];
 let mut subkey2 = vec![0u8; 32];
 let key_handle = ctx.symmetric_key_import("BLAKE3", b"key")?;
-let state_handle = symmetric_state_open("BLAKE3", Some(key_handle), None)?;
+let state_handle = ctx.symmetric_state_open("BLAKE3", Some(key_handle), None)?;
 ctx.symmetric_absorb(state_handle, b"context")?;
 ctx.squeeze(state_handle, &mut subkey1)?;
 ctx.squeeze(state_handle, &mut subkey2)?;
@@ -776,11 +797,11 @@ ctx.squeeze(state_handle, &mut subkey2)?;
 ```rust
 let mut memory = vec![0u8; 1_000_000_000];
 let options_handle = ctx.symmetric_options_open()?;
-ctx.symmetric_options_set(options_handle, "memory", &mut scratch_buffer)?;
+ctx.symmetric_options_set_guest_buffer(options_handle, "memory", &mut memory)?;
 ctx.symmetric_options_set_u64(options_handle, "opslimit", 5)?;
 ctx.symmetric_options_set_u64(options_handle, "parallelism", 8)?;
 
-let state_handle = ctx.symmetric_state_open("Argon2id", None, Some(options))?;
+let state_handle = ctx.symmetric_state_open("ARGON2-ID-13", None, Some(options))?;
 ctx.symmtric_state_absorb(state_handle, b"password")?;
 
 let pw_str_handle = ctx.symmetric_state_squeeze_tag(state_handle)?;
@@ -806,11 +827,11 @@ ctx.symmetric_state_encrypt(state_handle, &mut ciphertext, message)?;
 - **AEAD encryption with automatic nonce generation**
 
 ```rust
-let key_handle = ctx.symmetric_key_generate("XChaCha20-Poly1305", None)?;
+let key_handle = ctx.symmetric_key_generate("AES-256-GCM-SIV", None)?;
 let message = b"test";
 let mut nonce = [0u8; 24];
 
-let state_handle = ctx.symmetric_state_open("XChaCha20-Poly1305", Some(key_handle), None)?;
+let state_handle = ctx.symmetric_state_open("AES-256-GCM-SIV", Some(key_handle), None)?;
 
 let nonce_handle = ctx.symmetric_state_options_get(state_handle, "nonce")?;
 ctx.array_output_pull(nonce_handle, &mut nonce)?;
@@ -953,6 +974,9 @@ Squeeze bytes from the state.
 
 Other kinds of algorithms may return `invalid_operation` instead.
 
+For password-stretching functions, the function may return `in_progress`.
+In that case, the guest should retry with the same parameters until the function completes.
+
 ##### Params
 - <a href="#symmetric_state_squeeze.handle" name="symmetric_state_squeeze.handle"></a> `handle`: [`symmetric_state`](#symmetric_state)
 
@@ -974,6 +998,9 @@ Compute and return a tag for all the data injected into the state so far.
 - **Password-hashing functions:** returns a standard string containing all the required parameters for password verification.
 
 Other kinds of algorithms may return `invalid_operation` instead.
+
+For password-stretching functions, the function may return `in_progress`.
+In that case, the guest should retry with the same parameters until the function completes.
 
 ##### Params
 - <a href="#symmetric_state_squeeze_tag.handle" name="symmetric_state_squeeze_tag.handle"></a> `handle`: [`symmetric_state`](#symmetric_state)

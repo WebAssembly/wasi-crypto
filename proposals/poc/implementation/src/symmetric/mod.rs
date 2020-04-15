@@ -34,6 +34,7 @@ pub struct SymmetricOptionsInner {
     memory_limit: Option<u64>,
     ops_limit: Option<u64>,
     parallelism: Option<u64>,
+    guest_buffer: Option<&'static mut [u8]>,
 }
 
 #[derive(Clone, Debug)]
@@ -52,6 +53,20 @@ impl Default for SymmetricOptions {
 impl OptionsLike for SymmetricOptions {
     fn as_any(&self) -> &dyn Any {
         self
+    }
+
+    fn set_guest_buffer(
+        &mut self,
+        name: &str,
+        guest_buffer: &'static mut [u8],
+    ) -> Result<(), CryptoError> {
+        let mut inner = self.inner.lock();
+        let option = match name.to_lowercase().as_str() {
+            "buffer" => &mut inner.guest_buffer,
+            _ => bail!(CryptoError::UnsupportedOption),
+        };
+        *option = Some(guest_buffer);
+        Ok(())
     }
 
     fn set(&mut self, name: &str, value: &[u8]) -> Result<(), CryptoError> {

@@ -14,6 +14,14 @@ pub trait OptionsLike: Send + Sized {
         bail!(CryptoError::UnsupportedOption)
     }
 
+    fn set_guest_buffer(
+        &mut self,
+        _name: &str,
+        _buffer: &'static mut [u8],
+    ) -> Result<(), CryptoError> {
+        bail!(CryptoError::UnsupportedOption)
+    }
+
     fn get(&self, _name: &str) -> Result<Vec<u8>, CryptoError> {
         bail!(CryptoError::UnsupportedOption)
     }
@@ -52,6 +60,17 @@ impl Options {
         match self {
             Options::Signatures(options) => options.set(name, value),
             Options::Symmetric(options) => options.set(name, value),
+        }
+    }
+
+    pub fn set_guest_buffer(
+        &mut self,
+        name: &str,
+        buffer: &'static mut [u8],
+    ) -> Result<(), CryptoError> {
+        match self {
+            Options::Signatures(options) => options.set_guest_buffer(name, buffer),
+            Options::Symmetric(options) => options.set_guest_buffer(name, buffer),
         }
     }
 
@@ -115,6 +134,16 @@ impl CryptoCtx {
         options.set(name, value)
     }
 
+    pub fn options_set_guest_buffer(
+        &self,
+        options_handle: Handle,
+        name: &str,
+        buffer: &'static mut [u8],
+    ) -> Result<(), CryptoError> {
+        let mut options = self.handles.options.get(options_handle)?;
+        options.set_guest_buffer(name, buffer)
+    }
+
     pub fn options_set_u64(
         &self,
         options_handle: Handle,
@@ -175,6 +204,26 @@ impl WasiCryptoCtx {
         Ok(self
             .ctx
             .options_set(options_handle.into(), name_str, value)?
+            .into())
+    }
+
+    pub fn options_set_guest_buffer(
+        &self,
+        options_handle: guest_types::Options,
+        name_str: &wiggle::GuestPtr<'_, str>,
+        buffer_ptr: &wiggle::GuestPtr<'_, u8>,
+        buffer_len: guest_types::Size,
+    ) -> Result<(), CryptoError> {
+        let mut guest_borrow = wiggle::GuestBorrows::new();
+        let name_str: &str = unsafe { &*name_str.as_raw(&mut guest_borrow)? };
+        let buffer: &'static mut [u8] = unsafe {
+            &mut *buffer_ptr
+                .as_array(buffer_len as _)
+                .as_raw(&mut guest_borrow)?
+        };
+        Ok(self
+            .ctx
+            .options_set_guest_buffer(options_handle.into(), name_str, buffer)?
             .into())
     }
 

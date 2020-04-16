@@ -131,7 +131,7 @@ pub use {bail, ensure};
 
 impl From<CryptoError> for i32 {
     fn from(e: CryptoError) -> Self {
-        e.into()
+        guest_types::CryptoErrno::from(e).into()
     }
 }
 

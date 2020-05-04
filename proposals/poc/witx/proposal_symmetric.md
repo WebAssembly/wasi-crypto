@@ -2,6 +2,10 @@
 ## <a href="#crypto_errno" name="crypto_errno"></a> `crypto_errno`: Enum(`u16`)
 Error codes.
 
+Size: 2
+
+Alignment: 2
+
 ### Variants
 - <a href="#crypto_errno.success" name="crypto_errno.success"></a> `success`
 Operation succeeded.
@@ -139,6 +143,10 @@ In order to avoid a host call to be blocked for too long, these functions can re
 ## <a href="#keypair_encoding" name="keypair_encoding"></a> `keypair_encoding`: Enum(`u16`)
 Encoding to use for importing or exporting a key pair.
 
+Size: 2
+
+Alignment: 2
+
 ### Variants
 - <a href="#keypair_encoding.raw" name="keypair_encoding.raw"></a> `raw`
 Raw bytes.
@@ -154,6 +162,10 @@ PEM encoding.
 
 ## <a href="#publickey_encoding" name="publickey_encoding"></a> `publickey_encoding`: Enum(`u16`)
 Encoding to use for importing or exporting a public key.
+
+Size: 2
+
+Alignment: 2
 
 ### Variants
 - <a href="#publickey_encoding.raw" name="publickey_encoding.raw"></a> `raw`
@@ -174,6 +186,10 @@ Compressed SEC encoding.
 ## <a href="#signature_encoding" name="signature_encoding"></a> `signature_encoding`: Enum(`u16`)
 Encoding to use for importing or exporting a signature.
 
+Size: 2
+
+Alignment: 2
+
 ### Variants
 - <a href="#signature_encoding.raw" name="signature_encoding.raw"></a> `raw`
 Raw bytes.
@@ -186,6 +202,10 @@ Type of an options set.
 
 This is used when creating a new options set with `options_open()`.
 
+Size: 2
+
+Alignment: 2
+
 ### Variants
 - <a href="#options_type.signatures" name="options_type.signatures"></a> `signatures`
 
@@ -195,6 +215,10 @@ This is used when creating a new options set with `options_open()`.
 Version of a managed key.
 
 A version can be an arbitrary `u64` integer, with the expection of some reserved values.
+
+Size: 8
+
+Alignment: 8
 
 ### Consts
 - <a href="#version.unspecified" name="version.unspecified"></a> `unspecified`
@@ -209,6 +233,10 @@ Perform an operation over all versions of a key.
 ## <a href="#size" name="size"></a> `size`: `usize`
 Size of a value.
 
+Size: 4
+
+Alignment: 4
+
 ## <a href="#array_output" name="array_output"></a> `array_output`
 Handle for functions returning output whose size may be large or not known in advance.
 
@@ -219,6 +247,10 @@ In addition, the content of such an object can be consumed by a guest in a strea
 
 An [`array_output`](#array_output) handle is automatically closed after its full content has been consumed.
 
+Size: 4
+
+Alignment: 4
+
 ### Supertypes
 ## <a href="#options" name="options"></a> `options`
 A set of options.
@@ -227,15 +259,27 @@ This type is used to set non-default parameters.
 
 The exact set of allowed options depends on the algorithm being used.
 
+Size: 4
+
+Alignment: 4
+
 ### Supertypes
 ## <a href="#key_manager" name="key_manager"></a> `key_manager`
 A handle to the optional key management facilities offered by a host.
 
 This is used to generate, retrieve and invalidate managed keys.
 
+Size: 4
+
+Alignment: 4
+
 ### Supertypes
 ## <a href="#signature_keypair" name="signature_keypair"></a> `signature_keypair`
 A key pair for signatures.
+
+Size: 4
+
+Alignment: 4
 
 ### Supertypes
 ## <a href="#signature_state" name="signature_state"></a> `signature_state`
@@ -245,17 +289,33 @@ After a signature has been computed or verified, the state remains valid for fur
 
 A subsequent signature would sign all the data accumulated since the creation of the state object.
 
+Size: 4
+
+Alignment: 4
+
 ### Supertypes
 ## <a href="#signature" name="signature"></a> `signature`
 A signature.
+
+Size: 4
+
+Alignment: 4
 
 ### Supertypes
 ## <a href="#signature_publickey" name="signature_publickey"></a> `signature_publickey`
 A public key that can be used to verify a signature.
 
+Size: 4
+
+Alignment: 4
+
 ### Supertypes
 ## <a href="#signature_verification_state" name="signature_verification_state"></a> `signature_verification_state`
 A state to absorb signed data to be verified.
+
+Size: 4
+
+Alignment: 4
 
 ### Supertypes
 ## <a href="#symmetric_state" name="symmetric_state"></a> `symmetric_state`
@@ -264,6 +324,10 @@ A state to perform symmetric operations.
 The state is not reset nor invalidated after an option has been performed.
 Incremental updates and sessions are thus supported.
 
+Size: 4
+
+Alignment: 4
+
 ### Supertypes
 ## <a href="#symmetric_key" name="symmetric_key"></a> `symmetric_key`
 A symmetric key.
@@ -271,6 +335,10 @@ A symmetric key.
 The key can be imported from raw bytes, or can be a reference to a managed key.
 
 If it was imported, the host will wipe it from memory as soon as the handle is closed.
+
+Size: 4
+
+Alignment: 4
 
 ### Supertypes
 ## <a href="#symmetric_tag" name="symmetric_tag"></a> `symmetric_tag`
@@ -284,9 +352,17 @@ This object type can't be directly created from raw bytes. They are only returne
 
 The host is reponsible for securely wiping them from memory on close.
 
+Size: 4
+
+Alignment: 4
+
 ### Supertypes
 ## <a href="#opt_options_u" name="opt_options_u"></a> `opt_options_u`: Enum(`u8`)
 Options index, only required by the Interface Types translation layer.
+
+Size: 1
+
+Alignment: 1
 
 ### Variants
 - <a href="#opt_options_u.some" name="opt_options_u.some"></a> `some`
@@ -298,6 +374,16 @@ An optional options set.
 
 This union simulates an `Option<Options>` type to make the [`options`](#options) parameter of some functions optional.
 
+Size: 8
+
+Alignment: 4
+
+### Union Layout
+- tag_size: 1
+- tag_align: 1
+- contents_offset: 4
+- contents_size: 4
+- contents_align: 4
 ### Union variants
 - <a href="#opt_options.some" name="opt_options.some"></a> `some`: [`options`](#options)
 
@@ -305,6 +391,10 @@ This union simulates an `Option<Options>` type to make the [`options`](#options)
 
 ## <a href="#opt_symmetric_key_u" name="opt_symmetric_key_u"></a> `opt_symmetric_key_u`: Enum(`u8`)
 Symmetric key index, only required by the Interface Types translation layer.
+
+Size: 1
+
+Alignment: 1
 
 ### Variants
 - <a href="#opt_symmetric_key_u.some" name="opt_symmetric_key_u.some"></a> `some`
@@ -316,6 +406,16 @@ An optional symmetric key.
 
 This union simulates an `Option<SymmetricKey>` type to make the [`symmetric_key`](#symmetric_key) parameter of some functions optional.
 
+Size: 8
+
+Alignment: 4
+
+### Union Layout
+- tag_size: 1
+- tag_align: 1
+- contents_offset: 4
+- contents_size: 4
+- contents_align: 4
 ### Union variants
 - <a href="#opt_symmetric_key.some" name="opt_symmetric_key.some"></a> `some`: [`symmetric_key`](#symmetric_key)
 
@@ -447,7 +547,7 @@ This allows a guest to allocate a buffer of the correct size in order to copy th
 
 ---
 
-#### <a href="#array_output_pull" name="array_output_pull"></a> `array_output_pull(array_output: array_output, buf: Pointer<u8>, buf_len: size) -> crypto_errno`
+#### <a href="#array_output_pull" name="array_output_pull"></a> `array_output_pull(array_output: array_output, buf: Pointer<u8>, buf_len: size) -> (crypto_errno, size)`
 Copy the content of an [`array_output`](#array_output) object into an application-allocated buffer.
 
 Multiple calls to that function can be made in order to consume the data in a streaming fashion, if necessary.
@@ -473,6 +573,8 @@ array_output_pull(output_handle, &mut out)?;
 
 ##### Results
 - <a href="#array_output_pull.error" name="array_output_pull.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#array_output_pull.len" name="array_output_pull.len"></a> `len`: [`size`](#size)
 
 
 ---
@@ -582,6 +684,24 @@ The function may also return `unsupported_algorithm` if the algorithm is not sup
 - <a href="#symmetric_key_import.error" name="symmetric_key_import.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 - <a href="#symmetric_key_import.handle" name="symmetric_key_import.handle"></a> `handle`: [`symmetric_key`](#symmetric_key)
+
+
+---
+
+#### <a href="#symmetric_key_export" name="symmetric_key_export"></a> `symmetric_key_export(symmetric_key: symmetric_key) -> (crypto_errno, array_output)`
+Export a symmetric key as raw material.
+
+This is mainly useful to export a managed key.
+
+May return `prohibited_operation` if this operation is denied.
+
+##### Params
+- <a href="#symmetric_key_export.symmetric_key" name="symmetric_key_export.symmetric_key"></a> `symmetric_key`: [`symmetric_key`](#symmetric_key)
+
+##### Results
+- <a href="#symmetric_key_export.error" name="symmetric_key_export.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#symmetric_key_export.encoded" name="symmetric_key_export.encoded"></a> `encoded`: [`array_output`](#array_output)
 
 
 ---
@@ -1222,7 +1342,7 @@ This function can be used by a guest to allocate the correct buffer size to copy
 
 ---
 
-#### <a href="#symmetric_tag_pull" name="symmetric_tag_pull"></a> `symmetric_tag_pull(symmetric_tag: symmetric_tag, buf: Pointer<u8>, buf_len: size) -> crypto_errno`
+#### <a href="#symmetric_tag_pull" name="symmetric_tag_pull"></a> `symmetric_tag_pull(symmetric_tag: symmetric_tag, buf: Pointer<u8>, buf_len: size) -> (crypto_errno, size)`
 Copy an authentication tag into a guest-allocated buffer.
 
 The handle automatically becomes invalid after this operation. Manually closing it is not required.
@@ -1247,6 +1367,8 @@ Otherwise, it returns the number of bytes that have been copied.
 
 ##### Results
 - <a href="#symmetric_tag_pull.error" name="symmetric_tag_pull.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#symmetric_tag_pull.len" name="symmetric_tag_pull.len"></a> `len`: [`size`](#size)
 
 
 ---
@@ -1284,7 +1406,7 @@ ctx.symmetric_tag_verify(computed_tag_handle, expected_raw_tag)?;
 #### <a href="#symmetric_tag_close" name="symmetric_tag_close"></a> `symmetric_tag_close(symmetric_tag: symmetric_tag) -> crypto_errno`
 Explicitly destroy an unused authentication tag.
 
-This is usually not necessary, as `symmetric_tag_pull()` automaticaly closes a tag after it has been copied.
+This is usually not necessary, as `symmetric_tag_pull()` automatically closes a tag after it has been copied.
 
 Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
 
@@ -1293,5 +1415,4 @@ Objects are reference counted. It is safe to close an object immediately after t
 
 ##### Results
 - <a href="#symmetric_tag_close.error" name="symmetric_tag_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
 

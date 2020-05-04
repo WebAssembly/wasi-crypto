@@ -112,7 +112,7 @@ impl HkdfSymmetricState {
         Ok(HkdfSymmetricState {
             alg,
             options,
-            key: key,
+            key,
             data: vec![],
         })
     }

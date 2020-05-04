@@ -63,12 +63,6 @@ pub enum CryptoError {
     ParametersMissing,
 }
 
-impl From<TryFromIntError> for CryptoError {
-    fn from(_: TryFromIntError) -> Self {
-        CryptoError::Overflow
-    }
-}
-
 impl From<CryptoError> for guest_types::CryptoErrno {
     fn from(e: CryptoError) -> Self {
         match e {
@@ -100,6 +94,18 @@ impl From<CryptoError> for guest_types::CryptoErrno {
             CryptoError::KeyNotFound => guest_types::CryptoErrno::KeyNotFound,
             CryptoError::ParametersMissing => guest_types::CryptoErrno::ParametersMissing,
         }
+    }
+}
+
+impl From<TryFromIntError> for CryptoError {
+    fn from(_: TryFromIntError) -> Self {
+        CryptoError::Overflow
+    }
+}
+
+impl From<TryFromIntError> for guest_types::CryptoErrno {
+    fn from(_: TryFromIntError) -> Self {
+        CryptoError::Overflow.into()
     }
 }
 
@@ -135,15 +141,22 @@ impl From<CryptoError> for i32 {
     }
 }
 
-impl<'a> wiggle::GuestErrorType<'a> for guest_types::CryptoErrno {
-    type Context = WasiCryptoCtx;
-
+impl<'a> wiggle::GuestErrorType for guest_types::CryptoErrno {
     fn success() -> Self {
         guest_types::CryptoErrno::Success
     }
+}
 
-    fn from_error(e: wiggle::GuestError, _ctx: &Self::Context) -> Self {
-        eprintln!("GUEST ERROR: {:?}", e);
+impl guest_types::GuestErrorConversion for WasiCryptoCtx {
+    fn into_crypto_errno(&self, e: wiggle::GuestError) -> guest_types::CryptoErrno {
+        eprintln!("GuestError (witx) {:?}", e);
+        guest_types::CryptoErrno::GuestError
+    }
+}
+
+impl From<wiggle::GuestError> for guest_types::CryptoErrno {
+    fn from(e: wiggle::GuestError) -> Self {
+        eprintln!("GuestError (impl) {:?}", e);
         guest_types::CryptoErrno::GuestError
     }
 }

@@ -102,12 +102,9 @@
     (result $handle $signature_keypair)
   )
 
-  ;;; __(optional)__
   ;;; Export a signature key pair as the given encoding format.
   ;;;
   ;;; May return `prohibited_operation` if this operation is denied or `unsupported_encoding` if the encoding is not supported.
-  ;;;
-  ;;; This is an optional import, meaning that the function may not even exist.
   (@interface func (export "signature_keypair_export")
     (param $kp $signature_keypair)
     (param $encoding $keypair_encoding)
@@ -156,6 +153,16 @@
     (param $encoding $publickey_encoding)
     (result $error $crypto_errno)
     (result $pk $signature_publickey)
+  )
+
+  ;;; Export a public key as the given encoding format.
+  ;;;
+  ;;; May return `unsupported_encoding` if the encoding is not supported.
+  (@interface func (export "signature_publickey_export")
+    (param $pk $signature_publickey)
+    (param $encoding $publickey_encoding)
+    (result $error $crypto_errno)
+    (result $encoded $array_output)
   )
 
   ;;; Check that a signature public key is valid and in canonical form.

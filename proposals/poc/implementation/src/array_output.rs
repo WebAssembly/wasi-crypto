@@ -1,10 +1,8 @@
-use std::convert::TryInto;
 use std::io::{Cursor, Read};
 
 use crate::error::*;
 use crate::handles::*;
-use crate::types as guest_types;
-use crate::{CryptoCtx, HandleManagers, WasiCryptoCtx};
+use crate::{CryptoCtx, HandleManagers};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ArrayOutput(Cursor<Vec<u8>>);
@@ -55,32 +53,5 @@ impl CryptoCtx {
         let len = array_output.pull(buf)?;
         self.handles.array_output.close(array_output_handle)?;
         Ok(len)
-    }
-}
-
-impl WasiCryptoCtx {
-    pub fn array_output_len(
-        &self,
-        array_output_handle: guest_types::ArrayOutput,
-    ) -> Result<guest_types::Size, CryptoError> {
-        Ok(self
-            .ctx
-            .array_output_len(array_output_handle.into())?
-            .try_into()?)
-    }
-
-    pub fn array_output_pull(
-        &self,
-        array_output_handle: guest_types::ArrayOutput,
-        buf_ptr: &wiggle::GuestPtr<'_, u8>,
-        buf_len: guest_types::Size,
-    ) -> Result<guest_types::Size, CryptoError> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let buf: &mut [u8] =
-            unsafe { &mut *buf_ptr.as_array(buf_len as _).as_raw(&mut guest_borrow)? };
-        Ok(self
-            .ctx
-            .array_output_pull(array_output_handle.into(), buf)?
-            .try_into()?)
     }
 }

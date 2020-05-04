@@ -5,6 +5,7 @@ mod keypair_manager;
 mod publickey;
 mod rsa;
 mod signature;
+mod wasi_glue;
 
 use crate::error::*;
 use crate::options::*;

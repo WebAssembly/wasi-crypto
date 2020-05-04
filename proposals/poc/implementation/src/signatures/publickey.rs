@@ -6,7 +6,7 @@ use crate::array_output::*;
 use crate::error::*;
 use crate::handles::*;
 use crate::types as guest_types;
-use crate::{CryptoCtx, HandleManagers, WasiCryptoCtx};
+use crate::{CryptoCtx, HandleManagers};
 
 use std::convert::TryFrom;
 
@@ -117,52 +117,5 @@ impl CryptoCtx {
 
     pub fn signature_publickey_close(&self, pk: Handle) -> Result<(), CryptoError> {
         self.handles.signature_publickey.close(pk)
-    }
-}
-
-impl WasiCryptoCtx {
-    pub fn signature_publickey_import(
-        &self,
-        alg_str: &wiggle::GuestPtr<'_, str>,
-        encoded_ptr: &wiggle::GuestPtr<'_, u8>,
-        encoded_len: guest_types::Size,
-        encoding: guest_types::PublickeyEncoding,
-    ) -> Result<guest_types::SignaturePublickey, CryptoError> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let alg_str: &str = unsafe { &*alg_str.as_raw(&mut guest_borrow)? };
-        let encoded: &[u8] = unsafe {
-            &*encoded_ptr
-                .as_array(encoded_len as _)
-                .as_raw(&mut guest_borrow)?
-        };
-        Ok(self
-            .ctx
-            .signature_publickey_import(alg_str, encoded, encoding.into())?
-            .into())
-    }
-
-    pub fn signature_publickey_export(
-        &self,
-        pk: guest_types::SignaturePublickey,
-        encoding: guest_types::PublickeyEncoding,
-    ) -> Result<guest_types::ArrayOutput, CryptoError> {
-        Ok(self
-            .ctx
-            .signature_publickey_export(pk.into(), encoding.into())?
-            .into())
-    }
-
-    pub fn signature_publickey_verify(
-        &self,
-        pk: guest_types::SignaturePublickey,
-    ) -> Result<(), CryptoError> {
-        Ok(self.ctx.signature_publickey_verify(pk.into())?.into())
-    }
-
-    pub fn signature_publickey_close(
-        &self,
-        pk: guest_types::SignaturePublickey,
-    ) -> Result<(), CryptoError> {
-        Ok(self.ctx.signature_publickey_close(pk.into())?.into())
     }
 }

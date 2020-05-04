@@ -6,6 +6,7 @@ mod key_manager;
 mod sha2;
 mod state;
 mod tag;
+mod wasi_glue;
 mod xoodyak;
 
 use self::aes_gcm::*;

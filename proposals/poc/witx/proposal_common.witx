@@ -390,6 +390,7 @@
     (param $buf (@witx pointer u8))
     (param $buf_len $size)
     (result $error $crypto_errno)
+    (result $len $size)
   )
 
   ;;; __(optional)__

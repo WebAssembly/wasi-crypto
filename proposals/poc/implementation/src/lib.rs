@@ -1,3 +1,10 @@
+#![allow(
+    clippy::unit_arg,
+    clippy::identity_conversion,
+    clippy::new_without_default,
+    clippy::new_ret_no_self,
+    clippy::too_many_arguments
+)]
 #[macro_use]
 extern crate derivative;
 
@@ -9,6 +16,7 @@ mod options;
 mod signatures;
 mod symmetric;
 mod version;
+mod wasi_glue;
 
 use array_output::*;
 use handles::*;

@@ -5,7 +5,7 @@ use crate::handles::*;
 use crate::signatures::SignatureOptions;
 use crate::symmetric::SymmetricOptions;
 use crate::types as guest_types;
-use crate::{CryptoCtx, WasiCryptoCtx};
+use crate::CryptoCtx;
 
 pub trait OptionsLike: Send + Sized {
     fn as_any(&self) -> &dyn Any;
@@ -172,105 +172,5 @@ impl CryptoCtx {
         let mut options = self.handles.options.get(options_handle)?;
         let v = options.get_u64(name)?;
         Ok(v)
-    }
-}
-
-impl WasiCryptoCtx {
-    pub fn options_open(
-        &self,
-        options_type: guest_types::OptionsType,
-    ) -> Result<guest_types::Options, CryptoError> {
-        Ok(self.ctx.options_open(options_type.into())?.into())
-    }
-
-    pub fn options_close(&self, options_handle: guest_types::Options) -> Result<(), CryptoError> {
-        Ok(self.ctx.options_close(options_handle.into())?.into())
-    }
-
-    pub fn options_set(
-        &self,
-        options_handle: guest_types::Options,
-        name_str: &wiggle::GuestPtr<'_, str>,
-        value_ptr: &wiggle::GuestPtr<'_, u8>,
-        value_len: guest_types::Size,
-    ) -> Result<(), CryptoError> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let name_str: &str = unsafe { &*name_str.as_raw(&mut guest_borrow)? };
-        let value: &[u8] = unsafe {
-            &*value_ptr
-                .as_array(value_len as _)
-                .as_raw(&mut guest_borrow)?
-        };
-        Ok(self
-            .ctx
-            .options_set(options_handle.into(), name_str, value)?
-            .into())
-    }
-
-    pub fn options_set_guest_buffer(
-        &self,
-        options_handle: guest_types::Options,
-        name_str: &wiggle::GuestPtr<'_, str>,
-        buffer_ptr: &wiggle::GuestPtr<'_, u8>,
-        buffer_len: guest_types::Size,
-    ) -> Result<(), CryptoError> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let name_str: &str = unsafe { &*name_str.as_raw(&mut guest_borrow)? };
-        let buffer: &'static mut [u8] = unsafe {
-            &mut *buffer_ptr
-                .as_array(buffer_len as _)
-                .as_raw(&mut guest_borrow)?
-        };
-        Ok(self
-            .ctx
-            .options_set_guest_buffer(options_handle.into(), name_str, buffer)?
-            .into())
-    }
-
-    pub fn options_set_u64(
-        &self,
-        options_handle: guest_types::Options,
-        name_str: &wiggle::GuestPtr<'_, str>,
-        value: u64,
-    ) -> Result<(), CryptoError> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let name_str: &str = unsafe { &*name_str.as_raw(&mut guest_borrow)? };
-        Ok(self
-            .ctx
-            .options_set_u64(options_handle.into(), name_str, value)?
-            .into())
-    }
-
-    pub fn options_get(
-        &self,
-        options_handle: guest_types::Options,
-        name_str: &wiggle::GuestPtr<'_, str>,
-        value_ptr: &wiggle::GuestPtr<'_, u8>,
-        value_max_len: guest_types::Size,
-    ) -> Result<usize, CryptoError> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let name_str: &str = unsafe { &*name_str.as_raw(&mut guest_borrow)? };
-        let value: &mut [u8] = unsafe {
-            &mut *value_ptr
-                .as_array(value_max_len as _)
-                .as_raw(&mut guest_borrow)?
-        };
-        Ok(self
-            .ctx
-            .options_get(options_handle.into(), name_str, value)?
-            .into())
-    }
-
-    pub fn options_get_u64(
-        &self,
-        options_handle: guest_types::Options,
-        name_str: &wiggle::GuestPtr<'_, str>,
-    ) -> Result<u64, CryptoError> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let name_str: &str = unsafe { &*name_str.as_raw(&mut guest_borrow)? };
-        Ok(self
-            .ctx
-            .options_get_u64(options_handle.into(), name_str)?
-            .into())
     }
 }

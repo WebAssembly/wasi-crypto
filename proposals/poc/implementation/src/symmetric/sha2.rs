@@ -61,7 +61,7 @@ impl SymmetricStateLike for Sha2SymmetricState {
     fn squeeze(&mut self, out: &mut [u8]) -> Result<(), CryptoError> {
         let digest = self.ring_ctx.clone().finish();
         ensure!(
-            digest.as_ref().len() <= out.len(),
+            digest.as_ref().len() >= out.len(),
             CryptoError::InvalidLength
         );
         out.copy_from_slice(&digest.as_ref()[..out.len()]);

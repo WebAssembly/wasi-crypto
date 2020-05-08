@@ -1,47 +1,74 @@
+#![allow(
+    clippy::unit_arg,
+    clippy::identity_conversion,
+    clippy::new_without_default,
+    clippy::new_ret_no_self,
+    clippy::too_many_arguments
+)]
+#[macro_use]
+extern crate derivative;
+
 mod array_output;
-mod ecdsa;
-mod eddsa;
 mod error;
 mod handles;
-mod rsa;
-mod signature;
-mod signature_keypair;
-mod signature_op;
-mod signature_publickey;
+mod key_manager;
+mod options;
+mod signatures;
+mod symmetric;
+mod version;
+mod wasi_glue;
 
 use array_output::*;
 use handles::*;
-use signature::*;
-use signature_keypair::*;
-use signature_op::*;
-use signature_publickey::*;
+use options::*;
+use signatures::*;
+use symmetric::*;
 
 pub use error::CryptoError;
 pub use handles::Handle;
-pub use signature::SignatureEncoding;
-pub use signature_keypair::{KeyPairEncoding, Version};
-pub use signature_publickey::PublicKeyEncoding;
+pub use signatures::{KeyPairEncoding, PublicKeyEncoding, SignatureEncoding};
+pub use version::Version;
 
 #[allow(unused)]
-static REBUILD_IF_WITX_FILE_IS_UPDATED: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/../witx/proposal_signatures.witx"
-));
+static REBUILD_IF_WITX_FILE_IS_UPDATED: [&str; 3] = [
+    include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../witx/proposal_common.witx"
+    )),
+    include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../witx/proposal_signatures.witx"
+    )),
+    include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../witx/proposal_symmetric.witx"
+    )),
+];
 
 wiggle::from_witx!({
-    witx: ["../witx/proposal_signatures.witx"],
+    witx: ["../witx/wasi_ephemeral_crypto.witx"],
     ctx: WasiCryptoCtx
 });
 
+pub mod wasi_modules {
+    pub use crate::{
+        wasi_ephemeral_crypto_common, wasi_ephemeral_crypto_signatures,
+        wasi_ephemeral_crypto_symmetric,
+    };
+}
+
 pub struct HandleManagers {
-    pub signature_op: HandlesManager<SignatureOp>,
-    pub signature_keypair_builder: HandlesManager<SignatureKeyPairBuilder>,
+    pub array_output: HandlesManager<ArrayOutput>,
+    pub options: HandlesManager<Options>,
+    pub signature_keypair_manager: HandlesManager<SignatureKeyPairManager>,
     pub signature_keypair: HandlesManager<SignatureKeyPair>,
-    pub signature_state: HandlesManager<ExclusiveSignatureState>,
+    pub signature_state: HandlesManager<SignatureState>,
     pub signature: HandlesManager<Signature>,
     pub signature_publickey: HandlesManager<SignaturePublicKey>,
-    pub signature_verification_state: HandlesManager<ExclusiveSignatureVerificationState>,
-    pub array_output: HandlesManager<ArrayOutput>,
+    pub signature_verification_state: HandlesManager<SignatureVerificationState>,
+    pub symmetric_state: HandlesManager<SymmetricState>,
+    pub symmetric_key: HandlesManager<SymmetricKey>,
+    pub symmetric_tag: HandlesManager<SymmetricTag>,
 }
 
 pub struct CryptoCtx {
@@ -57,13 +84,16 @@ impl CryptoCtx {
         CryptoCtx {
             handles: HandleManagers {
                 array_output: HandlesManager::new(0x00),
-                signature_op: HandlesManager::new(0x01),
-                signature_keypair_builder: HandlesManager::new(0x02),
+                options: HandlesManager::new(0x01),
+                signature_keypair_manager: HandlesManager::new(0x02),
                 signature_keypair: HandlesManager::new(0x03),
                 signature_state: HandlesManager::new(0x04),
                 signature: HandlesManager::new(0x05),
                 signature_publickey: HandlesManager::new(0x06),
                 signature_verification_state: HandlesManager::new(0x07),
+                symmetric_state: HandlesManager::new(0x09),
+                symmetric_key: HandlesManager::new(0x0a),
+                symmetric_tag: HandlesManager::new(0x0b),
             },
         }
     }
@@ -75,32 +105,4 @@ impl WasiCryptoCtx {
             ctx: CryptoCtx::new(),
         }
     }
-}
-
-#[test]
-fn test_signatures() {
-    let ctx = CryptoCtx::new();
-    let op_handle = ctx.signature_op_open("ECDSA_P256_SHA256").unwrap();
-    let kp_builder_handle = ctx.signature_keypair_builder_open(op_handle).unwrap();
-    let kp_handle = ctx.signature_keypair_generate(kp_builder_handle).unwrap();
-    let state_handle = ctx.signature_state_open(kp_handle).unwrap();
-    ctx.signature_state_update(state_handle, b"test").unwrap();
-    let signature_handle = ctx.signature_state_sign(state_handle).unwrap();
-
-    let pk_handle = ctx.signature_keypair_publickey(kp_handle).unwrap();
-
-    let verification_state_handle = ctx.signature_verification_state_open(pk_handle).unwrap();
-    ctx.signature_verification_state_update(verification_state_handle, b"test")
-        .unwrap();
-    ctx.signature_verification_state_verify(verification_state_handle, signature_handle)
-        .unwrap();
-
-    ctx.signature_op_close(op_handle).unwrap();
-    ctx.signature_keypair_builder_close(kp_builder_handle)
-        .unwrap();
-    ctx.signature_keypair_close(kp_handle).unwrap();
-    ctx.signature_state_close(state_handle).unwrap();
-    ctx.signature_verification_state_close(verification_state_handle)
-        .unwrap();
-    ctx.signature_close(signature_handle).unwrap();
 }

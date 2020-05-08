@@ -1,24 +1,11 @@
-use parking_lot::Mutex;
 use ring::signature::KeyPair as _;
 use std::sync::Arc;
 use zeroize::Zeroize;
 
-use super::error::*;
-use super::handles::*;
+use super::keypair::*;
 use super::signature::*;
-use super::signature_keypair::*;
-use super::HandleManagers;
-
-#[derive(Clone, Copy, Debug)]
-pub struct EcdsaSignatureOp {
-    pub alg: SignatureAlgorithm,
-}
-
-impl EcdsaSignatureOp {
-    pub fn new(alg: SignatureAlgorithm) -> Self {
-        EcdsaSignatureOp { alg }
-    }
-}
+use super::*;
+use crate::error::*;
 
 #[derive(Debug, Clone)]
 pub struct EcdsaSignatureKeyPair {
@@ -65,7 +52,10 @@ impl EcdsaSignatureKeyPair {
         Ok(&self.pkcs8)
     }
 
-    pub fn generate(alg: SignatureAlgorithm) -> Result<Self, CryptoError> {
+    pub fn generate(
+        alg: SignatureAlgorithm,
+        _options: Option<SignatureOptions>,
+    ) -> Result<Self, CryptoError> {
         let ring_alg = Self::ring_alg_from_alg(alg)?;
         let rng = ring::rand::SystemRandom::new();
         let pkcs8 = ring::signature::EcdsaKeyPair::generate_pkcs8(ring_alg, &rng)
@@ -73,51 +63,28 @@ impl EcdsaSignatureKeyPair {
         Self::from_pkcs8(alg, pkcs8.as_ref())
     }
 
-    pub fn raw_public_key(&self) -> &[u8] {
-        self.ring_kp.public_key().as_ref()
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct EcdsaSignatureKeyPairBuilder {
-    pub alg: SignatureAlgorithm,
-}
-
-impl EcdsaSignatureKeyPairBuilder {
-    pub fn new(alg: SignatureAlgorithm) -> Self {
-        EcdsaSignatureKeyPairBuilder { alg }
-    }
-
-    pub fn generate(&self, handles: &HandleManagers) -> Result<Handle, CryptoError> {
-        let kp = EcdsaSignatureKeyPair::generate(self.alg)?;
-        let handle = handles
-            .signature_keypair
-            .register(SignatureKeyPair::Ecdsa(kp))?;
-        Ok(handle)
-    }
-
     pub fn import(
-        &self,
-        handles: &HandleManagers,
+        alg: SignatureAlgorithm,
         encoded: &[u8],
         encoding: KeyPairEncoding,
-    ) -> Result<Handle, CryptoError> {
+    ) -> Result<Self, CryptoError> {
         match encoding {
             KeyPairEncoding::Pkcs8 => {}
             _ => bail!(CryptoError::UnsupportedEncoding),
         };
-        let kp = EcdsaSignatureKeyPair::from_pkcs8(self.alg, encoded)?;
-        let handle = handles
-            .signature_keypair
-            .register(SignatureKeyPair::Ecdsa(kp))?;
-        Ok(handle)
+        let kp = EcdsaSignatureKeyPair::from_pkcs8(alg, encoded)?;
+        Ok(kp)
+    }
+
+    pub fn raw_public_key(&self) -> &[u8] {
+        self.ring_kp.public_key().as_ref()
     }
 }
 
 #[derive(Debug)]
 pub struct EcdsaSignatureState {
     pub kp: EcdsaSignatureKeyPair,
-    pub input: Mutex<Vec<u8>>,
+    pub input: Vec<u8>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -126,66 +93,72 @@ pub struct EcdsaSignature {
     pub encoded: Vec<u8>,
 }
 
-impl AsRef<[u8]> for EcdsaSignature {
-    fn as_ref(&self) -> &[u8] {
-        &self.encoded
-    }
-}
-
 impl EcdsaSignature {
     pub fn new(encoding: SignatureEncoding, encoded: Vec<u8>) -> Self {
         EcdsaSignature { encoding, encoded }
     }
 }
 
-impl EcdsaSignatureState {
-    pub fn new(kp: EcdsaSignatureKeyPair) -> Self {
-        EcdsaSignatureState {
-            kp,
-            input: Mutex::new(vec![]),
-        }
+impl SignatureLike for EcdsaSignature {
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 
-    pub fn update(&self, input: &[u8]) -> Result<(), CryptoError> {
-        self.input.lock().extend_from_slice(input);
+    fn as_ref(&self) -> &[u8] {
+        &self.encoded
+    }
+}
+
+impl EcdsaSignatureState {
+    pub fn new(kp: EcdsaSignatureKeyPair) -> Self {
+        EcdsaSignatureState { kp, input: vec![] }
+    }
+}
+
+impl SignatureStateLike for EcdsaSignatureState {
+    fn update(&mut self, input: &[u8]) -> Result<(), CryptoError> {
+        self.input.extend_from_slice(input);
         Ok(())
     }
 
-    pub fn sign(&self) -> Result<EcdsaSignature, CryptoError> {
+    fn sign(&mut self) -> Result<Signature, CryptoError> {
         let rng = ring::rand::SystemRandom::new();
-        let input = self.input.lock();
         let encoded_signature = self
             .kp
             .ring_kp
-            .sign(&rng, &input)
+            .sign(&rng, &self.input)
             .map_err(|_| CryptoError::AlgorithmFailure)?
             .as_ref()
             .to_vec();
         let signature = EcdsaSignature::new(SignatureEncoding::Raw, encoded_signature);
-        Ok(signature)
+        Ok(Signature::new(Box::new(signature)))
     }
 }
 
 #[derive(Debug)]
 pub struct EcdsaSignatureVerificationState {
     pub pk: EcdsaSignaturePublicKey,
-    pub input: Mutex<Vec<u8>>,
+    pub input: Vec<u8>,
 }
 
 impl EcdsaSignatureVerificationState {
     pub fn new(pk: EcdsaSignaturePublicKey) -> Self {
-        EcdsaSignatureVerificationState {
-            pk,
-            input: Mutex::new(vec![]),
-        }
+        EcdsaSignatureVerificationState { pk, input: vec![] }
     }
+}
 
-    pub fn update(&self, input: &[u8]) -> Result<(), CryptoError> {
-        self.input.lock().extend_from_slice(input);
+impl SignatureVerificationStateLike for EcdsaSignatureVerificationState {
+    fn update(&mut self, input: &[u8]) -> Result<(), CryptoError> {
+        self.input.extend_from_slice(input);
         Ok(())
     }
 
-    pub fn verify(&self, signature: &EcdsaSignature) -> Result<(), CryptoError> {
+    fn verify(&self, signature: &Signature) -> Result<(), CryptoError> {
+        let signature = signature.inner();
+        let signature = signature
+            .as_any()
+            .downcast_ref::<EcdsaSignature>()
+            .ok_or(CryptoError::InvalidSignature)?;
         let ring_alg = match (self.pk.alg, signature.encoding) {
             (SignatureAlgorithm::ECDSA_P256_SHA256, SignatureEncoding::Raw) => {
                 &ring::signature::ECDSA_P256_SHA256_FIXED
@@ -203,7 +176,7 @@ impl EcdsaSignatureVerificationState {
         };
         let ring_pk = ring::signature::UnparsedPublicKey::new(ring_alg, self.pk.as_raw()?);
         ring_pk
-            .verify(self.input.lock().as_ref(), signature.as_ref())
+            .verify(self.input.as_ref(), signature.as_ref())
             .map_err(|_| CryptoError::VerificationFailed)?;
         Ok(())
     }

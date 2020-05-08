@@ -7,7 +7,7 @@ A proposal for a WASI cryptography API.
     - symmetric operations ([witx](witx/proposal_siymmetric.witx), [doc](witx/proposal_symmetric.md))
 * [Toy implementation](https://github.com/jedisct1/wasi-crypto-preview/tree/master/implementation)
 * [Wasmtime integration](https://github.com/jedisct1/wasmtime-crypto)
-* [Example AssemblyScript bindings](https://github.com/jedisct1/as-wasi)
+* [Example AssemblyScript bindings](https://github.com/jedisct1/as-crypto)
 
 # Testing the API
 

@@ -2,8 +2,8 @@ use ring::signature::KeyPair as _;
 use std::sync::Arc;
 use zeroize::Zeroize;
 
-use super::keypair::*;
 use super::*;
+use crate::asymmetric_common::*;
 use crate::error::*;
 
 #[derive(Clone, Debug)]

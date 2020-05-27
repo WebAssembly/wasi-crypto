@@ -8,7 +8,7 @@ impl crate::wasi_ephemeral_crypto_common::WasiEphemeralCryptoCommon for WasiCryp
 
     fn options_open(
         &self,
-        options_type: guest_types::OptionsType,
+        options_type: guest_types::AlgorithmType,
     ) -> Result<guest_types::Options, guest_types::CryptoErrno> {
         Ok(self.ctx.options_open(options_type.into())?.into())
     }

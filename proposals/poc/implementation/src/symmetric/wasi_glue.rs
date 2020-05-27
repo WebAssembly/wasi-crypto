@@ -7,7 +7,7 @@ use crate::WasiCryptoCtx;
 impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for WasiCryptoCtx {
     // --- key_manager
 
-    fn symmetric_managed_key_generate(
+    fn symmetric_key_generate_managed(
         &self,
         key_manager_handle: guest_types::KeyManager,
         alg_str: &wiggle::GuestPtr<'_, str>,
@@ -21,7 +21,7 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         };
         Ok(self
             .ctx
-            .symmetric_managed_key_generate(
+            .symmetric_key_generate_managed(
                 key_manager_handle.into(),
                 alg_str,
                 options_handle.map(Into::into),

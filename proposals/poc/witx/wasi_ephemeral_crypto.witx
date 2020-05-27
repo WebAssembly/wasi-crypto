@@ -1,5 +1,6 @@
 ;;; A WASI cryptography submodule proposal.
 
 (use "proposal_common.witx")
+(use "proposal_asymmetric_common.witx")
 (use "proposal_signatures.witx")
 (use "proposal_symmetric.witx")

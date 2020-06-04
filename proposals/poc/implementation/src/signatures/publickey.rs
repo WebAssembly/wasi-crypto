@@ -15,6 +15,14 @@ pub enum SignaturePublicKey {
 }
 
 impl SignaturePublicKey {
+    pub fn alg(&self) -> SignatureAlgorithm {
+        match self {
+            SignaturePublicKey::Ecdsa(x) => x.alg,
+            SignaturePublicKey::Eddsa(x) => x.alg,
+            SignaturePublicKey::Rsa(x) => x.alg,
+        }
+    }
+
     pub(crate) fn import(
         alg: SignatureAlgorithm,
         encoded: &[u8],

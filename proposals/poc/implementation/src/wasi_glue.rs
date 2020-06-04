@@ -27,13 +27,8 @@ impl crate::wasi_ephemeral_crypto_common::WasiEphemeralCryptoCommon for WasiCryp
         value_ptr: &wiggle::GuestPtr<'_, u8>,
         value_len: guest_types::Size,
     ) -> Result<(), guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let name_str: &str = unsafe { &*name_str.as_raw(&mut guest_borrow)? };
-        let value: &[u8] = unsafe {
-            &*value_ptr
-                .as_array(value_len as _)
-                .as_raw(&mut guest_borrow)?
-        };
+        let name_str: &str = &*name_str.as_str()?;
+        let value: &[u8] = { &*value_ptr.as_array(value_len).as_slice()? };
         Ok(self
             .ctx
             .options_set(options_handle.into(), name_str, value)?
@@ -47,13 +42,9 @@ impl crate::wasi_ephemeral_crypto_common::WasiEphemeralCryptoCommon for WasiCryp
         buffer_ptr: &wiggle::GuestPtr<'_, u8>,
         buffer_len: guest_types::Size,
     ) -> Result<(), guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let name_str: &str = unsafe { &*name_str.as_raw(&mut guest_borrow)? };
-        let buffer: &'static mut [u8] = unsafe {
-            &mut *buffer_ptr
-                .as_array(buffer_len as _)
-                .as_raw(&mut guest_borrow)?
-        };
+        let name_str: &str = &*name_str.as_str()?;
+        let buffer: &'static mut [u8] =
+            unsafe { std::mem::transmute(&mut *buffer_ptr.as_array(buffer_len).as_slice()?) };
         Ok(self
             .ctx
             .options_set_guest_buffer(options_handle.into(), name_str, buffer)?
@@ -66,8 +57,7 @@ impl crate::wasi_ephemeral_crypto_common::WasiEphemeralCryptoCommon for WasiCryp
         name_str: &wiggle::GuestPtr<'_, str>,
         value: u64,
     ) -> Result<(), guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let name_str: &str = unsafe { &*name_str.as_raw(&mut guest_borrow)? };
+        let name_str: &str = &*name_str.as_str()?;
         Ok(self
             .ctx
             .options_set_u64(options_handle.into(), name_str, value)?
@@ -92,9 +82,7 @@ impl crate::wasi_ephemeral_crypto_common::WasiEphemeralCryptoCommon for WasiCryp
         buf_ptr: &wiggle::GuestPtr<'_, u8>,
         buf_len: guest_types::Size,
     ) -> Result<guest_types::Size, guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let buf: &mut [u8] =
-            unsafe { &mut *buf_ptr.as_array(buf_len as _).as_raw(&mut guest_borrow)? };
+        let buf: &mut [u8] = { &mut *buf_ptr.as_array(buf_len).as_slice()? };
         Ok(self
             .ctx
             .array_output_pull(array_output_handle.into(), buf)?
@@ -131,12 +119,7 @@ impl crate::wasi_ephemeral_crypto_common::WasiEphemeralCryptoCommon for WasiCryp
         key_id_len: guest_types::Size,
         key_version: guest_types::Version,
     ) -> Result<(), guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let key_id: &[u8] = unsafe {
-            &*key_id_ptr
-                .as_array(key_id_len as _)
-                .as_raw(&mut guest_borrow)?
-        };
+        let key_id: &[u8] = { &*key_id_ptr.as_array(key_id_len).as_slice()? };
         Ok(self
             .ctx
             .key_manager_invalidate(key_manager_handle.into(), key_id, key_version.into())?

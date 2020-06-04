@@ -140,6 +140,11 @@ Some functions, such as functions generating key pairs and password stretching f
 
 In order to avoid a host call to be blocked for too long, these functions can return prematurely, requiring additional calls with the same parameters until they complete.
 
+- <a href="#crypto_errno.incompatible_keys" name="crypto_errno.incompatible_keys"></a> `incompatible_keys`
+Multiple keys have been provided, but they do not share the same type.
+
+This error is returned when trying to build a key pair from a public key and a secret key that were created for different and incompatible algorithms.
+
 ## <a href="#keypair_encoding" name="keypair_encoding"></a> `keypair_encoding`: Enum(`u16`)
 Encoding to use for importing or exporting a key pair.
 
@@ -181,6 +186,29 @@ PEM encoding.
 SEC encoding.
 
 - <a href="#publickey_encoding.compressed_sec" name="publickey_encoding.compressed_sec"></a> `compressed_sec`
+Compressed SEC encoding.
+
+## <a href="#secretkey_encoding" name="secretkey_encoding"></a> `secretkey_encoding`: Enum(`u16`)
+Encoding to use for importing or exporting a secret key.
+
+Size: 2
+
+Alignment: 2
+
+### Variants
+- <a href="#secretkey_encoding.raw" name="secretkey_encoding.raw"></a> `raw`
+Raw bytes.
+
+- <a href="#secretkey_encoding.der" name="secretkey_encoding.der"></a> `der`
+DER encoding.
+
+- <a href="#secretkey_encoding.pem" name="secretkey_encoding.pem"></a> `pem`
+PEM encoding.
+
+- <a href="#secretkey_encoding.sec" name="secretkey_encoding.sec"></a> `sec`
+SEC encoding.
+
+- <a href="#secretkey_encoding.compressed_sec" name="secretkey_encoding.compressed_sec"></a> `compressed_sec`
 Compressed SEC encoding.
 
 ## <a href="#signature_encoding" name="signature_encoding"></a> `signature_encoding`: Enum(`u16`)
@@ -301,7 +329,15 @@ Alignment: 4
 
 ### Supertypes
 ## <a href="#publickey" name="publickey"></a> `publickey`
-A public key that can be used to verify a signature.
+A public key, for key exchange and signature verification.
+
+Size: 4
+
+Alignment: 4
+
+### Supertypes
+## <a href="#secretkey" name="secretkey"></a> `secretkey`
+A secret key, for key exchange mechanisms.
 
 Size: 4
 
@@ -636,293 +672,6 @@ This is an optional import, meaning that the function may not even exist.
 
 ##### Results
 - <a href="#key_manager_invalidate.error" name="key_manager_invalidate.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-## <a href="#wasi_ephemeral_crypto_asymmetric_common" name="wasi_ephemeral_crypto_asymmetric_common"></a> wasi_ephemeral_crypto_asymmetric_common
-### Imports
-#### Memory
-### Functions
-
----
-
-#### <a href="#keypair_generate" name="keypair_generate"></a> `keypair_generate(algorithm_type: algorithm_type, algorithm: string, options: opt_options) -> (crypto_errno, keypair)`
-Generate a new key pair.
-
-Internally, a key pair stores the supplied algorithm and optional parameters.
-
-Trying to use that key pair with different parameters will throw an `invalid_key` error.
-
-This function may return `$crypto_errno.unsupported_feature` if key generation is not supported by the host for the chosen algorithm.
-
-The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
-
-Finally, if generating that type of key pair is an expensive operation, the function may return `in_progress`.
-In that case, the guest should retry with the same parameters until the function completes.
-
-Example usage:
-
-```rust
-let kp_handle = ctx.keypair_generate(AlgorithmType::Signatures, "RSA_PKCS1_2048_8192_SHA512", None)?;
-```
-
-##### Params
-- <a href="#keypair_generate.algorithm_type" name="keypair_generate.algorithm_type"></a> `algorithm_type`: [`algorithm_type`](#algorithm_type)
-
-- <a href="#keypair_generate.algorithm" name="keypair_generate.algorithm"></a> `algorithm`: `string`
-
-- <a href="#keypair_generate.options" name="keypair_generate.options"></a> `options`: [`opt_options`](#opt_options)
-
-##### Results
-- <a href="#keypair_generate.error" name="keypair_generate.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-- <a href="#keypair_generate.handle" name="keypair_generate.handle"></a> `handle`: [`keypair`](#keypair)
-
-
----
-
-#### <a href="#keypair_import" name="keypair_import"></a> `keypair_import(algorithm_type: algorithm_type, algorithm: string, encoded: ConstPointer<u8>, encoded_len: size, encoding: keypair_encoding) -> (crypto_errno, keypair)`
-Import a key pair.
-
-This function creates a [`keypair`](#keypair) object from existing material.
-
-It may return `unsupported_algorithm` if the encoding scheme is not supported, or `invalid_key` if the key cannot be decoded.
-
-The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
-
-Example usage:
-
-```rust
-let kp_handle = ctx.keypair_import(AlgorithmType::Signatures, "RSA_PKCS1_2048_8192_SHA512", KeypairEncoding::PKCS8)?;
-```
-
-##### Params
-- <a href="#keypair_import.algorithm_type" name="keypair_import.algorithm_type"></a> `algorithm_type`: [`algorithm_type`](#algorithm_type)
-
-- <a href="#keypair_import.algorithm" name="keypair_import.algorithm"></a> `algorithm`: `string`
-
-- <a href="#keypair_import.encoded" name="keypair_import.encoded"></a> `encoded`: `ConstPointer<u8>`
-
-- <a href="#keypair_import.encoded_len" name="keypair_import.encoded_len"></a> `encoded_len`: [`size`](#size)
-
-- <a href="#keypair_import.encoding" name="keypair_import.encoding"></a> `encoding`: [`keypair_encoding`](#keypair_encoding)
-
-##### Results
-- <a href="#keypair_import.error" name="keypair_import.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-- <a href="#keypair_import.handle" name="keypair_import.handle"></a> `handle`: [`keypair`](#keypair)
-
-
----
-
-#### <a href="#keypair_generate_managed" name="keypair_generate_managed"></a> `keypair_generate_managed(key_manager: key_manager, algorithm_type: algorithm_type, algorithm: string, options: opt_options) -> (crypto_errno, keypair)`
-__(optional)__
-Generate a new managed key pair.
-
-The key pair is generated and stored by the key management facilities.
-
-It may be used through its identifier, but the host may not allow it to be exported.
-
-The function returns the `unsupported_feature` error code if key management facilities are not supported by the host,
-or `unsupported_algorithm` if a key cannot be created for the chosen algorithm.
-
-The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
-
-This is also an optional import, meaning that the function may not even exist.
-
-##### Params
-- <a href="#keypair_generate_managed.key_manager" name="keypair_generate_managed.key_manager"></a> `key_manager`: [`key_manager`](#key_manager)
-
-- <a href="#keypair_generate_managed.algorithm_type" name="keypair_generate_managed.algorithm_type"></a> `algorithm_type`: [`algorithm_type`](#algorithm_type)
-
-- <a href="#keypair_generate_managed.algorithm" name="keypair_generate_managed.algorithm"></a> `algorithm`: `string`
-
-- <a href="#keypair_generate_managed.options" name="keypair_generate_managed.options"></a> `options`: [`opt_options`](#opt_options)
-
-##### Results
-- <a href="#keypair_generate_managed.error" name="keypair_generate_managed.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-- <a href="#keypair_generate_managed.handle" name="keypair_generate_managed.handle"></a> `handle`: [`keypair`](#keypair)
-
-
----
-
-#### <a href="#keypair_id" name="keypair_id"></a> `keypair_id(kp: keypair, kp_id: Pointer<u8>, kp_id_max_len: size) -> (crypto_errno, size, version)`
-__(optional)__
-Return the key pair identifier and version of a managed key pair.
-
-If the key pair is not managed, `unsupported_feature` is returned instead.
-
-This is an optional import, meaning that the function may not even exist.
-
-##### Params
-- <a href="#keypair_id.kp" name="keypair_id.kp"></a> `kp`: [`keypair`](#keypair)
-
-- <a href="#keypair_id.kp_id" name="keypair_id.kp_id"></a> `kp_id`: `Pointer<u8>`
-
-- <a href="#keypair_id.kp_id_max_len" name="keypair_id.kp_id_max_len"></a> `kp_id_max_len`: [`size`](#size)
-
-##### Results
-- <a href="#keypair_id.error" name="keypair_id.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-- <a href="#keypair_id.kp_id_len" name="keypair_id.kp_id_len"></a> `kp_id_len`: [`size`](#size)
-
-- <a href="#keypair_id.version" name="keypair_id.version"></a> `version`: [`version`](#version)
-
-
----
-
-#### <a href="#keypair_from_id" name="keypair_from_id"></a> `keypair_from_id(key_manager: key_manager, kp_id: ConstPointer<u8>, kp_id_len: size, kp_version: version) -> (crypto_errno, keypair)`
-__(optional)__
-Return a managed key pair from a key identifier.
-
-`kp_version` can be set to `version_latest` to retrieve the most recent version of a key pair.
-
-If no key pair matching the provided information is found, `key_not_found` is returned instead.
-
-This is an optional import, meaning that the function may not even exist.
-``
-##### Params
-- <a href="#keypair_from_id.key_manager" name="keypair_from_id.key_manager"></a> `key_manager`: [`key_manager`](#key_manager)
-
-- <a href="#keypair_from_id.kp_id" name="keypair_from_id.kp_id"></a> `kp_id`: `ConstPointer<u8>`
-
-- <a href="#keypair_from_id.kp_id_len" name="keypair_from_id.kp_id_len"></a> `kp_id_len`: [`size`](#size)
-
-- <a href="#keypair_from_id.kp_version" name="keypair_from_id.kp_version"></a> `kp_version`: [`version`](#version)
-
-##### Results
-- <a href="#keypair_from_id.error" name="keypair_from_id.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-- <a href="#keypair_from_id.handle" name="keypair_from_id.handle"></a> `handle`: [`keypair`](#keypair)
-
-
----
-
-#### <a href="#keypair_export" name="keypair_export"></a> `keypair_export(kp: keypair, encoding: keypair_encoding) -> (crypto_errno, array_output)`
-Export a key pair as the given encoding format.
-
-May return `prohibited_operation` if this operation is denied or `unsupported_encoding` if the encoding is not supported.
-
-##### Params
-- <a href="#keypair_export.kp" name="keypair_export.kp"></a> `kp`: [`keypair`](#keypair)
-
-- <a href="#keypair_export.encoding" name="keypair_export.encoding"></a> `encoding`: [`keypair_encoding`](#keypair_encoding)
-
-##### Results
-- <a href="#keypair_export.error" name="keypair_export.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-- <a href="#keypair_export.encoded" name="keypair_export.encoded"></a> `encoded`: [`array_output`](#array_output)
-
-
----
-
-#### <a href="#keypair_publickey" name="keypair_publickey"></a> `keypair_publickey(kp: keypair) -> (crypto_errno, publickey)`
-Get a public key of a key pair.
-
-##### Params
-- <a href="#keypair_publickey.kp" name="keypair_publickey.kp"></a> `kp`: [`keypair`](#keypair)
-
-##### Results
-- <a href="#keypair_publickey.error" name="keypair_publickey.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-- <a href="#keypair_publickey.pk" name="keypair_publickey.pk"></a> `pk`: [`publickey`](#publickey)
-
-
----
-
-#### <a href="#keypair_close" name="keypair_close"></a> `keypair_close(kp: keypair) -> crypto_errno`
-Destroys a key pair.
-
-The host will automatically wipe traces of the secret key from memory.
-
-If this is a managed key, the key will not be removed from persistent storage, and can be reconstructed later using the key identifier.
-
-##### Params
-- <a href="#keypair_close.kp" name="keypair_close.kp"></a> `kp`: [`keypair`](#keypair)
-
-##### Results
-- <a href="#keypair_close.error" name="keypair_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-
----
-
-#### <a href="#publickey_import" name="publickey_import"></a> `publickey_import(algorithm_type: algorithm_type, algorithm: string, encoded: ConstPointer<u8>, encoded_len: size, encoding: publickey_encoding) -> (crypto_errno, publickey)`
-Import a public key.
-
-The function may return `unsupported_encoding` if importing from the given format is not implemented or incompatible with the key type.
-
-It may also return `invalid_key` if the key doesn't appear to match the supplied algorithm.
-
-Finally, the function may return `unsupported_algorithm` if the algorithm is not supported by the host.
-
-Example usage:
-
-```rust
-let pk_handle = ctx.publickey_import(AlgorithmType::Signatures, encoded, PublicKeyEncoding::Sec)?;
-```
-
-##### Params
-- <a href="#publickey_import.algorithm_type" name="publickey_import.algorithm_type"></a> `algorithm_type`: [`algorithm_type`](#algorithm_type)
-
-- <a href="#publickey_import.algorithm" name="publickey_import.algorithm"></a> `algorithm`: `string`
-
-- <a href="#publickey_import.encoded" name="publickey_import.encoded"></a> `encoded`: `ConstPointer<u8>`
-
-- <a href="#publickey_import.encoded_len" name="publickey_import.encoded_len"></a> `encoded_len`: [`size`](#size)
-
-- <a href="#publickey_import.encoding" name="publickey_import.encoding"></a> `encoding`: [`publickey_encoding`](#publickey_encoding)
-
-##### Results
-- <a href="#publickey_import.error" name="publickey_import.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-- <a href="#publickey_import.pk" name="publickey_import.pk"></a> `pk`: [`publickey`](#publickey)
-
-
----
-
-#### <a href="#publickey_export" name="publickey_export"></a> `publickey_export(pk: publickey, encoding: publickey_encoding) -> (crypto_errno, array_output)`
-Export a public key as the given encoding format.
-
-May return `unsupported_encoding` if the encoding is not supported.
-
-##### Params
-- <a href="#publickey_export.pk" name="publickey_export.pk"></a> `pk`: [`publickey`](#publickey)
-
-- <a href="#publickey_export.encoding" name="publickey_export.encoding"></a> `encoding`: [`publickey_encoding`](#publickey_encoding)
-
-##### Results
-- <a href="#publickey_export.error" name="publickey_export.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-- <a href="#publickey_export.encoded" name="publickey_export.encoded"></a> `encoded`: [`array_output`](#array_output)
-
-
----
-
-#### <a href="#publickey_verify" name="publickey_verify"></a> `publickey_verify(pk: publickey) -> crypto_errno`
-Check that a public key is valid and in canonical form.
-
-This function may perform stricter checks than those made during importation at the expense of additional CPU cycles.
-
-The function returns `invalid_key` if the public key didn't pass the checks.
-
-##### Params
-- <a href="#publickey_verify.pk" name="publickey_verify.pk"></a> `pk`: [`publickey`](#publickey)
-
-##### Results
-- <a href="#publickey_verify.error" name="publickey_verify.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-
----
-
-#### <a href="#publickey_close" name="publickey_close"></a> `publickey_close(pk: publickey) -> crypto_errno`
-Destroys a public key.
-
-Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
-
-##### Params
-- <a href="#publickey_close.pk" name="publickey_close.pk"></a> `pk`: [`publickey`](#publickey)
-
-##### Results
-- <a href="#publickey_close.error" name="publickey_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 ## <a href="#wasi_ephemeral_crypto_symmetric" name="wasi_ephemeral_crypto_symmetric"></a> wasi_ephemeral_crypto_symmetric
 ### Imports

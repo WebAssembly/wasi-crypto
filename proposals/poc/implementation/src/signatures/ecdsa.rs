@@ -8,6 +8,11 @@ use crate::asymmetric_common::*;
 use crate::error::*;
 
 #[derive(Debug, Clone)]
+pub struct EcdsaSignatureSecretKey {
+    pub alg: SignatureAlgorithm,
+}
+
+#[derive(Debug, Clone)]
 pub struct EcdsaSignatureKeyPair {
     pub alg: SignatureAlgorithm,
     pub pkcs8: Vec<u8>,

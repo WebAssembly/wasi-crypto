@@ -1,3 +1,5 @@
+(use "proposal_asymmetric_common.witx")
+
 ;;; `$signature_keypair` is just an alias for `$keypair`
 ;;;
 ;;; However, bindings may want to define a specialized type `signature_keypair` as a super class of `keypair`, with additional methods such as `sign`.

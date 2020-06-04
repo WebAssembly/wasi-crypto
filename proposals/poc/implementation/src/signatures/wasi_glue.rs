@@ -22,13 +22,8 @@ impl crate::wasi_ephemeral_crypto_signatures::WasiEphemeralCryptoSignatures for 
         encoded_ptr: &wiggle::GuestPtr<'_, u8>,
         encoded_len: guest_types::Size,
     ) -> Result<guest_types::Signature, guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let alg_str: &str = unsafe { &*alg_str.as_raw(&mut guest_borrow)? };
-        let encoded: &[u8] = unsafe {
-            &*encoded_ptr
-                .as_array(encoded_len as _)
-                .as_raw(&mut guest_borrow)?
-        };
+        let alg_str = &*alg_str.as_str()?;
+        let encoded = &*encoded_ptr.as_array(encoded_len).as_slice()?;
         Ok(self
             .ctx
             .signature_import(alg_str, encoding.into(), encoded)?
@@ -48,12 +43,7 @@ impl crate::wasi_ephemeral_crypto_signatures::WasiEphemeralCryptoSignatures for 
         input_ptr: &wiggle::GuestPtr<'_, u8>,
         input_len: guest_types::Size,
     ) -> Result<(), guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let input: &[u8] = unsafe {
-            &*input_ptr
-                .as_array(input_len as _)
-                .as_raw(&mut guest_borrow)?
-        };
+        let input = &*input_ptr.as_array(input_len).as_slice()?;
         Ok(self
             .ctx
             .signature_state_update(state_handle.into(), input)?
@@ -96,12 +86,7 @@ impl crate::wasi_ephemeral_crypto_signatures::WasiEphemeralCryptoSignatures for 
         input_ptr: &wiggle::GuestPtr<'_, u8>,
         input_len: guest_types::Size,
     ) -> Result<(), guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let input: &[u8] = unsafe {
-            &*input_ptr
-                .as_array(input_len as _)
-                .as_raw(&mut guest_borrow)?
-        };
+        let input: &[u8] = &*input_ptr.as_array(input_len).as_slice()?;
         Ok(self
             .ctx
             .signature_verification_state_update(verification_state_handle.into(), input)?

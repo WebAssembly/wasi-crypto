@@ -3,6 +3,7 @@ mod eddsa;
 mod keypair;
 mod publickey;
 mod rsa;
+mod secretkey;
 mod signature;
 mod wasi_glue;
 
@@ -11,6 +12,7 @@ use crate::options::*;
 
 pub use keypair::*;
 pub use publickey::*;
+pub use secretkey::*;
 pub use signature::*;
 
 use std::any::Any;

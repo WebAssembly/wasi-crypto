@@ -2,14 +2,16 @@
 
 A proposal for a WASI cryptography API.
 
-* [Interface definition](witx/wasi_ephemeral_crypto.md)
-    - signatures ([witx](witx/proposal_signatures.witx), [doc](witx/proposal_signatures.md))
-    - symmetric operations ([witx](witx/proposal_siymmetric.witx), [doc](witx/proposal_symmetric.md))
+* Interface definition:
+  * common types and functions ([witx](witx/proposal_common.witx), [doc](witx/proposal_common.md))
+  * symmetric operations ([witx](witx/proposal_siymmetric.witx), [doc](witx/proposal_symmetric.md))
+  * common types and functions for asymmetric operations ([witx](witx/proposal_asymmetric_common.witx), [doc](witx/proposal_asymmetric_common.md))
+  * signatures ([witx](witx/proposal_signatures.witx), [doc](witx/proposal_signatures.md))
 * [Toy implementation](https://github.com/jedisct1/wasi-crypto-preview/tree/master/implementation)
 * [Wasmtime integration](https://github.com/jedisct1/wasmtime-crypto)
 * [Example AssemblyScript bindings](https://github.com/jedisct1/as-crypto)
 
-# Testing the API
+## Testing the API
 
 The example implementation exports:
 

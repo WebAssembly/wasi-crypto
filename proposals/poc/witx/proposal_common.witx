@@ -133,6 +133,11 @@
     ;;;
     ;;; In order to avoid a host call to be blocked for too long, these functions can return prematurely, requiring additional calls with the same parameters until they complete.
     $in_progress
+
+    ;;; Multiple keys have been provided, but they do not share the same type.
+    ;;;
+    ;;; This error is returned when trying to build a key pair from a public key and a secret key that were created for different and incompatible algorithms.
+    $incompatible_keys
   )
 )
 
@@ -155,6 +160,26 @@
 
 ;;; Encoding to use for importing or exporting a public key.
 (typename $publickey_encoding
+  (enum u16
+    ;;; Raw bytes.
+    $raw
+
+    ;;; DER encoding.
+    $der
+
+    ;;; PEM encoding.
+    $pem
+
+    ;;; SEC encoding.
+    $sec
+
+    ;;; Compressed SEC encoding.
+    $compressed_sec
+  )
+)
+
+;;; Encoding to use for importing or exporting a secret key.
+(typename $secretkey_encoding
   (enum u16
     ;;; Raw bytes.
     $raw
@@ -247,8 +272,11 @@
 ;;; A signature.
 (typename $signature (handle))
 
-;;; A public key that can be used to verify a signature.
+;;; A public key, for key exchange and signature verification.
 (typename $publickey (handle))
+
+;;; A secret key, for key exchange mechanisms.
+(typename $secretkey (handle))
 
 ;;; A state to absorb signed data to be verified.
 (typename $signature_verification_state (handle))

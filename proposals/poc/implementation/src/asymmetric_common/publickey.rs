@@ -91,6 +91,10 @@ impl CryptoCtx {
         Ok(array_output_handle)
     }
 
+    pub fn publickey_from_secretkey(&self, _sk_handle: Handle) -> Result<Handle, CryptoError> {
+        unimplemented!()
+    }
+
     pub fn publickey_verify(&self, pk: Handle) -> Result<(), CryptoError> {
         PublicKey::verify(&self.handles, pk)
     }

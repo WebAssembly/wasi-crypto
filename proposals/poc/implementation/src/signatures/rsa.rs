@@ -6,6 +6,11 @@ use super::*;
 use crate::asymmetric_common::*;
 use crate::error::*;
 
+#[derive(Debug, Clone)]
+pub struct RsaSignatureSecretKey {
+    pub alg: SignatureAlgorithm,
+}
+
 #[derive(Clone, Debug)]
 pub struct RsaSignatureKeyPair {
     pub alg: SignatureAlgorithm,

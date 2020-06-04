@@ -71,10 +71,23 @@ impl KeyPair {
         }
     }
 
+    pub fn from_pk_and_sk(_pk: PublicKey, _sk: SecretKey) -> Result<KeyPair, CryptoError> {
+        match (_pk, _sk) {
+            (PublicKey::Signature(pk), SecretKey::Signature(sk)) => {
+                ensure!(pk.alg() == sk.alg(), CryptoError::IncompatibleKeys);
+            }
+        }
+        bail!(CryptoError::NotImplemented);
+    }
+
     pub fn public_key(&self) -> Result<PublicKey, CryptoError> {
         match self {
             KeyPair::Signature(key_pair) => Ok(PublicKey::Signature(key_pair.public_key()?)),
         }
+    }
+
+    pub fn secret_key(&self) -> Result<SecretKey, CryptoError> {
+        bail!(CryptoError::NotImplemented)
     }
 }
 
@@ -116,6 +129,18 @@ impl CryptoCtx {
         bail!(CryptoError::UnsupportedFeature)
     }
 
+    pub fn keypair_from_pk_and_sk(
+        &self,
+        pk_handle: Handle,
+        sk_handle: Handle,
+    ) -> Result<Handle, CryptoError> {
+        let pk = self.handles.publickey.get(pk_handle)?;
+        let sk = self.handles.secretkey.get(sk_handle)?;
+        let kp = KeyPair::from_pk_and_sk(pk, sk)?;
+        let handle = self.handles.keypair.register(kp)?;
+        Ok(handle)
+    }
+
     pub fn keypair_export(
         &self,
         kp_handle: Handle,
@@ -131,6 +156,13 @@ impl CryptoCtx {
         let kp = self.handles.keypair.get(kp_handle)?;
         let pk = kp.public_key()?;
         let handle = self.handles.publickey.register(pk)?;
+        Ok(handle)
+    }
+
+    pub fn keypair_secretkey(&self, kp_handle: Handle) -> Result<Handle, CryptoError> {
+        let kp = self.handles.keypair.get(kp_handle)?;
+        let pk = kp.secret_key()?;
+        let handle = self.handles.secretkey.register(pk)?;
         Ok(handle)
     }
 

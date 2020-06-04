@@ -87,6 +87,3 @@ impl SignatureKeyPair {
         Ok(pk)
     }
 }
-
-#[derive(Copy, Clone, Debug)]
-pub struct SignatureKeyPairManager;

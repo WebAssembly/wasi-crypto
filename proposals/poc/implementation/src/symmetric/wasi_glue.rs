@@ -13,8 +13,7 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         alg_str: &wiggle::GuestPtr<'_, str>,
         options_handle: &guest_types::OptOptions,
     ) -> Result<guest_types::SymmetricKey, guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let alg_str: &str = unsafe { &*alg_str.as_raw(&mut guest_borrow)? };
+        let alg_str = &*alg_str.as_str()?;
         let options_handle = match *options_handle {
             guest_types::OptOptions::Some(options_handle) => Some(options_handle),
             guest_types::OptOptions::None => None,
@@ -36,12 +35,9 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         symmetric_key_id_len: guest_types::Size,
         symmetric_key_version: guest_types::Version,
     ) -> Result<guest_types::SymmetricKey, guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let symmetric_key_id: &[u8] = unsafe {
-            &*symmetric_key_id_ptr
-                .as_array(symmetric_key_id_len as _)
-                .as_raw(&mut guest_borrow)?
-        };
+        let symmetric_key_id = &*symmetric_key_id_ptr
+            .as_array(symmetric_key_id_len)
+            .as_slice()?;
         Ok(self
             .ctx
             .symmetric_key_from_id(
@@ -59,8 +55,7 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         alg_str: &wiggle::GuestPtr<'_, str>,
         options_handle: &guest_types::OptOptions,
     ) -> Result<guest_types::SymmetricKey, guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let alg_str: &str = unsafe { &*alg_str.as_raw(&mut guest_borrow)? };
+        let alg_str = &*alg_str.as_str()?;
         let options_handle = match *options_handle {
             guest_types::OptOptions::Some(options_handle) => Some(options_handle),
             guest_types::OptOptions::None => None,
@@ -77,9 +72,8 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         raw_ptr: &wiggle::GuestPtr<'_, u8>,
         raw_len: guest_types::Size,
     ) -> Result<guest_types::SymmetricKey, guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let alg_str: &str = unsafe { &*alg_str.as_raw(&mut guest_borrow)? };
-        let raw: &[u8] = unsafe { &*raw_ptr.as_array(raw_len as _).as_raw(&mut guest_borrow)? };
+        let alg_str = &*alg_str.as_str()?;
+        let raw = &*raw_ptr.as_array(raw_len).as_slice()?;
         Ok(self.ctx.symmetric_key_import(alg_str, raw)?.into())
     }
 
@@ -99,12 +93,9 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         symmetric_key_id_ptr: &wiggle::GuestPtr<'_, u8>,
         symmetric_key_id_max_len: guest_types::Size,
     ) -> Result<(guest_types::Size, guest_types::Version), guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let key_id_buf: &mut [u8] = unsafe {
-            &mut *symmetric_key_id_ptr
-                .as_array(symmetric_key_id_max_len as _)
-                .as_raw(&mut guest_borrow)?
-        };
+        let key_id_buf = &mut *symmetric_key_id_ptr
+            .as_array(symmetric_key_id_max_len)
+            .as_slice()?;
         let (key_id, version) = self.ctx.symmetric_key_id(symmetric_key_handle.into())?;
         ensure!(
             key_id.len() <= key_id_buf.len(),
@@ -129,8 +120,7 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         key_handle: &guest_types::OptSymmetricKey,
         options_handle: &guest_types::OptOptions,
     ) -> Result<guest_types::SymmetricState, guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let alg_str: &str = unsafe { &*alg_str.as_raw(&mut guest_borrow)? };
+        let alg_str = &*alg_str.as_str()?;
         let key_handle = match *key_handle {
             guest_types::OptSymmetricKey::Some(key_handle) => Some(key_handle),
             guest_types::OptSymmetricKey::None => None,
@@ -156,13 +146,8 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         value_ptr: &wiggle::GuestPtr<'_, u8>,
         value_max_len: guest_types::Size,
     ) -> Result<guest_types::Size, guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let name_str: &str = unsafe { &*name_str.as_raw(&mut guest_borrow)? };
-        let value: &mut [u8] = unsafe {
-            &mut *value_ptr
-                .as_array(value_max_len as _)
-                .as_raw(&mut guest_borrow)?
-        };
+        let name_str: &str = &*name_str.as_str()?;
+        let value = &mut *value_ptr.as_array(value_max_len).as_slice()?;
         Ok(self
             .ctx
             .options_get(symmetric_state_handle.into(), name_str, value)?
@@ -174,8 +159,7 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         symmetric_state_handle: guest_types::SymmetricState,
         name_str: &wiggle::GuestPtr<'_, str>,
     ) -> Result<u64, guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let name_str: &str = unsafe { &*name_str.as_raw(&mut guest_borrow)? };
+        let name_str: &str = &*name_str.as_str()?;
         Ok(self
             .ctx
             .options_get_u64(symmetric_state_handle.into(), name_str)?
@@ -197,8 +181,7 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         data_ptr: &wiggle::GuestPtr<'_, u8>,
         data_len: guest_types::Size,
     ) -> Result<(), guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let data: &[u8] = unsafe { &*data_ptr.as_array(data_len as _).as_raw(&mut guest_borrow)? };
+        let data = &*data_ptr.as_array(data_len).as_slice()?;
         Ok(self
             .ctx
             .symmetric_state_absorb(symmetric_state_handle.into(), data)?
@@ -211,9 +194,7 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         out_ptr: &wiggle::GuestPtr<'_, u8>,
         out_len: guest_types::Size,
     ) -> Result<(), guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let out: &mut [u8] =
-            unsafe { &mut *out_ptr.as_array(out_len as _).as_raw(&mut guest_borrow)? };
+        let out = &mut *out_ptr.as_array(out_len).as_slice()?;
         Ok(self
             .ctx
             .symmetric_state_squeeze(symmetric_state_handle.into(), out)?
@@ -235,8 +216,7 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         symmetric_state_handle: guest_types::SymmetricState,
         alg_str: &wiggle::GuestPtr<'_, str>,
     ) -> Result<guest_types::SymmetricKey, guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let alg_str: &str = unsafe { &*alg_str.as_raw(&mut guest_borrow)? };
+        let alg_str = &*alg_str.as_str()?;
         Ok(self
             .ctx
             .symmetric_state_squeeze_key(symmetric_state_handle.into(), alg_str)?
@@ -261,10 +241,8 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         data_ptr: &wiggle::GuestPtr<'_, u8>,
         data_len: guest_types::Size,
     ) -> Result<guest_types::Size, guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let out: &mut [u8] =
-            unsafe { &mut *out_ptr.as_array(out_len as _).as_raw(&mut guest_borrow)? };
-        let data: &[u8] = unsafe { &*data_ptr.as_array(data_len as _).as_raw(&mut guest_borrow)? };
+        let out = &mut *out_ptr.as_array(out_len).as_slice()?;
+        let data = &*data_ptr.as_array(data_len).as_slice()?;
         Ok(self
             .ctx
             .symmetric_state_encrypt(symmetric_state_handle.into(), out, data)?
@@ -279,10 +257,8 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         data_ptr: &wiggle::GuestPtr<'_, u8>,
         data_len: guest_types::Size,
     ) -> Result<guest_types::SymmetricTag, guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let out: &mut [u8] =
-            unsafe { &mut *out_ptr.as_array(out_len as _).as_raw(&mut guest_borrow)? };
-        let data: &[u8] = unsafe { &*data_ptr.as_array(data_len as _).as_raw(&mut guest_borrow)? };
+        let out = &mut *out_ptr.as_array(out_len).as_slice()?;
+        let data = &*data_ptr.as_array(data_len).as_slice()?;
         Ok(self
             .ctx
             .symmetric_state_encrypt_detached(symmetric_state_handle.into(), out, data)?
@@ -297,10 +273,8 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         data_ptr: &wiggle::GuestPtr<'_, u8>,
         data_len: guest_types::Size,
     ) -> Result<guest_types::Size, guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let out: &mut [u8] =
-            unsafe { &mut *out_ptr.as_array(out_len as _).as_raw(&mut guest_borrow)? };
-        let data: &[u8] = unsafe { &*data_ptr.as_array(data_len as _).as_raw(&mut guest_borrow)? };
+        let out = &mut *out_ptr.as_array(out_len).as_slice()?;
+        let data = &*data_ptr.as_array(data_len).as_slice()?;
         Ok(self
             .ctx
             .symmetric_state_decrypt(symmetric_state_handle.into(), out, data)?
@@ -317,15 +291,9 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         raw_tag_ptr: &wiggle::GuestPtr<'_, u8>,
         raw_tag_len: guest_types::Size,
     ) -> Result<guest_types::Size, guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let out: &mut [u8] =
-            unsafe { &mut *out_ptr.as_array(out_len as _).as_raw(&mut guest_borrow)? };
-        let data: &[u8] = unsafe { &*data_ptr.as_array(data_len as _).as_raw(&mut guest_borrow)? };
-        let raw_tag: &[u8] = unsafe {
-            &*raw_tag_ptr
-                .as_array(raw_tag_len as _)
-                .as_raw(&mut guest_borrow)?
-        };
+        let out = &mut *out_ptr.as_array(out_len).as_slice()?;
+        let data = &*data_ptr.as_array(data_len).as_slice()?;
+        let raw_tag: &[u8] = &*raw_tag_ptr.as_array(raw_tag_len).as_slice()?;
         Ok(self
             .ctx
             .symmetric_state_decrypt_detached(symmetric_state_handle.into(), out, data, raw_tag)?
@@ -359,9 +327,7 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         buf_ptr: &wiggle::GuestPtr<'_, u8>,
         buf_len: guest_types::Size,
     ) -> Result<guest_types::Size, guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let buf: &mut [u8] =
-            unsafe { &mut *buf_ptr.as_array(buf_len as _).as_raw(&mut guest_borrow)? };
+        let buf = &mut *buf_ptr.as_array(buf_len).as_slice()?;
         Ok(self
             .ctx
             .symmetric_tag_pull(symmetric_tag_handle.into(), buf)?
@@ -374,12 +340,7 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         expected_raw_ptr: &wiggle::GuestPtr<'_, u8>,
         expected_raw_len: guest_types::Size,
     ) -> Result<(), guest_types::CryptoErrno> {
-        let mut guest_borrow = wiggle::GuestBorrows::new();
-        let expected_raw: &[u8] = unsafe {
-            &*expected_raw_ptr
-                .as_array(expected_raw_len as _)
-                .as_raw(&mut guest_borrow)?
-        };
+        let expected_raw = &*expected_raw_ptr.as_array(expected_raw_len).as_slice()?;
         Ok(self
             .ctx
             .symmetric_tag_verify(symmetric_tag_handle.into(), expected_raw)?

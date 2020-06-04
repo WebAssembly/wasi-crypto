@@ -6,6 +6,11 @@ use super::*;
 use crate::asymmetric_common::*;
 use crate::error::*;
 
+#[derive(Debug, Clone)]
+pub struct EddsaSignatureSecretKey {
+    pub alg: SignatureAlgorithm,
+}
+
 #[derive(Clone, Debug)]
 pub struct EddsaSignatureKeyPair {
     pub alg: SignatureAlgorithm,

@@ -1,6 +1,6 @@
 #![allow(
     clippy::unit_arg,
-    clippy::identity_conversion,
+    clippy::useless_conversion,
     clippy::new_without_default,
     clippy::new_ret_no_self,
     clippy::too_many_arguments
@@ -68,11 +68,11 @@ pub mod wasi_modules {
 pub struct HandleManagers {
     pub array_output: HandlesManager<ArrayOutput>,
     pub options: HandlesManager<Options>,
-    pub signature_keypair_manager: HandlesManager<SignatureKeyPairManager>,
     pub keypair: HandlesManager<KeyPair>,
+    pub publickey: HandlesManager<PublicKey>,
+    pub secretkey: HandlesManager<SecretKey>,
     pub signature_state: HandlesManager<SignatureState>,
     pub signature: HandlesManager<Signature>,
-    pub publickey: HandlesManager<PublicKey>,
     pub signature_verification_state: HandlesManager<SignatureVerificationState>,
     pub symmetric_state: HandlesManager<SymmetricState>,
     pub symmetric_key: HandlesManager<SymmetricKey>,
@@ -108,15 +108,15 @@ impl CryptoCtx {
             handles: HandleManagers {
                 array_output: HandlesManager::new(0x00),
                 options: HandlesManager::new(0x01),
-                signature_keypair_manager: HandlesManager::new(0x02),
-                keypair: HandlesManager::new(0x03),
-                signature_state: HandlesManager::new(0x04),
-                signature: HandlesManager::new(0x05),
-                publickey: HandlesManager::new(0x06),
+                keypair: HandlesManager::new(0x02),
+                publickey: HandlesManager::new(0x03),
+                secretkey: HandlesManager::new(0x04),
+                signature_state: HandlesManager::new(0x05),
+                signature: HandlesManager::new(0x06),
                 signature_verification_state: HandlesManager::new(0x07),
-                symmetric_state: HandlesManager::new(0x09),
-                symmetric_key: HandlesManager::new(0x0a),
-                symmetric_tag: HandlesManager::new(0x0b),
+                symmetric_state: HandlesManager::new(0x08),
+                symmetric_key: HandlesManager::new(0x09),
+                symmetric_tag: HandlesManager::new(0x0a),
             },
         }
     }

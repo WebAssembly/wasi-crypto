@@ -1,3 +1,5 @@
+(use "proposal_common.witx")
+
 (module $wasi_ephemeral_crypto_asymmetric_common
   (import "memory" (memory))
 
@@ -105,6 +107,14 @@
     (result $handle $keypair)
   )
 
+  ;;; Create a key pair from a public key and a secret key.
+  (@interface func (export "keypair_from_pk_and_sk")
+    (param $publickey $publickey)
+    (param $secretkey $secretkey)
+    (result $error $crypto_errno)
+    (result $handle $keypair)
+  )
+
   ;;; Export a key pair as the given encoding format.
   ;;;
   ;;; May return `prohibited_operation` if this operation is denied or `unsupported_encoding` if the encoding is not supported.
@@ -115,14 +125,21 @@
     (result $encoded $array_output)
   )
 
-  ;;; Get a public key of a key pair.
+  ;;; Get the public key of a key pair.
   (@interface func (export "keypair_publickey")
     (param $kp $keypair)
     (result $error $crypto_errno)
     (result $pk $publickey)
   )
 
-  ;;; Destroys a key pair.
+  ;;; Get the secret key of a key pair.
+  (@interface func (export "keypair_secretkey")
+    (param $kp $keypair)
+    (result $error $crypto_errno)
+    (result $sk $secretkey)
+  )
+
+  ;;; Destroy a key pair.
   ;;;
   ;;; The host will automatically wipe traces of the secret key from memory.
   ;;;
@@ -175,11 +192,59 @@
     (result $error $crypto_errno)
   )
 
-  ;;; Destroys a public key.
+  ;;; Compute the public key for a secret key.
+  (@interface func (export "publickey_from_secretkey")
+    (param $sk $secretkey)
+    (result $error $crypto_errno)
+    (result $pk $publickey)
+  )
+
+  ;;; Destroy a public key.
   ;;;
   ;;; Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
   (@interface func (export "publickey_close")
     (param $pk $publickey)
+    (result $error $crypto_errno)
+  )
+
+  ;;; Import a secret key.
+  ;;;
+  ;;; The function may return `unsupported_encoding` if importing from the given format is not implemented or incompatible with the key type.
+  ;;;
+  ;;; It may also return `invalid_key` if the key doesn't appear to match the supplied algorithm.
+  ;;;
+  ;;; Finally, the function may return `unsupported_algorithm` if the algorithm is not supported by the host.
+  ;;;
+  ;;; Example usage:
+  ;;;
+  ;;; ```rust
+  ;;; let pk_handle = ctx.secretkey_import(AlgorithmType::KX, encoded, SecretKeyEncoding::Raw)?;
+  ;;; ```
+  (@interface func (export "secretkey_import")
+    (param $algorithm_type $algorithm_type)
+    (param $algorithm string)
+    (param $encoded (@witx const_pointer u8))
+    (param $encoded_len $size)
+    (param $encoding $secretkey_encoding)
+    (result $error $crypto_errno)
+    (result $sk $secretkey)
+  )
+
+  ;;; Export a secret key as the given encoding format.
+  ;;;
+  ;;; May return `unsupported_encoding` if the encoding is not supported.
+  (@interface func (export "secretkey_export")
+    (param $sk $secretkey)
+    (param $encoding $secretkey_encoding)
+    (result $error $crypto_errno)
+    (result $encoded $array_output)
+  )
+
+  ;;; Destroy a secret key.
+  ;;;
+  ;;; Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+  (@interface func (export "secretkey_close")
+    (param $sk $secretkey)
     (result $error $crypto_errno)
   )
 )

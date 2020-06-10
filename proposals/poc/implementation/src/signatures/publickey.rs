@@ -4,9 +4,6 @@ use super::rsa::*;
 use super::*;
 use crate::asymmetric_common::*;
 use crate::error::*;
-use crate::handles::*;
-use crate::HandleManagers;
-
 #[derive(Clone, Debug)]
 pub enum SignaturePublicKey {
     Ecdsa(EcdsaSignaturePublicKey),
@@ -65,7 +62,13 @@ impl SignaturePublicKey {
         Ok(raw_pk)
     }
 
-    pub(crate) fn verify(_handles: &HandleManagers, _pk_handle: Handle) -> Result<(), CryptoError> {
+    pub(crate) fn from_secretkey(
+        _sk: SignatureSecretKey,
+    ) -> Result<SignaturePublicKey, CryptoError> {
+        bail!(CryptoError::NotImplemented)
+    }
+
+    pub(crate) fn verify(_pk: SignaturePublicKey) -> Result<(), CryptoError> {
         bail!(CryptoError::NotImplemented)
     }
 }

@@ -51,19 +51,23 @@ impl PublicKey {
         }
     }
 
-    fn export(
-        handles: &HandleManagers,
-        pk: Handle,
-        encoding: PublicKeyEncoding,
-    ) -> Result<Vec<u8>, CryptoError> {
-        match handles.publickey.get(pk)? {
+    fn export(pk: PublicKey, encoding: PublicKeyEncoding) -> Result<Vec<u8>, CryptoError> {
+        match pk {
             PublicKey::Signature(pk) => SignaturePublicKey::export(pk, encoding),
         }
     }
 
-    fn verify(handles: &HandleManagers, pk: Handle) -> Result<(), CryptoError> {
-        match handles.publickey.get(pk)? {
-            PublicKey::Signature(_pk) => SignaturePublicKey::verify(handles, pk),
+    fn from_secretkey(sk: SecretKey) -> Result<PublicKey, CryptoError> {
+        match sk {
+            SecretKey::Signature(sk) => Ok(PublicKey::Signature(
+                SignaturePublicKey::from_secretkey(sk)?,
+            )),
+        }
+    }
+
+    fn verify(handles: &HandleManagers, pk_handle: Handle) -> Result<(), CryptoError> {
+        match handles.publickey.get(pk_handle)? {
+            PublicKey::Signature(pk) => SignaturePublicKey::verify(pk),
         }
     }
 }
@@ -83,16 +87,20 @@ impl CryptoCtx {
 
     pub fn publickey_export(
         &self,
-        pk: Handle,
+        pk_handle: Handle,
         encoding: PublicKeyEncoding,
     ) -> Result<Handle, CryptoError> {
-        let encoded = PublicKey::export(&self.handles, pk, encoding)?;
+        let pk = self.handles.publickey.get(pk_handle)?;
+        let encoded = PublicKey::export(pk, encoding)?;
         let array_output_handle = ArrayOutput::register(&self.handles, encoded)?;
         Ok(array_output_handle)
     }
 
-    pub fn publickey_from_secretkey(&self, _sk_handle: Handle) -> Result<Handle, CryptoError> {
-        unimplemented!()
+    pub fn publickey_from_secretkey(&self, sk_handle: Handle) -> Result<Handle, CryptoError> {
+        let sk = self.handles.secretkey.get(sk_handle)?;
+        let pk = PublicKey::from_secretkey(sk)?;
+        let handle = self.handles.publickey.register(pk)?;
+        Ok(handle)
     }
 
     pub fn publickey_verify(&self, pk: Handle) -> Result<(), CryptoError> {

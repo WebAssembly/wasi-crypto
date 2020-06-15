@@ -20,7 +20,7 @@ The example implementation exports:
 
 `CryptoCtx` can be used to quickly experiment with the API in Rust.
 
-Other languages can use the [`wasmtime` fork](https://github.com/jedisct1/wasmtime-crypto) above as a WebAsesmbly runtime in order to access the crypto API.
+Other languages can use the [`wasmtime` fork](https://github.com/jedisct1/wasmtime-crypto) above as a WebAssembly runtime in order to access the crypto API.
 
 In that configuration, the API can be accessed via the exported `wasi_ephemeral_crypto` module.
 

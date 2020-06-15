@@ -2,7 +2,7 @@ mod aes_gcm;
 mod hkdf;
 mod hmac_sha2;
 mod key;
-mod key_manager;
+mod managed_key;
 mod sha2;
 mod state;
 mod tag;
@@ -235,7 +235,7 @@ fn test_hkdf() {
 
 #[test]
 fn test_encryption() {
-    use crate::CryptoCtx;
+    use crate::{AlgorithmType, CryptoCtx};
 
     let ctx = CryptoCtx::new();
 
@@ -243,7 +243,7 @@ fn test_encryption() {
     let nonce = [42u8; 12];
     let key_handle = ctx.symmetric_key_generate("AES-256-GCM", None).unwrap();
 
-    let options_handle = ctx.options_open(OptionsType::Symmetric).unwrap();
+    let options_handle = ctx.options_open(AlgorithmType::Symmetric).unwrap();
     ctx.options_set(options_handle, "nonce", &nonce).unwrap();
 
     let symmetric_state = ctx

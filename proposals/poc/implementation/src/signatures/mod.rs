@@ -1,9 +1,9 @@
 mod ecdsa;
 mod eddsa;
 mod keypair;
-mod keypair_manager;
 mod publickey;
 mod rsa;
+mod secretkey;
 mod signature;
 mod wasi_glue;
 
@@ -11,8 +11,8 @@ use crate::error::*;
 use crate::options::*;
 
 pub use keypair::*;
-pub use keypair_manager::*;
 pub use publickey::*;
+pub use secretkey::*;
 pub use signature::*;
 
 use std::any::Any;
@@ -66,14 +66,14 @@ impl OptionsLike for SignatureOptions {
 
 #[test]
 fn test_signatures() {
-    use crate::CryptoCtx;
+    use crate::{AlgorithmType, CryptoCtx};
 
     let ctx = CryptoCtx::new();
 
     let kp_handle = ctx
-        .signature_keypair_generate("ECDSA_P256_SHA256", None)
+        .keypair_generate(AlgorithmType::Signatures, "ECDSA_P256_SHA256", None)
         .unwrap();
-    let pk_handle = ctx.signature_keypair_publickey(kp_handle).unwrap();
+    let pk_handle = ctx.keypair_publickey(kp_handle).unwrap();
 
     let state_handle = ctx.signature_state_open(kp_handle).unwrap();
     ctx.signature_state_update(state_handle, b"test").unwrap();
@@ -88,7 +88,7 @@ fn test_signatures() {
     ctx.signature_verification_state_close(verification_state_handle)
         .unwrap();
     ctx.signature_state_close(state_handle).unwrap();
-    ctx.signature_keypair_close(kp_handle).unwrap();
-    ctx.signature_publickey_close(pk_handle).unwrap();
+    ctx.keypair_close(kp_handle).unwrap();
+    ctx.publickey_close(pk_handle).unwrap();
     ctx.signature_close(signature_handle).unwrap();
 }

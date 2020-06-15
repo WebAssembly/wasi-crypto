@@ -109,7 +109,7 @@ impl SignatureState {
     }
 
     fn open(handles: &HandleManagers, kp_handle: Handle) -> Result<Handle, CryptoError> {
-        let kp = handles.signature_keypair.get(kp_handle)?;
+        let kp = handles.keypair.get(kp_handle)?.into_signature_keypair()?;
         let signature_state = match kp {
             SignatureKeyPair::Ecdsa(kp) => {
                 SignatureState::new(Box::new(EcdsaSignatureState::new(kp)))
@@ -168,7 +168,10 @@ impl SignatureVerificationState {
     }
 
     fn open(handles: &HandleManagers, pk_handle: Handle) -> Result<Handle, CryptoError> {
-        let pk = handles.signature_publickey.get(pk_handle)?;
+        let pk = handles
+            .publickey
+            .get(pk_handle)?
+            .into_signature_public_key()?;
         let signature_verification_state = match pk {
             SignaturePublicKey::Ecdsa(pk) => {
                 SignatureVerificationState::new(Box::new(EcdsaSignatureVerificationState::new(pk)))

@@ -126,7 +126,7 @@ This error is used to make the distinction between an empty option, and an optio
 - <a href="#crypto_errno.key_not_found" name="crypto_errno.key_not_found"></a> `key_not_found`
 A key or key pair matching the requested identifier cannot be found using the supplied information.
 
-This error is returned by a key manager via the `signature_keypair_from_id()` function.
+This error is returned by a key manager via the `keypair_from_id()` function.
 
 - <a href="#crypto_errno.parameters_missing" name="crypto_errno.parameters_missing"></a> `parameters_missing`
 The algorithm requires parameters that haven't been set.
@@ -139,6 +139,11 @@ A requested computation is not done yet, and additional calls to the function ar
 Some functions, such as functions generating key pairs and password stretching functions, can take a long time to complete.
 
 In order to avoid a host call to be blocked for too long, these functions can return prematurely, requiring additional calls with the same parameters until they complete.
+
+- <a href="#crypto_errno.incompatible_keys" name="crypto_errno.incompatible_keys"></a> `incompatible_keys`
+Multiple keys have been provided, but they do not share the same type.
+
+This error is returned when trying to build a key pair from a public key and a secret key that were created for different and incompatible algorithms.
 
 ## <a href="#keypair_encoding" name="keypair_encoding"></a> `keypair_encoding`: Enum(`u16`)
 Encoding to use for importing or exporting a key pair.
@@ -183,6 +188,29 @@ SEC encoding.
 - <a href="#publickey_encoding.compressed_sec" name="publickey_encoding.compressed_sec"></a> `compressed_sec`
 Compressed SEC encoding.
 
+## <a href="#secretkey_encoding" name="secretkey_encoding"></a> `secretkey_encoding`: Enum(`u16`)
+Encoding to use for importing or exporting a secret key.
+
+Size: 2
+
+Alignment: 2
+
+### Variants
+- <a href="#secretkey_encoding.raw" name="secretkey_encoding.raw"></a> `raw`
+Raw bytes.
+
+- <a href="#secretkey_encoding.der" name="secretkey_encoding.der"></a> `der`
+DER encoding.
+
+- <a href="#secretkey_encoding.pem" name="secretkey_encoding.pem"></a> `pem`
+PEM encoding.
+
+- <a href="#secretkey_encoding.sec" name="secretkey_encoding.sec"></a> `sec`
+SEC encoding.
+
+- <a href="#secretkey_encoding.compressed_sec" name="secretkey_encoding.compressed_sec"></a> `compressed_sec`
+Compressed SEC encoding.
+
 ## <a href="#signature_encoding" name="signature_encoding"></a> `signature_encoding`: Enum(`u16`)
 Encoding to use for importing or exporting a signature.
 
@@ -197,19 +225,17 @@ Raw bytes.
 - <a href="#signature_encoding.der" name="signature_encoding.der"></a> `der`
 DER encoding.
 
-## <a href="#options_type" name="options_type"></a> `options_type`: Enum(`u16`)
-Type of an options set.
-
-This is used when creating a new options set with `options_open()`.
+## <a href="#algorithm_type" name="algorithm_type"></a> `algorithm_type`: Enum(`u16`)
+An algorithm category.
 
 Size: 2
 
 Alignment: 2
 
 ### Variants
-- <a href="#options_type.signatures" name="options_type.signatures"></a> `signatures`
+- <a href="#algorithm_type.signatures" name="algorithm_type.signatures"></a> `signatures`
 
-- <a href="#options_type.symmetric" name="options_type.symmetric"></a> `symmetric`
+- <a href="#algorithm_type.symmetric" name="algorithm_type.symmetric"></a> `symmetric`
 
 ## <a href="#version" name="version"></a> `version`: Int(`u64`)
 Version of a managed key.
@@ -274,8 +300,8 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#signature_keypair" name="signature_keypair"></a> `signature_keypair`
-A key pair for signatures.
+## <a href="#keypair" name="keypair"></a> `keypair`
+A key pair.
 
 Size: 4
 
@@ -302,8 +328,16 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#signature_publickey" name="signature_publickey"></a> `signature_publickey`
-A public key that can be used to verify a signature.
+## <a href="#publickey" name="publickey"></a> `publickey`
+A public key, for key exchange and signature verification.
+
+Size: 4
+
+Alignment: 4
+
+### Supertypes
+## <a href="#secretkey" name="secretkey"></a> `secretkey`
+A secret key, for key exchange mechanisms.
 
 Size: 4
 
@@ -429,13 +463,13 @@ Alignment: 4
 
 ---
 
-#### <a href="#options_open" name="options_open"></a> `options_open(options_type: options_type) -> (crypto_errno, options)`
+#### <a href="#options_open" name="options_open"></a> `options_open(algorithm_type: algorithm_type) -> (crypto_errno, options)`
 Create a new object to set non-default options.
 
 Example usage:
 
 ```rust
-let options_handle = options_open()?;
+let options_handle = options_open(AlgorithmType::Symmetric)?;
 options_set(options_handle, "context", context)?;
 options_set_u64(options_handle, "threads", 4)?;
 let state = symmetric_state_open("BLAKE3", None, Some(options_handle))?;
@@ -443,7 +477,7 @@ options_close(options_handle)?;
 ```
 
 ##### Params
-- <a href="#options_open.options_type" name="options_open.options_type"></a> `options_type`: [`options_type`](#options_type)
+- <a href="#options_open.algorithm_type" name="options_open.algorithm_type"></a> `algorithm_type`: [`algorithm_type`](#algorithm_type)
 
 ##### Results
 - <a href="#options_open.error" name="options_open.error"></a> `error`: [`crypto_errno`](#crypto_errno)
@@ -720,7 +754,7 @@ Objects are reference counted. It is safe to close an object immediately after t
 
 ---
 
-#### <a href="#symmetric_managed_key_generate" name="symmetric_managed_key_generate"></a> `symmetric_managed_key_generate(key_manager: key_manager, algorithm: string, options: opt_options) -> (crypto_errno, symmetric_key)`
+#### <a href="#symmetric_key_generate_managed" name="symmetric_key_generate_managed"></a> `symmetric_key_generate_managed(key_manager: key_manager, algorithm: string, options: opt_options) -> (crypto_errno, symmetric_key)`
 __(optional)__
 Generate a new managed symmetric key.
 
@@ -736,16 +770,16 @@ The function may also return `unsupported_algorithm` if the algorithm is not sup
 This is also an optional import, meaning that the function may not even exist.
 
 ##### Params
-- <a href="#symmetric_managed_key_generate.key_manager" name="symmetric_managed_key_generate.key_manager"></a> `key_manager`: [`key_manager`](#key_manager)
+- <a href="#symmetric_key_generate_managed.key_manager" name="symmetric_key_generate_managed.key_manager"></a> `key_manager`: [`key_manager`](#key_manager)
 
-- <a href="#symmetric_managed_key_generate.algorithm" name="symmetric_managed_key_generate.algorithm"></a> `algorithm`: `string`
+- <a href="#symmetric_key_generate_managed.algorithm" name="symmetric_key_generate_managed.algorithm"></a> `algorithm`: `string`
 
-- <a href="#symmetric_managed_key_generate.options" name="symmetric_managed_key_generate.options"></a> `options`: [`opt_options`](#opt_options)
+- <a href="#symmetric_key_generate_managed.options" name="symmetric_key_generate_managed.options"></a> `options`: [`opt_options`](#opt_options)
 
 ##### Results
-- <a href="#symmetric_managed_key_generate.error" name="symmetric_managed_key_generate.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_key_generate_managed.error" name="symmetric_key_generate_managed.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-- <a href="#symmetric_managed_key_generate.handle" name="symmetric_managed_key_generate.handle"></a> `handle`: [`symmetric_key`](#symmetric_key)
+- <a href="#symmetric_key_generate_managed.handle" name="symmetric_key_generate_managed.handle"></a> `handle`: [`symmetric_key`](#symmetric_key)
 
 
 ---

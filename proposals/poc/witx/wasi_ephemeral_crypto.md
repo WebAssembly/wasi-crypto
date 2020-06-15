@@ -126,7 +126,7 @@ This error is used to make the distinction between an empty option, and an optio
 - <a href="#crypto_errno.key_not_found" name="crypto_errno.key_not_found"></a> `key_not_found`
 A key or key pair matching the requested identifier cannot be found using the supplied information.
 
-This error is returned by a key manager via the `signature_keypair_from_id()` function.
+This error is returned by a key manager via the `keypair_from_id()` function.
 
 - <a href="#crypto_errno.parameters_missing" name="crypto_errno.parameters_missing"></a> `parameters_missing`
 The algorithm requires parameters that haven't been set.
@@ -139,6 +139,11 @@ A requested computation is not done yet, and additional calls to the function ar
 Some functions, such as functions generating key pairs and password stretching functions, can take a long time to complete.
 
 In order to avoid a host call to be blocked for too long, these functions can return prematurely, requiring additional calls with the same parameters until they complete.
+
+- <a href="#crypto_errno.incompatible_keys" name="crypto_errno.incompatible_keys"></a> `incompatible_keys`
+Multiple keys have been provided, but they do not share the same type.
+
+This error is returned when trying to build a key pair from a public key and a secret key that were created for different and incompatible algorithms.
 
 ## <a href="#keypair_encoding" name="keypair_encoding"></a> `keypair_encoding`: Enum(`u16`)
 Encoding to use for importing or exporting a key pair.
@@ -183,6 +188,29 @@ SEC encoding.
 - <a href="#publickey_encoding.compressed_sec" name="publickey_encoding.compressed_sec"></a> `compressed_sec`
 Compressed SEC encoding.
 
+## <a href="#secretkey_encoding" name="secretkey_encoding"></a> `secretkey_encoding`: Enum(`u16`)
+Encoding to use for importing or exporting a secret key.
+
+Size: 2
+
+Alignment: 2
+
+### Variants
+- <a href="#secretkey_encoding.raw" name="secretkey_encoding.raw"></a> `raw`
+Raw bytes.
+
+- <a href="#secretkey_encoding.der" name="secretkey_encoding.der"></a> `der`
+DER encoding.
+
+- <a href="#secretkey_encoding.pem" name="secretkey_encoding.pem"></a> `pem`
+PEM encoding.
+
+- <a href="#secretkey_encoding.sec" name="secretkey_encoding.sec"></a> `sec`
+SEC encoding.
+
+- <a href="#secretkey_encoding.compressed_sec" name="secretkey_encoding.compressed_sec"></a> `compressed_sec`
+Compressed SEC encoding.
+
 ## <a href="#signature_encoding" name="signature_encoding"></a> `signature_encoding`: Enum(`u16`)
 Encoding to use for importing or exporting a signature.
 
@@ -197,19 +225,17 @@ Raw bytes.
 - <a href="#signature_encoding.der" name="signature_encoding.der"></a> `der`
 DER encoding.
 
-## <a href="#options_type" name="options_type"></a> `options_type`: Enum(`u16`)
-Type of an options set.
-
-This is used when creating a new options set with `options_open()`.
+## <a href="#algorithm_type" name="algorithm_type"></a> `algorithm_type`: Enum(`u16`)
+An algorithm category.
 
 Size: 2
 
 Alignment: 2
 
 ### Variants
-- <a href="#options_type.signatures" name="options_type.signatures"></a> `signatures`
+- <a href="#algorithm_type.signatures" name="algorithm_type.signatures"></a> `signatures`
 
-- <a href="#options_type.symmetric" name="options_type.symmetric"></a> `symmetric`
+- <a href="#algorithm_type.symmetric" name="algorithm_type.symmetric"></a> `symmetric`
 
 ## <a href="#version" name="version"></a> `version`: Int(`u64`)
 Version of a managed key.
@@ -274,8 +300,8 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#signature_keypair" name="signature_keypair"></a> `signature_keypair`
-A key pair for signatures.
+## <a href="#keypair" name="keypair"></a> `keypair`
+A key pair.
 
 Size: 4
 
@@ -302,8 +328,16 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#signature_publickey" name="signature_publickey"></a> `signature_publickey`
-A public key that can be used to verify a signature.
+## <a href="#publickey" name="publickey"></a> `publickey`
+A public key, for key exchange and signature verification.
+
+Size: 4
+
+Alignment: 4
+
+### Supertypes
+## <a href="#secretkey" name="secretkey"></a> `secretkey`
+A secret key, for key exchange mechanisms.
 
 Size: 4
 
@@ -421,6 +455,24 @@ Alignment: 4
 
 - <a href="#opt_symmetric_key.none" name="opt_symmetric_key.none"></a> `none`
 
+## <a href="#signature_keypair" name="signature_keypair"></a> `signature_keypair`: [`keypair`](#keypair)
+`$signature_keypair` is just an alias for `$keypair`
+
+However, bindings may want to define a specialized type [`signature_keypair`](#signature_keypair) as a super class of [`keypair`](#keypair), with additional methods such as `sign`.
+
+Size: 4
+
+Alignment: 4
+
+## <a href="#signature_publickey" name="signature_publickey"></a> `signature_publickey`: [`publickey`](#publickey)
+`$signature_publickey` is just an alias for `$publickey`
+
+However, bindings may want to define a specialized type [`signature_publickey`](#signature_publickey) as a super class of [`publickey`](#publickey), with additional methods such as `verify`.
+
+Size: 4
+
+Alignment: 4
+
 # Modules
 ## <a href="#wasi_ephemeral_crypto_common" name="wasi_ephemeral_crypto_common"></a> wasi_ephemeral_crypto_common
 ### Imports
@@ -429,13 +481,13 @@ Alignment: 4
 
 ---
 
-#### <a href="#options_open" name="options_open"></a> `options_open(options_type: options_type) -> (crypto_errno, options)`
+#### <a href="#options_open" name="options_open"></a> `options_open(algorithm_type: algorithm_type) -> (crypto_errno, options)`
 Create a new object to set non-default options.
 
 Example usage:
 
 ```rust
-let options_handle = options_open()?;
+let options_handle = options_open(AlgorithmType::Symmetric)?;
 options_set(options_handle, "context", context)?;
 options_set_u64(options_handle, "threads", 4)?;
 let state = symmetric_state_open("BLAKE3", None, Some(options_handle))?;
@@ -443,7 +495,7 @@ options_close(options_handle)?;
 ```
 
 ##### Params
-- <a href="#options_open.options_type" name="options_open.options_type"></a> `options_type`: [`options_type`](#options_type)
+- <a href="#options_open.algorithm_type" name="options_open.algorithm_type"></a> `algorithm_type`: [`algorithm_type`](#algorithm_type)
 
 ##### Results
 - <a href="#options_open.error" name="options_open.error"></a> `error`: [`crypto_errno`](#crypto_errno)
@@ -639,6 +691,632 @@ This is an optional import, meaning that the function may not even exist.
 ##### Results
 - <a href="#key_manager_invalidate.error" name="key_manager_invalidate.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
+## <a href="#wasi_ephemeral_crypto_asymmetric_common" name="wasi_ephemeral_crypto_asymmetric_common"></a> wasi_ephemeral_crypto_asymmetric_common
+### Imports
+#### Memory
+### Functions
+
+---
+
+#### <a href="#keypair_generate" name="keypair_generate"></a> `keypair_generate(algorithm_type: algorithm_type, algorithm: string, options: opt_options) -> (crypto_errno, keypair)`
+Generate a new key pair.
+
+Internally, a key pair stores the supplied algorithm and optional parameters.
+
+Trying to use that key pair with different parameters will throw an `invalid_key` error.
+
+This function may return `$crypto_errno.unsupported_feature` if key generation is not supported by the host for the chosen algorithm.
+
+The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+
+Finally, if generating that type of key pair is an expensive operation, the function may return `in_progress`.
+In that case, the guest should retry with the same parameters until the function completes.
+
+Example usage:
+
+```rust
+let kp_handle = ctx.keypair_generate(AlgorithmType::Signatures, "RSA_PKCS1_2048_8192_SHA512", None)?;
+```
+
+##### Params
+- <a href="#keypair_generate.algorithm_type" name="keypair_generate.algorithm_type"></a> `algorithm_type`: [`algorithm_type`](#algorithm_type)
+
+- <a href="#keypair_generate.algorithm" name="keypair_generate.algorithm"></a> `algorithm`: `string`
+
+- <a href="#keypair_generate.options" name="keypair_generate.options"></a> `options`: [`opt_options`](#opt_options)
+
+##### Results
+- <a href="#keypair_generate.error" name="keypair_generate.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#keypair_generate.handle" name="keypair_generate.handle"></a> `handle`: [`keypair`](#keypair)
+
+
+---
+
+#### <a href="#keypair_import" name="keypair_import"></a> `keypair_import(algorithm_type: algorithm_type, algorithm: string, encoded: ConstPointer<u8>, encoded_len: size, encoding: keypair_encoding) -> (crypto_errno, keypair)`
+Import a key pair.
+
+This function creates a [`keypair`](#keypair) object from existing material.
+
+It may return `unsupported_algorithm` if the encoding scheme is not supported, or `invalid_key` if the key cannot be decoded.
+
+The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+
+Example usage:
+
+```rust
+let kp_handle = ctx.keypair_import(AlgorithmType::Signatures, "RSA_PKCS1_2048_8192_SHA512", KeypairEncoding::PKCS8)?;
+```
+
+##### Params
+- <a href="#keypair_import.algorithm_type" name="keypair_import.algorithm_type"></a> `algorithm_type`: [`algorithm_type`](#algorithm_type)
+
+- <a href="#keypair_import.algorithm" name="keypair_import.algorithm"></a> `algorithm`: `string`
+
+- <a href="#keypair_import.encoded" name="keypair_import.encoded"></a> `encoded`: `ConstPointer<u8>`
+
+- <a href="#keypair_import.encoded_len" name="keypair_import.encoded_len"></a> `encoded_len`: [`size`](#size)
+
+- <a href="#keypair_import.encoding" name="keypair_import.encoding"></a> `encoding`: [`keypair_encoding`](#keypair_encoding)
+
+##### Results
+- <a href="#keypair_import.error" name="keypair_import.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#keypair_import.handle" name="keypair_import.handle"></a> `handle`: [`keypair`](#keypair)
+
+
+---
+
+#### <a href="#keypair_generate_managed" name="keypair_generate_managed"></a> `keypair_generate_managed(key_manager: key_manager, algorithm_type: algorithm_type, algorithm: string, options: opt_options) -> (crypto_errno, keypair)`
+__(optional)__
+Generate a new managed key pair.
+
+The key pair is generated and stored by the key management facilities.
+
+It may be used through its identifier, but the host may not allow it to be exported.
+
+The function returns the `unsupported_feature` error code if key management facilities are not supported by the host,
+or `unsupported_algorithm` if a key cannot be created for the chosen algorithm.
+
+The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+
+This is also an optional import, meaning that the function may not even exist.
+
+##### Params
+- <a href="#keypair_generate_managed.key_manager" name="keypair_generate_managed.key_manager"></a> `key_manager`: [`key_manager`](#key_manager)
+
+- <a href="#keypair_generate_managed.algorithm_type" name="keypair_generate_managed.algorithm_type"></a> `algorithm_type`: [`algorithm_type`](#algorithm_type)
+
+- <a href="#keypair_generate_managed.algorithm" name="keypair_generate_managed.algorithm"></a> `algorithm`: `string`
+
+- <a href="#keypair_generate_managed.options" name="keypair_generate_managed.options"></a> `options`: [`opt_options`](#opt_options)
+
+##### Results
+- <a href="#keypair_generate_managed.error" name="keypair_generate_managed.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#keypair_generate_managed.handle" name="keypair_generate_managed.handle"></a> `handle`: [`keypair`](#keypair)
+
+
+---
+
+#### <a href="#keypair_id" name="keypair_id"></a> `keypair_id(kp: keypair, kp_id: Pointer<u8>, kp_id_max_len: size) -> (crypto_errno, size, version)`
+__(optional)__
+Return the key pair identifier and version of a managed key pair.
+
+If the key pair is not managed, `unsupported_feature` is returned instead.
+
+This is an optional import, meaning that the function may not even exist.
+
+##### Params
+- <a href="#keypair_id.kp" name="keypair_id.kp"></a> `kp`: [`keypair`](#keypair)
+
+- <a href="#keypair_id.kp_id" name="keypair_id.kp_id"></a> `kp_id`: `Pointer<u8>`
+
+- <a href="#keypair_id.kp_id_max_len" name="keypair_id.kp_id_max_len"></a> `kp_id_max_len`: [`size`](#size)
+
+##### Results
+- <a href="#keypair_id.error" name="keypair_id.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#keypair_id.kp_id_len" name="keypair_id.kp_id_len"></a> `kp_id_len`: [`size`](#size)
+
+- <a href="#keypair_id.version" name="keypair_id.version"></a> `version`: [`version`](#version)
+
+
+---
+
+#### <a href="#keypair_from_id" name="keypair_from_id"></a> `keypair_from_id(key_manager: key_manager, kp_id: ConstPointer<u8>, kp_id_len: size, kp_version: version) -> (crypto_errno, keypair)`
+__(optional)__
+Return a managed key pair from a key identifier.
+
+`kp_version` can be set to `version_latest` to retrieve the most recent version of a key pair.
+
+If no key pair matching the provided information is found, `key_not_found` is returned instead.
+
+This is an optional import, meaning that the function may not even exist.
+``
+##### Params
+- <a href="#keypair_from_id.key_manager" name="keypair_from_id.key_manager"></a> `key_manager`: [`key_manager`](#key_manager)
+
+- <a href="#keypair_from_id.kp_id" name="keypair_from_id.kp_id"></a> `kp_id`: `ConstPointer<u8>`
+
+- <a href="#keypair_from_id.kp_id_len" name="keypair_from_id.kp_id_len"></a> `kp_id_len`: [`size`](#size)
+
+- <a href="#keypair_from_id.kp_version" name="keypair_from_id.kp_version"></a> `kp_version`: [`version`](#version)
+
+##### Results
+- <a href="#keypair_from_id.error" name="keypair_from_id.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#keypair_from_id.handle" name="keypair_from_id.handle"></a> `handle`: [`keypair`](#keypair)
+
+
+---
+
+#### <a href="#keypair_from_pk_and_sk" name="keypair_from_pk_and_sk"></a> `keypair_from_pk_and_sk(publickey: publickey, secretkey: secretkey) -> (crypto_errno, keypair)`
+Create a key pair from a public key and a secret key.
+
+##### Params
+- <a href="#keypair_from_pk_and_sk.publickey" name="keypair_from_pk_and_sk.publickey"></a> `publickey`: [`publickey`](#publickey)
+
+- <a href="#keypair_from_pk_and_sk.secretkey" name="keypair_from_pk_and_sk.secretkey"></a> `secretkey`: [`secretkey`](#secretkey)
+
+##### Results
+- <a href="#keypair_from_pk_and_sk.error" name="keypair_from_pk_and_sk.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#keypair_from_pk_and_sk.handle" name="keypair_from_pk_and_sk.handle"></a> `handle`: [`keypair`](#keypair)
+
+
+---
+
+#### <a href="#keypair_export" name="keypair_export"></a> `keypair_export(kp: keypair, encoding: keypair_encoding) -> (crypto_errno, array_output)`
+Export a key pair as the given encoding format.
+
+May return `prohibited_operation` if this operation is denied or `unsupported_encoding` if the encoding is not supported.
+
+##### Params
+- <a href="#keypair_export.kp" name="keypair_export.kp"></a> `kp`: [`keypair`](#keypair)
+
+- <a href="#keypair_export.encoding" name="keypair_export.encoding"></a> `encoding`: [`keypair_encoding`](#keypair_encoding)
+
+##### Results
+- <a href="#keypair_export.error" name="keypair_export.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#keypair_export.encoded" name="keypair_export.encoded"></a> `encoded`: [`array_output`](#array_output)
+
+
+---
+
+#### <a href="#keypair_publickey" name="keypair_publickey"></a> `keypair_publickey(kp: keypair) -> (crypto_errno, publickey)`
+Get the public key of a key pair.
+
+##### Params
+- <a href="#keypair_publickey.kp" name="keypair_publickey.kp"></a> `kp`: [`keypair`](#keypair)
+
+##### Results
+- <a href="#keypair_publickey.error" name="keypair_publickey.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#keypair_publickey.pk" name="keypair_publickey.pk"></a> `pk`: [`publickey`](#publickey)
+
+
+---
+
+#### <a href="#keypair_secretkey" name="keypair_secretkey"></a> `keypair_secretkey(kp: keypair) -> (crypto_errno, secretkey)`
+Get the secret key of a key pair.
+
+##### Params
+- <a href="#keypair_secretkey.kp" name="keypair_secretkey.kp"></a> `kp`: [`keypair`](#keypair)
+
+##### Results
+- <a href="#keypair_secretkey.error" name="keypair_secretkey.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#keypair_secretkey.sk" name="keypair_secretkey.sk"></a> `sk`: [`secretkey`](#secretkey)
+
+
+---
+
+#### <a href="#keypair_close" name="keypair_close"></a> `keypair_close(kp: keypair) -> crypto_errno`
+Destroy a key pair.
+
+The host will automatically wipe traces of the secret key from memory.
+
+If this is a managed key, the key will not be removed from persistent storage, and can be reconstructed later using the key identifier.
+
+##### Params
+- <a href="#keypair_close.kp" name="keypair_close.kp"></a> `kp`: [`keypair`](#keypair)
+
+##### Results
+- <a href="#keypair_close.error" name="keypair_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+
+---
+
+#### <a href="#publickey_import" name="publickey_import"></a> `publickey_import(algorithm_type: algorithm_type, algorithm: string, encoded: ConstPointer<u8>, encoded_len: size, encoding: publickey_encoding) -> (crypto_errno, publickey)`
+Import a public key.
+
+The function may return `unsupported_encoding` if importing from the given format is not implemented or incompatible with the key type.
+
+It may also return `invalid_key` if the key doesn't appear to match the supplied algorithm.
+
+Finally, the function may return `unsupported_algorithm` if the algorithm is not supported by the host.
+
+Example usage:
+
+```rust
+let pk_handle = ctx.publickey_import(AlgorithmType::Signatures, encoded, PublicKeyEncoding::Sec)?;
+```
+
+##### Params
+- <a href="#publickey_import.algorithm_type" name="publickey_import.algorithm_type"></a> `algorithm_type`: [`algorithm_type`](#algorithm_type)
+
+- <a href="#publickey_import.algorithm" name="publickey_import.algorithm"></a> `algorithm`: `string`
+
+- <a href="#publickey_import.encoded" name="publickey_import.encoded"></a> `encoded`: `ConstPointer<u8>`
+
+- <a href="#publickey_import.encoded_len" name="publickey_import.encoded_len"></a> `encoded_len`: [`size`](#size)
+
+- <a href="#publickey_import.encoding" name="publickey_import.encoding"></a> `encoding`: [`publickey_encoding`](#publickey_encoding)
+
+##### Results
+- <a href="#publickey_import.error" name="publickey_import.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#publickey_import.pk" name="publickey_import.pk"></a> `pk`: [`publickey`](#publickey)
+
+
+---
+
+#### <a href="#publickey_export" name="publickey_export"></a> `publickey_export(pk: publickey, encoding: publickey_encoding) -> (crypto_errno, array_output)`
+Export a public key as the given encoding format.
+
+May return `unsupported_encoding` if the encoding is not supported.
+
+##### Params
+- <a href="#publickey_export.pk" name="publickey_export.pk"></a> `pk`: [`publickey`](#publickey)
+
+- <a href="#publickey_export.encoding" name="publickey_export.encoding"></a> `encoding`: [`publickey_encoding`](#publickey_encoding)
+
+##### Results
+- <a href="#publickey_export.error" name="publickey_export.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#publickey_export.encoded" name="publickey_export.encoded"></a> `encoded`: [`array_output`](#array_output)
+
+
+---
+
+#### <a href="#publickey_verify" name="publickey_verify"></a> `publickey_verify(pk: publickey) -> crypto_errno`
+Check that a public key is valid and in canonical form.
+
+This function may perform stricter checks than those made during importation at the expense of additional CPU cycles.
+
+The function returns `invalid_key` if the public key didn't pass the checks.
+
+##### Params
+- <a href="#publickey_verify.pk" name="publickey_verify.pk"></a> `pk`: [`publickey`](#publickey)
+
+##### Results
+- <a href="#publickey_verify.error" name="publickey_verify.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+
+---
+
+#### <a href="#publickey_from_secretkey" name="publickey_from_secretkey"></a> `publickey_from_secretkey(sk: secretkey) -> (crypto_errno, publickey)`
+Compute the public key for a secret key.
+
+##### Params
+- <a href="#publickey_from_secretkey.sk" name="publickey_from_secretkey.sk"></a> `sk`: [`secretkey`](#secretkey)
+
+##### Results
+- <a href="#publickey_from_secretkey.error" name="publickey_from_secretkey.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#publickey_from_secretkey.pk" name="publickey_from_secretkey.pk"></a> `pk`: [`publickey`](#publickey)
+
+
+---
+
+#### <a href="#publickey_close" name="publickey_close"></a> `publickey_close(pk: publickey) -> crypto_errno`
+Destroy a public key.
+
+Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+
+##### Params
+- <a href="#publickey_close.pk" name="publickey_close.pk"></a> `pk`: [`publickey`](#publickey)
+
+##### Results
+- <a href="#publickey_close.error" name="publickey_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+
+---
+
+#### <a href="#secretkey_import" name="secretkey_import"></a> `secretkey_import(algorithm_type: algorithm_type, algorithm: string, encoded: ConstPointer<u8>, encoded_len: size, encoding: secretkey_encoding) -> (crypto_errno, secretkey)`
+Import a secret key.
+
+The function may return `unsupported_encoding` if importing from the given format is not implemented or incompatible with the key type.
+
+It may also return `invalid_key` if the key doesn't appear to match the supplied algorithm.
+
+Finally, the function may return `unsupported_algorithm` if the algorithm is not supported by the host.
+
+Example usage:
+
+```rust
+let pk_handle = ctx.secretkey_import(AlgorithmType::KX, encoded, SecretKeyEncoding::Raw)?;
+```
+
+##### Params
+- <a href="#secretkey_import.algorithm_type" name="secretkey_import.algorithm_type"></a> `algorithm_type`: [`algorithm_type`](#algorithm_type)
+
+- <a href="#secretkey_import.algorithm" name="secretkey_import.algorithm"></a> `algorithm`: `string`
+
+- <a href="#secretkey_import.encoded" name="secretkey_import.encoded"></a> `encoded`: `ConstPointer<u8>`
+
+- <a href="#secretkey_import.encoded_len" name="secretkey_import.encoded_len"></a> `encoded_len`: [`size`](#size)
+
+- <a href="#secretkey_import.encoding" name="secretkey_import.encoding"></a> `encoding`: [`secretkey_encoding`](#secretkey_encoding)
+
+##### Results
+- <a href="#secretkey_import.error" name="secretkey_import.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#secretkey_import.sk" name="secretkey_import.sk"></a> `sk`: [`secretkey`](#secretkey)
+
+
+---
+
+#### <a href="#secretkey_export" name="secretkey_export"></a> `secretkey_export(sk: secretkey, encoding: secretkey_encoding) -> (crypto_errno, array_output)`
+Export a secret key as the given encoding format.
+
+May return `unsupported_encoding` if the encoding is not supported.
+
+##### Params
+- <a href="#secretkey_export.sk" name="secretkey_export.sk"></a> `sk`: [`secretkey`](#secretkey)
+
+- <a href="#secretkey_export.encoding" name="secretkey_export.encoding"></a> `encoding`: [`secretkey_encoding`](#secretkey_encoding)
+
+##### Results
+- <a href="#secretkey_export.error" name="secretkey_export.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#secretkey_export.encoded" name="secretkey_export.encoded"></a> `encoded`: [`array_output`](#array_output)
+
+
+---
+
+#### <a href="#secretkey_close" name="secretkey_close"></a> `secretkey_close(sk: secretkey) -> crypto_errno`
+Destroy a secret key.
+
+Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+
+##### Params
+- <a href="#secretkey_close.sk" name="secretkey_close.sk"></a> `sk`: [`secretkey`](#secretkey)
+
+##### Results
+- <a href="#secretkey_close.error" name="secretkey_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+## <a href="#wasi_ephemeral_crypto_signatures" name="wasi_ephemeral_crypto_signatures"></a> wasi_ephemeral_crypto_signatures
+### Imports
+#### Memory
+### Functions
+
+---
+
+#### <a href="#signature_export" name="signature_export"></a> `signature_export(signature: signature, encoding: signature_encoding) -> (crypto_errno, array_output)`
+Export a signature.
+
+This function exports a signature object using the specified encoding.
+
+May return `unsupported_encoding` if the signature cannot be encoded into the given format.
+
+##### Params
+- <a href="#signature_export.signature" name="signature_export.signature"></a> `signature`: [`signature`](#signature)
+
+- <a href="#signature_export.encoding" name="signature_export.encoding"></a> `encoding`: [`signature_encoding`](#signature_encoding)
+
+##### Results
+- <a href="#signature_export.error" name="signature_export.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#signature_export.encoded" name="signature_export.encoded"></a> `encoded`: [`array_output`](#array_output)
+
+
+---
+
+#### <a href="#signature_import" name="signature_import"></a> `signature_import(algorithm: string, encoding: signature_encoding, encoded: ConstPointer<u8>, encoded_len: size) -> (crypto_errno, signature)`
+Create a signature object.
+
+This object can be used along with a public key to verify an existing signature.
+
+It may return `invalid_signature` if the signature is invalid or incompatible with the specified algorithm, as well as `unsupported_encoding` if the encoding is not compatible with the signature type.
+
+The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+
+Example usage:
+
+```rust
+let signature_handle = ctx.signature_import("ECDSA_P256_SHA256", SignatureEncoding::DER, encoded)?;
+```
+
+##### Params
+- <a href="#signature_import.algorithm" name="signature_import.algorithm"></a> `algorithm`: `string`
+
+- <a href="#signature_import.encoding" name="signature_import.encoding"></a> `encoding`: [`signature_encoding`](#signature_encoding)
+
+- <a href="#signature_import.encoded" name="signature_import.encoded"></a> `encoded`: `ConstPointer<u8>`
+
+- <a href="#signature_import.encoded_len" name="signature_import.encoded_len"></a> `encoded_len`: [`size`](#size)
+
+##### Results
+- <a href="#signature_import.error" name="signature_import.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#signature_import.signature" name="signature_import.signature"></a> `signature`: [`signature`](#signature)
+
+
+---
+
+#### <a href="#signature_state_open" name="signature_state_open"></a> `signature_state_open(kp: signature_keypair) -> (crypto_errno, signature_state)`
+Create a new state to collect data to compute a signature on.
+
+This function allows data to be signed to be supplied in a streaming fashion.
+
+The state is not closed and can be used after a signature has been computed, allowing incremental updates by calling `signature_state_update()` again afterwards.
+
+Example usage - signature creation
+
+```rust
+let kp_handle = ctx.keypair_import(AlgorithmType::Signatures, "Ed25519ph", keypair, KeypairEncoding::Raw)?;
+let state_handle = ctx.signature_state_open(kp_handle)?;
+ctx.signature_state_update(state_handle, b"message part 1")?;
+ctx.signature_state_update(state_handle, b"message part 2")?;
+let sig_handle = ctx.signature_state_sign(state_handle)?;
+let raw_sig = ctx.signature_export(sig_handle, SignatureEncoding::Raw)?;
+```
+
+##### Params
+- <a href="#signature_state_open.kp" name="signature_state_open.kp"></a> `kp`: [`signature_keypair`](#signature_keypair)
+
+##### Results
+- <a href="#signature_state_open.error" name="signature_state_open.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#signature_state_open.state" name="signature_state_open.state"></a> `state`: [`signature_state`](#signature_state)
+
+
+---
+
+#### <a href="#signature_state_update" name="signature_state_update"></a> `signature_state_update(state: signature_state, input: ConstPointer<u8>, input_len: size) -> crypto_errno`
+Absorb data into the signature state.
+
+This function may return `unsupported_feature` is the selected algorithm doesn't support incremental updates.
+
+##### Params
+- <a href="#signature_state_update.state" name="signature_state_update.state"></a> `state`: [`signature_state`](#signature_state)
+
+- <a href="#signature_state_update.input" name="signature_state_update.input"></a> `input`: `ConstPointer<u8>`
+
+- <a href="#signature_state_update.input_len" name="signature_state_update.input_len"></a> `input_len`: [`size`](#size)
+
+##### Results
+- <a href="#signature_state_update.error" name="signature_state_update.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+
+---
+
+#### <a href="#signature_state_sign" name="signature_state_sign"></a> `signature_state_sign(state: signature_state) -> (crypto_errno, array_output)`
+Compute a signature for all the data collected up to that point.
+
+The function can be called multiple times for incremental signing.
+
+##### Params
+- <a href="#signature_state_sign.state" name="signature_state_sign.state"></a> `state`: [`signature_state`](#signature_state)
+
+##### Results
+- <a href="#signature_state_sign.error" name="signature_state_sign.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#signature_state_sign.signature" name="signature_state_sign.signature"></a> `signature`: [`array_output`](#array_output)
+
+
+---
+
+#### <a href="#signature_state_close" name="signature_state_close"></a> `signature_state_close(state: signature_state) -> crypto_errno`
+Destroy a signature state.
+
+Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+
+Note that closing a signature state doesn't close or invalidate the key pair object, that be reused for further signatures.
+
+##### Params
+- <a href="#signature_state_close.state" name="signature_state_close.state"></a> `state`: [`signature_state`](#signature_state)
+
+##### Results
+- <a href="#signature_state_close.error" name="signature_state_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+
+---
+
+#### <a href="#signature_verification_state_open" name="signature_verification_state_open"></a> `signature_verification_state_open(kp: signature_publickey) -> (crypto_errno, signature_verification_state)`
+Create a new state to collect data to verify a signature on.
+
+This is the verification counterpart of [`signature_state`](#signature_state).
+
+Data can be injected using `signature_verification_state_update()`, and the state is not closed after a verification, allowing incremental verification.
+
+Example usage - signature verification:
+
+```rust
+let pk_handle = ctx.publickey_import(AlgorithmType::Signatures, "ECDSA_P256_SHA256", encoded_pk, PublicKeyEncoding::CompressedSec)?;
+let signature_handle = ctx.signature_import(AlgorithmType::Signatures, "ECDSA_P256_SHA256", encoded_sig, PublicKeyEncoding::Der)?;
+let state_handle = ctx.signature_verification_state_open(pk_handle)?;
+ctx.signature_verification_state_update(state_handle, "message")?;
+ctx.signature_verification_state_verify(signature_handle)?;
+```
+
+##### Params
+- <a href="#signature_verification_state_open.kp" name="signature_verification_state_open.kp"></a> `kp`: [`signature_publickey`](#signature_publickey)
+
+##### Results
+- <a href="#signature_verification_state_open.error" name="signature_verification_state_open.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#signature_verification_state_open.state" name="signature_verification_state_open.state"></a> `state`: [`signature_verification_state`](#signature_verification_state)
+
+
+---
+
+#### <a href="#signature_verification_state_update" name="signature_verification_state_update"></a> `signature_verification_state_update(state: signature_verification_state, input: ConstPointer<u8>, input_len: size) -> crypto_errno`
+Absorb data into the signature verification state.
+
+This function may return `unsupported_feature` is the selected algorithm doesn't support incremental updates.
+
+##### Params
+- <a href="#signature_verification_state_update.state" name="signature_verification_state_update.state"></a> `state`: [`signature_verification_state`](#signature_verification_state)
+
+- <a href="#signature_verification_state_update.input" name="signature_verification_state_update.input"></a> `input`: `ConstPointer<u8>`
+
+- <a href="#signature_verification_state_update.input_len" name="signature_verification_state_update.input_len"></a> `input_len`: [`size`](#size)
+
+##### Results
+- <a href="#signature_verification_state_update.error" name="signature_verification_state_update.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+
+---
+
+#### <a href="#signature_verification_state_verify" name="signature_verification_state_verify"></a> `signature_verification_state_verify(state: signature_verification_state, signature: signature) -> crypto_errno`
+Check that the given signature is verifies for the data collected up to that point point.
+
+The state is not closed and can absorb more data to allow for incremental verification.
+
+The function returns `invalid_signature` if the signature doesn't appear to be valid.
+
+##### Params
+- <a href="#signature_verification_state_verify.state" name="signature_verification_state_verify.state"></a> `state`: [`signature_verification_state`](#signature_verification_state)
+
+- <a href="#signature_verification_state_verify.signature" name="signature_verification_state_verify.signature"></a> `signature`: [`signature`](#signature)
+
+##### Results
+- <a href="#signature_verification_state_verify.error" name="signature_verification_state_verify.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+
+---
+
+#### <a href="#signature_verification_state_close" name="signature_verification_state_close"></a> `signature_verification_state_close(state: signature_verification_state) -> crypto_errno`
+Destroy a signature verification state.
+
+Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+
+Note that closing a signature state doesn't close or invalidate the public key object, that be reused for further verifications.
+
+##### Params
+- <a href="#signature_verification_state_close.state" name="signature_verification_state_close.state"></a> `state`: [`signature_verification_state`](#signature_verification_state)
+
+##### Results
+- <a href="#signature_verification_state_close.error" name="signature_verification_state_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+
+---
+
+#### <a href="#signature_close" name="signature_close"></a> `signature_close(signature: signature) -> crypto_errno`
+Destroy a signature.
+
+Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+
+##### Params
+- <a href="#signature_close.signature" name="signature_close.signature"></a> `signature`: [`signature`](#signature)
+
+##### Results
+- <a href="#signature_close.error" name="signature_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
 ## <a href="#wasi_ephemeral_crypto_symmetric" name="wasi_ephemeral_crypto_symmetric"></a> wasi_ephemeral_crypto_symmetric
 ### Imports
 #### Memory
@@ -720,7 +1398,7 @@ Objects are reference counted. It is safe to close an object immediately after t
 
 ---
 
-#### <a href="#symmetric_managed_key_generate" name="symmetric_managed_key_generate"></a> `symmetric_managed_key_generate(key_manager: key_manager, algorithm: string, options: opt_options) -> (crypto_errno, symmetric_key)`
+#### <a href="#symmetric_key_generate_managed" name="symmetric_key_generate_managed"></a> `symmetric_key_generate_managed(key_manager: key_manager, algorithm: string, options: opt_options) -> (crypto_errno, symmetric_key)`
 __(optional)__
 Generate a new managed symmetric key.
 
@@ -736,16 +1414,16 @@ The function may also return `unsupported_algorithm` if the algorithm is not sup
 This is also an optional import, meaning that the function may not even exist.
 
 ##### Params
-- <a href="#symmetric_managed_key_generate.key_manager" name="symmetric_managed_key_generate.key_manager"></a> `key_manager`: [`key_manager`](#key_manager)
+- <a href="#symmetric_key_generate_managed.key_manager" name="symmetric_key_generate_managed.key_manager"></a> `key_manager`: [`key_manager`](#key_manager)
 
-- <a href="#symmetric_managed_key_generate.algorithm" name="symmetric_managed_key_generate.algorithm"></a> `algorithm`: `string`
+- <a href="#symmetric_key_generate_managed.algorithm" name="symmetric_key_generate_managed.algorithm"></a> `algorithm`: `string`
 
-- <a href="#symmetric_managed_key_generate.options" name="symmetric_managed_key_generate.options"></a> `options`: [`opt_options`](#opt_options)
+- <a href="#symmetric_key_generate_managed.options" name="symmetric_key_generate_managed.options"></a> `options`: [`opt_options`](#opt_options)
 
 ##### Results
-- <a href="#symmetric_managed_key_generate.error" name="symmetric_managed_key_generate.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_key_generate_managed.error" name="symmetric_key_generate_managed.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-- <a href="#symmetric_managed_key_generate.handle" name="symmetric_managed_key_generate.handle"></a> `handle`: [`symmetric_key`](#symmetric_key)
+- <a href="#symmetric_key_generate_managed.handle" name="symmetric_key_generate_managed.handle"></a> `handle`: [`symmetric_key`](#symmetric_key)
 
 
 ---
@@ -1415,512 +2093,4 @@ Objects are reference counted. It is safe to close an object immediately after t
 
 ##### Results
 - <a href="#symmetric_tag_close.error" name="symmetric_tag_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-## <a href="#wasi_ephemeral_crypto_signatures" name="wasi_ephemeral_crypto_signatures"></a> wasi_ephemeral_crypto_signatures
-### Imports
-#### Memory
-### Functions
-
----
-
-#### <a href="#signature_keypair_generate" name="signature_keypair_generate"></a> `signature_keypair_generate(algorithm: string, options: opt_options) -> (crypto_errno, signature_keypair)`
-Generate a new key pair for signatures.
-
-Internally, a key pair stores the supplied algorithm and optional parameters.
-
-Trying to use that key pair with different parameters will throw an `invalid_key` error.
-
-This function may return `$crypto_errno.unsupported_feature` if key generation is not supported by the host for the chosen algorithm.
-
-The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
-
-Finally, if generating that type of key pair is an expensive operation, the function may return `in_progress`.
-In that case, the guest should retry with the same parameters until the function completes.
-
-Example usage:
-
-```rust
-let kp_handle = ctx.signature_keypair_generate("RSA_PKCS1_2048_8192_SHA512", None)?;
-```
-
-##### Params
-- <a href="#signature_keypair_generate.algorithm" name="signature_keypair_generate.algorithm"></a> `algorithm`: `string`
-
-- <a href="#signature_keypair_generate.options" name="signature_keypair_generate.options"></a> `options`: [`opt_options`](#opt_options)
-
-##### Results
-- <a href="#signature_keypair_generate.error" name="signature_keypair_generate.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-- <a href="#signature_keypair_generate.handle" name="signature_keypair_generate.handle"></a> `handle`: [`signature_keypair`](#signature_keypair)
-
-
----
-
-#### <a href="#signature_keypair_import" name="signature_keypair_import"></a> `signature_keypair_import(algorithm: string, encoded: ConstPointer<u8>, encoded_len: size, encoding: keypair_encoding) -> (crypto_errno, signature_keypair)`
-Import a key pair for signatures.
-
-This function creates a [`signature_keypair`](#signature_keypair) object from existing material.
-
-It may return `unsupported_algorithm` if the encoding scheme is not supported, or `invalid_key` if the key cannot be decoded.
-
-The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
-
-Example usage:
-
-```rust
-let kp_handle = ctx.signature_keypair_import("RSA_PKCS1_2048_8192_SHA512", KeypairEncoding::PKCS8)?;
-```
-
-##### Params
-- <a href="#signature_keypair_import.algorithm" name="signature_keypair_import.algorithm"></a> `algorithm`: `string`
-
-- <a href="#signature_keypair_import.encoded" name="signature_keypair_import.encoded"></a> `encoded`: `ConstPointer<u8>`
-
-- <a href="#signature_keypair_import.encoded_len" name="signature_keypair_import.encoded_len"></a> `encoded_len`: [`size`](#size)
-
-- <a href="#signature_keypair_import.encoding" name="signature_keypair_import.encoding"></a> `encoding`: [`keypair_encoding`](#keypair_encoding)
-
-##### Results
-- <a href="#signature_keypair_import.error" name="signature_keypair_import.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-- <a href="#signature_keypair_import.handle" name="signature_keypair_import.handle"></a> `handle`: [`signature_keypair`](#signature_keypair)
-
-
----
-
-#### <a href="#signature_managed_keypair_generate" name="signature_managed_keypair_generate"></a> `signature_managed_keypair_generate(key_manager: key_manager, algorithm: string, options: opt_options) -> (crypto_errno, signature_keypair)`
-__(optional)__
-Generate a new managed key pair.
-
-The key pair is generated and stored by the key management facilities.
-
-It may be used through its identifier, but the host may not allow it to be exported.
-
-The function returns the `unsupported_feature` error code if key management facilities are not supported by the host,
-or `unsupported_algorithm` if a key cannot be created for the chosen algorithm.
-
-The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
-
-This is also an optional import, meaning that the function may not even exist.
-
-##### Params
-- <a href="#signature_managed_keypair_generate.key_manager" name="signature_managed_keypair_generate.key_manager"></a> `key_manager`: [`key_manager`](#key_manager)
-
-- <a href="#signature_managed_keypair_generate.algorithm" name="signature_managed_keypair_generate.algorithm"></a> `algorithm`: `string`
-
-- <a href="#signature_managed_keypair_generate.options" name="signature_managed_keypair_generate.options"></a> `options`: [`opt_options`](#opt_options)
-
-##### Results
-- <a href="#signature_managed_keypair_generate.error" name="signature_managed_keypair_generate.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-- <a href="#signature_managed_keypair_generate.handle" name="signature_managed_keypair_generate.handle"></a> `handle`: [`signature_keypair`](#signature_keypair)
-
-
----
-
-#### <a href="#signature_keypair_id" name="signature_keypair_id"></a> `signature_keypair_id(kp: signature_keypair, kp_id: Pointer<u8>, kp_id_max_len: size) -> (crypto_errno, size, version)`
-__(optional)__
-Return the key pair identifier and version of a managed signature key pair.
-
-If the key pair is not managed, `unsupported_feature` is returned instead.
-
-This is an optional import, meaning that the function may not even exist.
-
-##### Params
-- <a href="#signature_keypair_id.kp" name="signature_keypair_id.kp"></a> `kp`: [`signature_keypair`](#signature_keypair)
-
-- <a href="#signature_keypair_id.kp_id" name="signature_keypair_id.kp_id"></a> `kp_id`: `Pointer<u8>`
-
-- <a href="#signature_keypair_id.kp_id_max_len" name="signature_keypair_id.kp_id_max_len"></a> `kp_id_max_len`: [`size`](#size)
-
-##### Results
-- <a href="#signature_keypair_id.error" name="signature_keypair_id.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-- <a href="#signature_keypair_id.kp_id_len" name="signature_keypair_id.kp_id_len"></a> `kp_id_len`: [`size`](#size)
-
-- <a href="#signature_keypair_id.version" name="signature_keypair_id.version"></a> `version`: [`version`](#version)
-
-
----
-
-#### <a href="#signature_keypair_from_id" name="signature_keypair_from_id"></a> `signature_keypair_from_id(key_manager: key_manager, kp_id: ConstPointer<u8>, kp_id_len: size, kp_version: version) -> (crypto_errno, signature_keypair)`
-__(optional)__
-Return a managed signature key pair from a key identifier.
-
-`kp_version` can be set to `version_latest` to retrieve the most recent version of a key pair.
-
-If no key pair matching the provided information is found, `key_not_found` is returned instead.
-
-This is an optional import, meaning that the function may not even exist.
-``
-##### Params
-- <a href="#signature_keypair_from_id.key_manager" name="signature_keypair_from_id.key_manager"></a> `key_manager`: [`key_manager`](#key_manager)
-
-- <a href="#signature_keypair_from_id.kp_id" name="signature_keypair_from_id.kp_id"></a> `kp_id`: `ConstPointer<u8>`
-
-- <a href="#signature_keypair_from_id.kp_id_len" name="signature_keypair_from_id.kp_id_len"></a> `kp_id_len`: [`size`](#size)
-
-- <a href="#signature_keypair_from_id.kp_version" name="signature_keypair_from_id.kp_version"></a> `kp_version`: [`version`](#version)
-
-##### Results
-- <a href="#signature_keypair_from_id.error" name="signature_keypair_from_id.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-- <a href="#signature_keypair_from_id.handle" name="signature_keypair_from_id.handle"></a> `handle`: [`signature_keypair`](#signature_keypair)
-
-
----
-
-#### <a href="#signature_keypair_export" name="signature_keypair_export"></a> `signature_keypair_export(kp: signature_keypair, encoding: keypair_encoding) -> (crypto_errno, array_output)`
-Export a signature key pair as the given encoding format.
-
-May return `prohibited_operation` if this operation is denied or `unsupported_encoding` if the encoding is not supported.
-
-##### Params
-- <a href="#signature_keypair_export.kp" name="signature_keypair_export.kp"></a> `kp`: [`signature_keypair`](#signature_keypair)
-
-- <a href="#signature_keypair_export.encoding" name="signature_keypair_export.encoding"></a> `encoding`: [`keypair_encoding`](#keypair_encoding)
-
-##### Results
-- <a href="#signature_keypair_export.error" name="signature_keypair_export.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-- <a href="#signature_keypair_export.encoded" name="signature_keypair_export.encoded"></a> `encoded`: [`array_output`](#array_output)
-
-
----
-
-#### <a href="#signature_keypair_publickey" name="signature_keypair_publickey"></a> `signature_keypair_publickey(kp: signature_keypair) -> (crypto_errno, signature_publickey)`
-Get a public key of a signature key pair.
-
-The returned object can be used to verify signatures.
-
-##### Params
-- <a href="#signature_keypair_publickey.kp" name="signature_keypair_publickey.kp"></a> `kp`: [`signature_keypair`](#signature_keypair)
-
-##### Results
-- <a href="#signature_keypair_publickey.error" name="signature_keypair_publickey.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-- <a href="#signature_keypair_publickey.pk" name="signature_keypair_publickey.pk"></a> `pk`: [`signature_publickey`](#signature_publickey)
-
-
----
-
-#### <a href="#signature_keypair_close" name="signature_keypair_close"></a> `signature_keypair_close(kp: signature_keypair) -> crypto_errno`
-Destroys a signature key pair.
-
-The host will automatically wipe traces of the secret key from memory.
-
-If this is a managed key, the key will not be removed from persistent storage, and can be reconstructed later using the key identifier.
-
-##### Params
-- <a href="#signature_keypair_close.kp" name="signature_keypair_close.kp"></a> `kp`: [`signature_keypair`](#signature_keypair)
-
-##### Results
-- <a href="#signature_keypair_close.error" name="signature_keypair_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-
----
-
-#### <a href="#signature_publickey_import" name="signature_publickey_import"></a> `signature_publickey_import(algorithm: string, encoded: ConstPointer<u8>, encoded_len: size, encoding: publickey_encoding) -> (crypto_errno, signature_publickey)`
-Import a signature public key.
-
-The returned object can be used to verify signatures.
-
-The function may return `unsupported_encoding` if importing from the given format is not implemented or incompatible with the key type.
-
-It may also return `invalid_key` if the key doesn't appear to match the supplied algorithm.
-
-Finally, the function may return `unsupported_algorithm` if the algorithm is not supported by the host.
-
-Example usage:
-
-```rust
-let pk_handle = ctx.signature_publickey_import(encoded, PublicKeyEncoding::Sec)?;
-```
-
-##### Params
-- <a href="#signature_publickey_import.algorithm" name="signature_publickey_import.algorithm"></a> `algorithm`: `string`
-
-- <a href="#signature_publickey_import.encoded" name="signature_publickey_import.encoded"></a> `encoded`: `ConstPointer<u8>`
-
-- <a href="#signature_publickey_import.encoded_len" name="signature_publickey_import.encoded_len"></a> `encoded_len`: [`size`](#size)
-
-- <a href="#signature_publickey_import.encoding" name="signature_publickey_import.encoding"></a> `encoding`: [`publickey_encoding`](#publickey_encoding)
-
-##### Results
-- <a href="#signature_publickey_import.error" name="signature_publickey_import.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-- <a href="#signature_publickey_import.pk" name="signature_publickey_import.pk"></a> `pk`: [`signature_publickey`](#signature_publickey)
-
-
----
-
-#### <a href="#signature_publickey_export" name="signature_publickey_export"></a> `signature_publickey_export(pk: signature_publickey, encoding: publickey_encoding) -> (crypto_errno, array_output)`
-Export a public key as the given encoding format.
-
-May return `unsupported_encoding` if the encoding is not supported.
-
-##### Params
-- <a href="#signature_publickey_export.pk" name="signature_publickey_export.pk"></a> `pk`: [`signature_publickey`](#signature_publickey)
-
-- <a href="#signature_publickey_export.encoding" name="signature_publickey_export.encoding"></a> `encoding`: [`publickey_encoding`](#publickey_encoding)
-
-##### Results
-- <a href="#signature_publickey_export.error" name="signature_publickey_export.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-- <a href="#signature_publickey_export.encoded" name="signature_publickey_export.encoded"></a> `encoded`: [`array_output`](#array_output)
-
-
----
-
-#### <a href="#signature_publickey_verify" name="signature_publickey_verify"></a> `signature_publickey_verify(pk: signature_publickey) -> crypto_errno`
-Check that a signature public key is valid and in canonical form.
-
-This function may perform stricter checks than those made during importation at the expense of additional CPU cycles.
-
-The function returns `invalid_key` if the public key didn't pass the checks.
-
-##### Params
-- <a href="#signature_publickey_verify.pk" name="signature_publickey_verify.pk"></a> `pk`: [`signature_publickey`](#signature_publickey)
-
-##### Results
-- <a href="#signature_publickey_verify.error" name="signature_publickey_verify.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-
----
-
-#### <a href="#signature_publickey_close" name="signature_publickey_close"></a> `signature_publickey_close(pk: signature_publickey) -> crypto_errno`
-Destroys a public key.
-
-Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
-
-##### Params
-- <a href="#signature_publickey_close.pk" name="signature_publickey_close.pk"></a> `pk`: [`signature_publickey`](#signature_publickey)
-
-##### Results
-- <a href="#signature_publickey_close.error" name="signature_publickey_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-
----
-
-#### <a href="#signature_export" name="signature_export"></a> `signature_export(signature: signature, encoding: signature_encoding) -> (crypto_errno, array_output)`
-Export a signature.
-
-This function exports a signature object using the specified encoding.
-
-May return `unsupported_encoding` if the signature cannot be encoded into the given format.
-
-##### Params
-- <a href="#signature_export.signature" name="signature_export.signature"></a> `signature`: [`signature`](#signature)
-
-- <a href="#signature_export.encoding" name="signature_export.encoding"></a> `encoding`: [`signature_encoding`](#signature_encoding)
-
-##### Results
-- <a href="#signature_export.error" name="signature_export.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-- <a href="#signature_export.encoded" name="signature_export.encoded"></a> `encoded`: [`array_output`](#array_output)
-
-
----
-
-#### <a href="#signature_import" name="signature_import"></a> `signature_import(algorithm: string, encoding: signature_encoding, encoded: ConstPointer<u8>, encoded_len: size) -> (crypto_errno, signature)`
-Create a signature object.
-
-This object can be used along with a public key to verify an existing signature.
-
-It may return `invalid_signature` if the signature is invalid or incompatible with the specified algorithm, as well as `unsupported_encoding` if the encoding is not compatible with the signature type.
-
-The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
-
-Example usage:
-
-```rust
-let signature_handle = ctx.signature_import("ECDSA_P256_SHA256", SignatureEncoding::DER, encoded)?;
-```
-
-##### Params
-- <a href="#signature_import.algorithm" name="signature_import.algorithm"></a> `algorithm`: `string`
-
-- <a href="#signature_import.encoding" name="signature_import.encoding"></a> `encoding`: [`signature_encoding`](#signature_encoding)
-
-- <a href="#signature_import.encoded" name="signature_import.encoded"></a> `encoded`: `ConstPointer<u8>`
-
-- <a href="#signature_import.encoded_len" name="signature_import.encoded_len"></a> `encoded_len`: [`size`](#size)
-
-##### Results
-- <a href="#signature_import.error" name="signature_import.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-- <a href="#signature_import.signature" name="signature_import.signature"></a> `signature`: [`signature`](#signature)
-
-
----
-
-#### <a href="#signature_state_open" name="signature_state_open"></a> `signature_state_open(kp: signature_keypair) -> (crypto_errno, signature_state)`
-Create a new state to collect data to compute a signature on.
-
-This function allows data to be signed to be supplied in a streaming fashion.
-
-The state is not closed and can be used after a signature has been computed, allowing incremental updates by calling `signature_state_update()` again afterwards.
-
-Example usage - signature creation
-
-```rust
-let kp_handle = ctx.signature_keypair_import("Ed25519ph", keypair, KeypairEncoding::Raw)?;
-let state_handle = ctx.signature_state_open(kp_handle)?;
-ctx.signature_state_update(state_handle, b"message part 1")?;
-ctx.signature_state_update(state_handle, b"message part 2")?;
-let sig_handle = ctx.signature_state_sign(state_handle)?;
-let raw_sig = ctx.signature_export(sig_handle, SignatureEncoding::Raw)?;
-```
-
-##### Params
-- <a href="#signature_state_open.kp" name="signature_state_open.kp"></a> `kp`: [`signature_keypair`](#signature_keypair)
-
-##### Results
-- <a href="#signature_state_open.error" name="signature_state_open.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-- <a href="#signature_state_open.state" name="signature_state_open.state"></a> `state`: [`signature_state`](#signature_state)
-
-
----
-
-#### <a href="#signature_state_update" name="signature_state_update"></a> `signature_state_update(state: signature_state, input: ConstPointer<u8>, input_len: size) -> crypto_errno`
-Absorb data into the signature state.
-
-This function may return `unsupported_feature` is the selected algorithm doesn't support incremental updates.
-
-##### Params
-- <a href="#signature_state_update.state" name="signature_state_update.state"></a> `state`: [`signature_state`](#signature_state)
-
-- <a href="#signature_state_update.input" name="signature_state_update.input"></a> `input`: `ConstPointer<u8>`
-
-- <a href="#signature_state_update.input_len" name="signature_state_update.input_len"></a> `input_len`: [`size`](#size)
-
-##### Results
-- <a href="#signature_state_update.error" name="signature_state_update.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-
----
-
-#### <a href="#signature_state_sign" name="signature_state_sign"></a> `signature_state_sign(state: signature_state) -> (crypto_errno, array_output)`
-Compute a signature for all the data collected up to that point.
-
-The function can be called multiple times for incremental signing.
-
-##### Params
-- <a href="#signature_state_sign.state" name="signature_state_sign.state"></a> `state`: [`signature_state`](#signature_state)
-
-##### Results
-- <a href="#signature_state_sign.error" name="signature_state_sign.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-- <a href="#signature_state_sign.signature" name="signature_state_sign.signature"></a> `signature`: [`array_output`](#array_output)
-
-
----
-
-#### <a href="#signature_state_close" name="signature_state_close"></a> `signature_state_close(state: signature_state) -> crypto_errno`
-Destroy a signature state.
-
-Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
-
-Note that closing a signature state doesn't close or invalidate the key pair object, that be reused for further signatures.
-
-##### Params
-- <a href="#signature_state_close.state" name="signature_state_close.state"></a> `state`: [`signature_state`](#signature_state)
-
-##### Results
-- <a href="#signature_state_close.error" name="signature_state_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-
----
-
-#### <a href="#signature_verification_state_open" name="signature_verification_state_open"></a> `signature_verification_state_open(kp: signature_publickey) -> (crypto_errno, signature_verification_state)`
-Create a new state to collect data to verify a signature on.
-
-This is the verification counterpart of [`signature_state`](#signature_state).
-
-Data can be injected using `signature_verification_state_update()`, and the state is not closed after a verification, allowing incremental verification.
-
-Example usage - signature verification:
-
-```rust
-let pk_handle = ctx.signature_publickey_import("ECDSA_P256_SHA256", encoded_pk PublicKeyEncoding::CompressedSec)?;
-let signature_handle = ctx.signature_import("ECDSA_P256_SHA256", encoded_sig, PublicKeyEncoding::Der)?;
-let state_handle = ctx.signature_verification_state_open(pk_handle)?;
-ctx.signature_verification_state_update(state_handle, "message")?;
-ctx.signature_verification_state_verify(signature_handle)?;
-```
-
-##### Params
-- <a href="#signature_verification_state_open.kp" name="signature_verification_state_open.kp"></a> `kp`: [`signature_publickey`](#signature_publickey)
-
-##### Results
-- <a href="#signature_verification_state_open.error" name="signature_verification_state_open.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-- <a href="#signature_verification_state_open.state" name="signature_verification_state_open.state"></a> `state`: [`signature_verification_state`](#signature_verification_state)
-
-
----
-
-#### <a href="#signature_verification_state_update" name="signature_verification_state_update"></a> `signature_verification_state_update(state: signature_verification_state, input: ConstPointer<u8>, input_len: size) -> crypto_errno`
-Absorb data into the signature verification state.
-
-This function may return `unsupported_feature` is the selected algorithm doesn't support incremental updates.
-
-##### Params
-- <a href="#signature_verification_state_update.state" name="signature_verification_state_update.state"></a> `state`: [`signature_verification_state`](#signature_verification_state)
-
-- <a href="#signature_verification_state_update.input" name="signature_verification_state_update.input"></a> `input`: `ConstPointer<u8>`
-
-- <a href="#signature_verification_state_update.input_len" name="signature_verification_state_update.input_len"></a> `input_len`: [`size`](#size)
-
-##### Results
-- <a href="#signature_verification_state_update.error" name="signature_verification_state_update.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-
----
-
-#### <a href="#signature_verification_state_verify" name="signature_verification_state_verify"></a> `signature_verification_state_verify(state: signature_verification_state, signature: signature) -> crypto_errno`
-Check that the given signature is verifies for the data collected up to that point point.
-
-The state is not closed and can absorb more data to allow for incremental verification.
-
-The function returns `invalid_signature` if the signature doesn't appear to be valid.
-
-##### Params
-- <a href="#signature_verification_state_verify.state" name="signature_verification_state_verify.state"></a> `state`: [`signature_verification_state`](#signature_verification_state)
-
-- <a href="#signature_verification_state_verify.signature" name="signature_verification_state_verify.signature"></a> `signature`: [`signature`](#signature)
-
-##### Results
-- <a href="#signature_verification_state_verify.error" name="signature_verification_state_verify.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-
----
-
-#### <a href="#signature_verification_state_close" name="signature_verification_state_close"></a> `signature_verification_state_close(state: signature_verification_state) -> crypto_errno`
-Destroy a signature verification state.
-
-Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
-
-Note that closing a signature state doesn't close or invalidate the public key object, that be reused for further verifications.
-
-##### Params
-- <a href="#signature_verification_state_close.state" name="signature_verification_state_close.state"></a> `state`: [`signature_verification_state`](#signature_verification_state)
-
-##### Results
-- <a href="#signature_verification_state_close.error" name="signature_verification_state_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
-
-
----
-
-#### <a href="#signature_close" name="signature_close"></a> `signature_close(signature: signature) -> crypto_errno`
-Destroy a signature.
-
-Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
-
-##### Params
-- <a href="#signature_close.signature" name="signature_close.signature"></a> `signature`: [`signature`](#signature)
-
-##### Results
-- <a href="#signature_close.error" name="signature_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 

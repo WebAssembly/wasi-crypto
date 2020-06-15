@@ -4,8 +4,7 @@ use crate::error::*;
 use crate::handles::*;
 use crate::signatures::SignatureOptions;
 use crate::symmetric::SymmetricOptions;
-use crate::types as guest_types;
-use crate::CryptoCtx;
+use crate::{AlgorithmType, CryptoCtx};
 
 pub trait OptionsLike: Send + Sized {
     fn as_any(&self) -> &dyn Any;
@@ -96,25 +95,11 @@ impl Options {
     }
 }
 
-pub enum OptionsType {
-    Signatures,
-    Symmetric,
-}
-
-impl From<guest_types::OptionsType> for OptionsType {
-    fn from(options_type: guest_types::OptionsType) -> Self {
-        match options_type {
-            guest_types::OptionsType::Signatures => OptionsType::Signatures,
-            guest_types::OptionsType::Symmetric => OptionsType::Symmetric,
-        }
-    }
-}
-
 impl CryptoCtx {
-    pub fn options_open(&self, options_type: OptionsType) -> Result<Handle, CryptoError> {
-        let options = match options_type {
-            OptionsType::Signatures => Options::Signatures(SignatureOptions::default()),
-            OptionsType::Symmetric => Options::Symmetric(SymmetricOptions::default()),
+    pub fn options_open(&self, algorithm_type: AlgorithmType) -> Result<Handle, CryptoError> {
+        let options = match algorithm_type {
+            AlgorithmType::Signatures => Options::Signatures(SignatureOptions::default()),
+            AlgorithmType::Symmetric => Options::Symmetric(SymmetricOptions::default()),
         };
         let handle = self.handles.options.register(options)?;
         Ok(handle)

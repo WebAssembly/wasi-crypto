@@ -119,7 +119,7 @@
 
     ;;; A key or key pair matching the requested identifier cannot be found using the supplied information.
     ;;;
-    ;;; This error is returned by a key manager via the `signature_keypair_from_id()` function.
+    ;;; This error is returned by a key manager via the `keypair_from_id()` function.
     $key_not_found
 
     ;;; The algorithm requires parameters that haven't been set.
@@ -133,6 +133,11 @@
     ;;;
     ;;; In order to avoid a host call to be blocked for too long, these functions can return prematurely, requiring additional calls with the same parameters until they complete.
     $in_progress
+
+    ;;; Multiple keys have been provided, but they do not share the same type.
+    ;;;
+    ;;; This error is returned when trying to build a key pair from a public key and a secret key that were created for different and incompatible algorithms.
+    $incompatible_keys
   )
 )
 
@@ -173,6 +178,26 @@
   )
 )
 
+;;; Encoding to use for importing or exporting a secret key.
+(typename $secretkey_encoding
+  (enum u16
+    ;;; Raw bytes.
+    $raw
+
+    ;;; DER encoding.
+    $der
+
+    ;;; PEM encoding.
+    $pem
+
+    ;;; SEC encoding.
+    $sec
+
+    ;;; Compressed SEC encoding.
+    $compressed_sec
+  )
+)
+
 ;;; Encoding to use for importing or exporting a signature.
 (typename $signature_encoding
   (enum u16
@@ -184,10 +209,8 @@
   )
 )
 
-;;; Type of an options set.
-;;;
-;;; This is used when creating a new options set with `options_open()`.
-(typename $options_type
+;;; An algorithm category.
+(typename $algorithm_type
   (enum u16
     $signatures
     $symmetric
@@ -236,8 +259,8 @@
 ;;; This is used to generate, retrieve and invalidate managed keys.
 (typename $key_manager (handle))
 
-;;; A key pair for signatures.
-(typename $signature_keypair (handle))
+;;; A key pair.
+(typename $keypair (handle))
 
 ;;; A state to absorb data to be signed.
 ;;;
@@ -249,8 +272,11 @@
 ;;; A signature.
 (typename $signature (handle))
 
-;;; A public key that can be used to verify a signature.
-(typename $signature_publickey (handle))
+;;; A public key, for key exchange and signature verification.
+(typename $publickey (handle))
+
+;;; A secret key, for key exchange mechanisms.
+(typename $secretkey (handle))
 
 ;;; A state to absorb signed data to be verified.
 (typename $signature_verification_state (handle))
@@ -303,14 +329,14 @@
   ;;; Example usage:
   ;;;
   ;;; ```rust
-  ;;; let options_handle = options_open()?;
+  ;;; let options_handle = options_open(AlgorithmType::Symmetric)?;
   ;;; options_set(options_handle, "context", context)?;
   ;;; options_set_u64(options_handle, "threads", 4)?;
   ;;; let state = symmetric_state_open("BLAKE3", None, Some(options_handle))?;
   ;;; options_close(options_handle)?;
   ;;; ```
   (@interface func (export "options_open")
-    (param $options_type $options_type)
+    (param $algorithm_type $algorithm_type)
     (result $error $crypto_errno)
     (result $handle $options)
   )

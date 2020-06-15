@@ -2,9 +2,14 @@ use ring::signature::KeyPair as _;
 use std::sync::Arc;
 use zeroize::Zeroize;
 
-use super::keypair::*;
 use super::*;
+use crate::asymmetric_common::*;
 use crate::error::*;
+
+#[derive(Debug, Clone)]
+pub struct EddsaSignatureSecretKey {
+    pub alg: SignatureAlgorithm,
+}
 
 #[derive(Clone, Debug)]
 pub struct EddsaSignatureKeyPair {

@@ -75,6 +75,35 @@
   )
 
   ;;; __(optional)__
+  ;;; Replace a managed key pair.
+  ;;;
+  ;;; This function crates a new version of a managed key pair, by replacing `$kp_old` with `$kp_new`.
+  ;;;
+  ;;; It does several things:
+  ;;;
+  ;;; - The key identifier for `$kp_new` is set to the one of `$kp_old`.
+  ;;; - A new, unique version identifier is assigned to `$kp_new`. This version will be equivalent to using `$version_latest` until the key is replaced.
+  ;;; - The `$kp_old` handle is closed.
+  ;;;
+  ;;; Both keys must share the same algorithm and have compatible parameters. If this is not the case, `incompatible_keys` is returned.
+  ;;;
+  ;;; The function may also return the `unsupported_feature` error code if key management facilities are not supported by the host,
+  ;;; or if keys cannot be rotated.
+  ;;;
+  ;;; Finally, `prohibited_operation` can be returned if `$kp_new` wasn't created by the key manager, and the key manager prohibits imported keys.
+  ;;;
+  ;;; If the operation succeeded, the new version is returned.
+  ;;;
+  ;;; This is an optional import, meaning that the function may not even exist.
+  (@interface func (export "keypair_replace_managed")
+    (param $key_manager $key_manager)
+    (param $kp_old $keypair)
+    (param $kp_new $keypair)
+    (result $error $crypto_errno)
+    (result $version $version)
+  )
+
+  ;;; __(optional)__
   ;;; Return the key pair identifier and version of a managed key pair.
   ;;;
   ;;; If the key pair is not managed, `unsupported_feature` is returned instead.

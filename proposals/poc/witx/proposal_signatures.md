@@ -145,6 +145,9 @@ Multiple keys have been provided, but they do not share the same type.
 
 This error is returned when trying to build a key pair from a public key and a secret key that were created for different and incompatible algorithms.
 
+- <a href="#crypto_errno.expired_key" name="crypto_errno.expired_key"></a> `expired_key`
+A managed key expired and cannot be used any more.
+
 ## <a href="#keypair_encoding" name="keypair_encoding"></a> `keypair_encoding`: Enum(`u16`)
 Encoding to use for importing or exporting a key pair.
 
@@ -236,6 +239,8 @@ Alignment: 2
 - <a href="#algorithm_type.signatures" name="algorithm_type.signatures"></a> `signatures`
 
 - <a href="#algorithm_type.symmetric" name="algorithm_type.symmetric"></a> `symmetric`
+
+- <a href="#algorithm_type.key_exchange" name="algorithm_type.key_exchange"></a> `key_exchange`
 
 ## <a href="#version" name="version"></a> `version`: Int(`u64`)
 Version of a managed key.
@@ -468,6 +473,15 @@ Alignment: 4
 `$signature_publickey` is just an alias for `$publickey`
 
 However, bindings may want to define a specialized type [`signature_publickey`](#signature_publickey) as a super class of [`publickey`](#publickey), with additional methods such as `verify`.
+
+Size: 4
+
+Alignment: 4
+
+## <a href="#signature_secretkey" name="signature_secretkey"></a> `signature_secretkey`: [`secretkey`](#secretkey)
+`$signature_secretkey` is just an alias for `$secretkey`
+
+However, bindings may want to define a specialized type [`signature_secretkey`](#signature_secretkey) as a super class of [`secretkey`](#secretkey).
 
 Size: 4
 
@@ -799,6 +813,44 @@ This is also an optional import, meaning that the function may not even exist.
 
 ---
 
+#### <a href="#keypair_replace_managed" name="keypair_replace_managed"></a> `keypair_replace_managed(key_manager: key_manager, kp_old: keypair, kp_new: keypair) -> (crypto_errno, version)`
+__(optional)__
+Replace a managed key pair.
+
+This function crates a new version of a managed key pair, by replacing `$kp_old` with `$kp_new`.
+
+It does several things:
+
+- The key identifier for `$kp_new` is set to the one of `$kp_old`.
+- A new, unique version identifier is assigned to `$kp_new`. This version will be equivalent to using `$version_latest` until the key is replaced.
+- The `$kp_old` handle is closed.
+
+Both keys must share the same algorithm and have compatible parameters. If this is not the case, `incompatible_keys` is returned.
+
+The function may also return the `unsupported_feature` error code if key management facilities are not supported by the host,
+or if keys cannot be rotated.
+
+Finally, `prohibited_operation` can be returned if `$kp_new` wasn't created by the key manager, and the key manager prohibits imported keys.
+
+If the operation succeeded, the new version is returned.
+
+This is an optional import, meaning that the function may not even exist.
+
+##### Params
+- <a href="#keypair_replace_managed.key_manager" name="keypair_replace_managed.key_manager"></a> `key_manager`: [`key_manager`](#key_manager)
+
+- <a href="#keypair_replace_managed.kp_old" name="keypair_replace_managed.kp_old"></a> `kp_old`: [`keypair`](#keypair)
+
+- <a href="#keypair_replace_managed.kp_new" name="keypair_replace_managed.kp_new"></a> `kp_new`: [`keypair`](#keypair)
+
+##### Results
+- <a href="#keypair_replace_managed.error" name="keypair_replace_managed.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#keypair_replace_managed.version" name="keypair_replace_managed.version"></a> `version`: [`version`](#version)
+
+
+---
+
 #### <a href="#keypair_id" name="keypair_id"></a> `keypair_id(kp: keypair, kp_id: Pointer<u8>, kp_id_max_len: size) -> (crypto_errno, size, version)`
 __(optional)__
 Return the key pair identifier and version of a managed key pair.
@@ -1115,7 +1167,7 @@ May return `unsupported_encoding` if the signature cannot be encoded into the gi
 
 ---
 
-#### <a href="#signature_import" name="signature_import"></a> `signature_import(algorithm: string, encoding: signature_encoding, encoded: ConstPointer<u8>, encoded_len: size) -> (crypto_errno, signature)`
+#### <a href="#signature_import" name="signature_import"></a> `signature_import(algorithm: string, encoded: ConstPointer<u8>, encoded_len: size, encoding: signature_encoding) -> (crypto_errno, signature)`
 Create a signature object.
 
 This object can be used along with a public key to verify an existing signature.
@@ -1133,11 +1185,11 @@ let signature_handle = ctx.signature_import("ECDSA_P256_SHA256", SignatureEncodi
 ##### Params
 - <a href="#signature_import.algorithm" name="signature_import.algorithm"></a> `algorithm`: `string`
 
-- <a href="#signature_import.encoding" name="signature_import.encoding"></a> `encoding`: [`signature_encoding`](#signature_encoding)
-
 - <a href="#signature_import.encoded" name="signature_import.encoded"></a> `encoded`: `ConstPointer<u8>`
 
 - <a href="#signature_import.encoded_len" name="signature_import.encoded_len"></a> `encoded_len`: [`size`](#size)
+
+- <a href="#signature_import.encoding" name="signature_import.encoding"></a> `encoding`: [`signature_encoding`](#signature_encoding)
 
 ##### Results
 - <a href="#signature_import.error" name="signature_import.error"></a> `error`: [`crypto_errno`](#crypto_errno)

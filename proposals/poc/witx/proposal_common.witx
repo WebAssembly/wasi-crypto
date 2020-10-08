@@ -138,6 +138,9 @@
     ;;;
     ;;; This error is returned when trying to build a key pair from a public key and a secret key that were created for different and incompatible algorithms.
     $incompatible_keys
+
+    ;;; A managed key expired and cannot be used any more.
+    $expired_key
   )
 )
 
@@ -214,6 +217,7 @@
   (enum u16
     $signatures
     $symmetric
+    $key_exchange
   )
 )
 

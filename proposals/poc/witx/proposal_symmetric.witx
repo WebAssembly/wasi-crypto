@@ -1,5 +1,7 @@
 (use "proposal_common.witx")
 
+;;; Symmetric operations.
+
 (module $wasi_ephemeral_crypto_symmetric
   (import "memory" (memory))
 
@@ -69,7 +71,36 @@
   )
 
   ;;; __(optional)__
-  ;;; Return the key identifier and version of a managed symmetric key pair.
+  ;;; Replace a managed symmetric key.
+  ;;;
+  ;;; This function crates a new version of a managed symmetric key, by replacing `$kp_old` with `$kp_new`.
+  ;;;
+  ;;; It does several things:
+  ;;;
+  ;;; - The key identifier for `$symmetric_key_new` is set to the one of `$symmetric_key_old`.
+  ;;; - A new, unique version identifier is assigned to `$kp_new`. This version will be equivalent to using `$version_latest` until the key is replaced.
+  ;;; - The `$symmetric_key_old` handle is closed.
+  ;;;
+  ;;; Both keys must share the same algorithm and have compatible parameters. If this is not the case, `incompatible_keys` is returned.
+  ;;;
+  ;;; The function may also return the `unsupported_feature` error code if key management facilities are not supported by the host,
+  ;;; or if keys cannot be rotated.
+  ;;;
+  ;;; Finally, `prohibited_operation` can be returned if `$symmetric_key_new` wasn't created by the key manager, and the key manager prohibits imported keys.
+  ;;;
+  ;;; If the operation succeeded, the new version is returned.
+  ;;;
+  ;;; This is an optional import, meaning that the function may not even exist.
+  (@interface func (export "symmetric_key_replace_managed")
+    (param $key_manager $key_manager)
+    (param $symmetric_key_old $symmetric_key)
+    (param $symmetric_key_new $symmetric_key)
+    (result $error $crypto_errno)
+    (result $version $version)
+  )
+
+  ;;; __(optional)__
+  ;;; Return the key identifier and version of a managed symmetric key.
   ;;;
   ;;; If the key is not managed, `unsupported_feature` is returned instead.
   ;;;
@@ -86,7 +117,7 @@
   ;;; __(optional)__
   ;;; Return a managed symmetric key from a key identifier.
   ;;;
-  ;;; `kp_version` can be set to `version_latest` to retrieve the most recent version of a key pair.
+  ;;; `kp_version` can be set to `version_latest` to retrieve the most recent version of a symmetric key.
   ;;;
   ;;; If no key matching the provided information is found, `key_not_found` is returned instead.
   ;;;
@@ -428,7 +459,7 @@
   ;;; Encrypt data, with a detached tag.
   ;;;
   ;;; - **Stream cipher:** returns `invalid_operation` since stream ciphers do not include authentication tags.
-  ;;; - **AEAD:** encrypts `data` into `out` and returns the tag separately. Additional data must have been previously absorbed using `symmetric_state_absorb()`. The output and input buffers can be of the same length.
+  ;;; - **AEAD:** encrypts `data` into `out` and returns the tag separately. Additional data must have been previously absorbed using `symmetric_state_absorb()`. The output and input buffers must be of the same length.
   ;;; - **SHOE, Xoodyak, Strobe:** encrypts data and squeezes a tag.
   ;;;
   ;;; If `out` and `data` are the same address, encryption may happen in-place.
@@ -473,7 +504,8 @@
   ;;;
   ;;; `raw_tag` is the expected tag, as raw bytes.
   ;;;
-  ;;; If `out` and `data` are the same address, decryption may happen in-place.
+  ;;; `out` and `data` be must have the same length.
+  ;;; If they also share the same address, decryption may happen in-place.
   ;;;
   ;;; The function returns the actual size of the decrypted message.
   ;;;

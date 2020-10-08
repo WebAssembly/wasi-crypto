@@ -34,10 +34,10 @@ impl TryFrom<&str> for SignatureAlgorithm {
     type Error = CryptoError;
 
     fn try_from(alg_str: &str) -> Result<Self, CryptoError> {
-        match alg_str {
+        match alg_str.to_uppercase().as_str() {
             "ECDSA_P256_SHA256" => Ok(SignatureAlgorithm::ECDSA_P256_SHA256),
             "ECDSA_P384_SHA384" => Ok(SignatureAlgorithm::ECDSA_P384_SHA384),
-            "Ed25519" => Ok(SignatureAlgorithm::Ed25519),
+            "ED25519" => Ok(SignatureAlgorithm::Ed25519),
             "RSA_PKCS1_2048_8192_SHA256" => Ok(SignatureAlgorithm::RSA_PKCS1_2048_8192_SHA256),
             "RSA_PKCS1_2048_8192_SHA384" => Ok(SignatureAlgorithm::RSA_PKCS1_2048_8192_SHA384),
             "RSA_PKCS1_2048_8192_SHA512" => Ok(SignatureAlgorithm::RSA_PKCS1_2048_8192_SHA512),

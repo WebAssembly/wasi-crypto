@@ -63,6 +63,8 @@ pub enum CryptoError {
     ParametersMissing,
     #[error("Incompatible keys")]
     IncompatibleKeys,
+    #[error("Expired key")]
+    ExpiredKey,
 }
 
 impl From<CryptoError> for guest_types::CryptoErrno {
@@ -96,6 +98,7 @@ impl From<CryptoError> for guest_types::CryptoErrno {
             CryptoError::KeyNotFound => guest_types::CryptoErrno::KeyNotFound,
             CryptoError::ParametersMissing => guest_types::CryptoErrno::ParametersMissing,
             CryptoError::IncompatibleKeys => guest_types::CryptoErrno::IncompatibleKeys,
+            CryptoError::ExpiredKey => guest_types::CryptoErrno::ExpiredKey,
         }
     }
 }

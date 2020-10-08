@@ -32,6 +32,22 @@ impl crate::wasi_ephemeral_crypto_asymmetric_common::WasiEphemeralCryptoAsymmetr
             .into())
     }
 
+    fn keypair_replace_managed(
+        &self,
+        key_manager_handle: guest_types::KeyManager,
+        kp_old_handle: guest_types::Keypair,
+        kp_new_handle: guest_types::Keypair,
+    ) -> Result<guest_types::Version, guest_types::CryptoErrno> {
+        Ok(self
+            .ctx
+            .keypair_replace_managed(
+                key_manager_handle.into(),
+                kp_old_handle.into(),
+                kp_new_handle.into(),
+            )?
+            .into())
+    }
+
     fn keypair_from_id(
         &self,
         key_manager_handle: guest_types::KeyManager,

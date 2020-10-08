@@ -115,6 +115,8 @@ pub trait SymmetricStateLike: Sync + Send {
         data: &[u8],
     ) -> Result<SymmetricTag, CryptoError> {
         ensure!(out.len() >= data.len(), CryptoError::Overflow);
+        ensure!(out.len() == data.len(), CryptoError::InvalidLength);
+
         self.encrypt_detached_unchecked(out, data)
     }
 
@@ -156,6 +158,8 @@ pub trait SymmetricStateLike: Sync + Send {
         raw_tag: &[u8],
     ) -> Result<usize, CryptoError> {
         ensure!(out.len() >= data.len(), CryptoError::Overflow);
+        ensure!(out.len() == data.len(), CryptoError::InvalidLength);
+
         match self.decrypt_detached_unchecked(out, data, raw_tag) {
             Ok(out_len) => Ok(out_len),
             Err(e) => {

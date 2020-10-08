@@ -1,4 +1,5 @@
 use super::*;
+use crate::options::Options;
 use crate::types as guest_types;
 use crate::AlgorithmType;
 
@@ -23,34 +24,60 @@ impl From<guest_types::KeypairEncoding> for KeyPairEncoding {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub enum KeyPair {
     Signature(SignatureKeyPair),
+    KeyExchange(KxKeyPair),
 }
 
 impl KeyPair {
     pub(crate) fn into_signature_keypair(self) -> Result<SignatureKeyPair, CryptoError> {
         match self {
             KeyPair::Signature(kp) => Ok(kp),
+            _ => bail!(CryptoError::InvalidHandle),
+        }
+    }
+
+    pub(crate) fn into_kx_keypair(self) -> Result<KxKeyPair, CryptoError> {
+        match self {
+            KeyPair::KeyExchange(kp) => Ok(kp),
+            _ => bail!(CryptoError::InvalidHandle),
         }
     }
 
     pub fn export(&self, encoding: KeyPairEncoding) -> Result<Vec<u8>, CryptoError> {
         match self {
             KeyPair::Signature(key_pair) => key_pair.export(encoding),
+            KeyPair::KeyExchange(key_pair) => key_pair.export(encoding),
         }
     }
 
     pub fn generate(
         alg_type: AlgorithmType,
         alg_str: &str,
-        options: Option<SignatureOptions>,
+        options: Option<Options>,
     ) -> Result<KeyPair, CryptoError> {
         match alg_type {
-            AlgorithmType::Signatures => Ok(KeyPair::Signature(SignatureKeyPair::generate(
-                SignatureAlgorithm::try_from(alg_str)?,
-                options,
-            )?)),
+            AlgorithmType::Signatures => {
+                let options = match options {
+                    None => None,
+                    Some(options) => Some(options.into_signatures()?),
+                };
+                Ok(KeyPair::Signature(SignatureKeyPair::generate(
+                    SignatureAlgorithm::try_from(alg_str)?,
+                    options,
+                )?))
+            }
+            AlgorithmType::KeyExchange => {
+                let options = match options {
+                    None => None,
+                    Some(options) => Some(options.into_key_exchange()?),
+                };
+                Ok(KeyPair::KeyExchange(KxKeyPair::generate(
+                    KxAlgorithm::try_from(alg_str)?,
+                    options,
+                )?))
+            }
             _ => bail!(CryptoError::InvalidOperation),
         }
     }
@@ -76,6 +103,10 @@ impl KeyPair {
             (PublicKey::Signature(pk), SecretKey::Signature(sk)) => {
                 ensure!(pk.alg() == sk.alg(), CryptoError::IncompatibleKeys);
             }
+            (PublicKey::KeyExchange(pk), SecretKey::KeyExchange(sk)) => {
+                ensure!(pk.alg() == sk.alg(), CryptoError::IncompatibleKeys);
+            }
+            _ => bail!(CryptoError::IncompatibleKeys),
         }
         bail!(CryptoError::NotImplemented);
     }
@@ -83,11 +114,15 @@ impl KeyPair {
     pub fn public_key(&self) -> Result<PublicKey, CryptoError> {
         match self {
             KeyPair::Signature(key_pair) => Ok(PublicKey::Signature(key_pair.public_key()?)),
+            KeyPair::KeyExchange(key_pair) => Ok(PublicKey::KeyExchange(key_pair.public_key()?)),
         }
     }
 
     pub fn secret_key(&self) -> Result<SecretKey, CryptoError> {
-        bail!(CryptoError::NotImplemented)
+        match self {
+            KeyPair::Signature(key_pair) => Ok(SecretKey::Signature(key_pair.secret_key()?)),
+            KeyPair::KeyExchange(key_pair) => Ok(SecretKey::KeyExchange(key_pair.secret_key()?)),
+        }
     }
 }
 
@@ -100,12 +135,7 @@ impl CryptoCtx {
     ) -> Result<Handle, CryptoError> {
         let options = match options_handle {
             None => None,
-            Some(options_handle) => Some(
-                self.handles
-                    .options
-                    .get(options_handle)?
-                    .into_signatures()?,
-            ),
+            Some(options_handle) => Some(self.handles.options.get(options_handle)?),
         };
         let kp = KeyPair::generate(alg_type, alg_str, options)?;
         let handle = self.handles.keypair.register(kp)?;

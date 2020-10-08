@@ -28,6 +28,22 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
             .into())
     }
 
+    fn symmetric_key_replace_managed(
+        &self,
+        key_manager_handle: guest_types::KeyManager,
+        symmetric_key_old_handle: guest_types::SymmetricKey,
+        symmetric_key_new_handle: guest_types::SymmetricKey,
+    ) -> Result<guest_types::Version, guest_types::CryptoErrno> {
+        Ok(self
+            .ctx
+            .symmetric_key_replace_managed(
+                key_manager_handle.into(),
+                symmetric_key_old_handle.into(),
+                symmetric_key_new_handle.into(),
+            )?
+            .into())
+    }
+
     fn symmetric_key_from_id(
         &self,
         key_manager_handle: guest_types::KeyManager,

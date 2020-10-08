@@ -2,6 +2,7 @@ use std::any::Any;
 
 use crate::error::*;
 use crate::handles::*;
+use crate::key_exchange::KxOptions;
 use crate::signatures::SignatureOptions;
 use crate::symmetric::SymmetricOptions;
 use crate::{AlgorithmType, CryptoCtx};
@@ -38,6 +39,7 @@ pub trait OptionsLike: Send + Sized {
 pub enum Options {
     Signatures(SignatureOptions),
     Symmetric(SymmetricOptions),
+    KeyExchange(KxOptions),
 }
 
 impl Options {
@@ -55,10 +57,18 @@ impl Options {
         }
     }
 
+    pub fn into_key_exchange(self) -> Result<KxOptions, CryptoError> {
+        match self {
+            Options::KeyExchange(options) => Ok(options),
+            _ => bail!(CryptoError::InvalidHandle),
+        }
+    }
+
     pub fn set(&mut self, name: &str, value: &[u8]) -> Result<(), CryptoError> {
         match self {
             Options::Signatures(options) => options.set(name, value),
             Options::Symmetric(options) => options.set(name, value),
+            Options::KeyExchange(options) => options.set(name, value),
         }
     }
 
@@ -70,6 +80,7 @@ impl Options {
         match self {
             Options::Signatures(options) => options.set_guest_buffer(name, buffer),
             Options::Symmetric(options) => options.set_guest_buffer(name, buffer),
+            Options::KeyExchange(options) => options.set_guest_buffer(name, buffer),
         }
     }
 
@@ -77,6 +88,7 @@ impl Options {
         match self {
             Options::Signatures(options) => options.get(name),
             Options::Symmetric(options) => options.get(name),
+            Options::KeyExchange(options) => options.get(name),
         }
     }
 
@@ -84,6 +96,7 @@ impl Options {
         match self {
             Options::Signatures(options) => options.set_u64(name, value),
             Options::Symmetric(options) => options.set_u64(name, value),
+            Options::KeyExchange(options) => options.set_u64(name, value),
         }
     }
 
@@ -91,6 +104,7 @@ impl Options {
         match self {
             Options::Signatures(options) => options.get_u64(name),
             Options::Symmetric(options) => options.get_u64(name),
+            Options::KeyExchange(options) => options.get_u64(name),
         }
     }
 }
@@ -100,6 +114,7 @@ impl CryptoCtx {
         let options = match algorithm_type {
             AlgorithmType::Signatures => Options::Signatures(SignatureOptions::default()),
             AlgorithmType::Symmetric => Options::Symmetric(SymmetricOptions::default()),
+            AlgorithmType::KeyExchange => Options::KeyExchange(KxOptions::default()),
         };
         let handle = self.handles.options.register(options)?;
         Ok(handle)

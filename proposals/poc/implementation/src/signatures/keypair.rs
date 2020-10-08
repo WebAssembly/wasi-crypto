@@ -3,7 +3,7 @@ use super::eddsa::*;
 use super::publickey::*;
 use super::rsa::*;
 use super::*;
-use crate::asymmetric_common::KeyPairEncoding;
+use crate::asymmetric_common::*;
 use crate::error::*;
 
 #[derive(Clone, Debug)]
@@ -85,5 +85,9 @@ impl SignatureKeyPair {
             }
         };
         Ok(pk)
+    }
+
+    pub(crate) fn secret_key(&self) -> Result<SignatureSecretKey, CryptoError> {
+        bail!(CryptoError::NotImplemented)
     }
 }

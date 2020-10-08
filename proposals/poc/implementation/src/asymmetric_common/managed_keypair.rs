@@ -14,6 +14,16 @@ impl CryptoCtx {
         bail!(CryptoError::UnsupportedFeature)
     }
 
+    pub fn keypair_replace_managed(
+        &self,
+        _key_manager_handle: Handle,
+        kp_old_handle: Handle,
+        kp_new_handle: Handle,
+    ) -> Result<Version, CryptoError> {
+        let _kp_old = self.handles.keypair.get(kp_old_handle)?;
+        let _kp_new = self.handles.keypair.get(kp_new_handle)?;
+        bail!(CryptoError::UnsupportedFeature)
+    }
     pub fn keypair_from_id(
         &self,
         _key_manager_handle: Handle,

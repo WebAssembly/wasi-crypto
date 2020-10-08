@@ -3,6 +3,9 @@ use crate::handles::*;
 use crate::version::Version;
 use crate::CryptoCtx;
 
+#[derive(Clone, Debug)]
+pub struct KeyManager {}
+
 impl CryptoCtx {
     pub fn key_manager_open(&self, _options: Option<Handle>) -> Result<Handle, CryptoError> {
         bail!(CryptoError::UnsupportedFeature)

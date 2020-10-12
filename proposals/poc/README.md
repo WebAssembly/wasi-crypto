@@ -7,6 +7,8 @@ A proposal for a WASI cryptography API.
   * symmetric operations ([witx](witx/proposal_siymmetric.witx), [doc](witx/proposal_symmetric.md))
   * common types and functions for asymmetric operations ([witx](witx/proposal_asymmetric_common.witx), [doc](witx/proposal_asymmetric_common.md))
   * signatures ([witx](witx/proposal_signatures.witx), [doc](witx/proposal_signatures.md))
+  * key exchange ([witx](witx/proposal_kx.witx), [doc](witx/proposal_kx.md))
+* [Short API overview](witx/wasi_ephemeral_crypto.txt)
 * [Toy implementation](https://github.com/jedisct1/wasi-crypto-preview/tree/master/implementation)
 * [Wasmtime integration](https://github.com/jedisct1/wasmtime-crypto)
 * [Example AssemblyScript bindings](https://github.com/jedisct1/as-crypto)

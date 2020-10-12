@@ -117,7 +117,7 @@ impl KxKeyPairBuilder for X25519KeyPairBuilder {
         let mut sk_raw = vec![0u8; SK_LEN];
         rng.fill(&mut sk_raw).map_err(|_| CryptoError::RNGError)?;
         let sk = X25519SecretKey::new(self.alg, sk_raw)?;
-        let pk = sk.into_x25519_publickey()?;
+        let pk = sk.x25519_publickey()?;
         let kp = X25519KeyPair {
             alg: self.alg,
             pk,
@@ -151,9 +151,9 @@ pub struct X25519PublicKeyBuilder {
 
 impl KxPublicKeyBuilder for X25519PublicKeyBuilder {
     fn from_raw(&self, raw: &[u8]) -> Result<KxPublicKey, CryptoError> {
-        ensure!(raw.len() == SK_LEN, CryptoError::InvalidKey);
-        let sk = X25519PublicKey::new(self.alg, raw)?;
-        Ok(KxPublicKey::new(Box::new(sk)))
+        ensure!(raw.len() == PK_LEN, CryptoError::InvalidKey);
+        let pk = X25519PublicKey::new(self.alg, raw)?;
+        Ok(KxPublicKey::new(Box::new(pk)))
     }
 }
 
@@ -211,7 +211,7 @@ impl KxPublicKeyLike for X25519PublicKey {
 }
 
 impl X25519SecretKey {
-    fn into_x25519_publickey(&self) -> Result<X25519PublicKey, CryptoError> {
+    fn x25519_publickey(&self) -> Result<X25519PublicKey, CryptoError> {
         let group_element = X25519_BASEPOINT * self.clamped_scalar;
         reject_neutral_element(&group_element).map_err(|_| CryptoError::RNGError)?;
         let pk = X25519PublicKey {
@@ -239,8 +239,8 @@ impl KxSecretKeyLike for X25519SecretKey {
         Ok(&self.raw)
     }
 
-    fn into_publickey(&self) -> Result<KxPublicKey, CryptoError> {
-        Ok(KxPublicKey::new(Box::new(self.into_x25519_publickey()?)))
+    fn publickey(&self) -> Result<KxPublicKey, CryptoError> {
+        Ok(KxPublicKey::new(Box::new(self.x25519_publickey()?)))
     }
 
     fn dh(&self, pk: &KxPublicKey) -> Result<Vec<u8>, CryptoError> {

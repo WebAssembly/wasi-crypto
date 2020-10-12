@@ -1,13 +1,15 @@
+mod dh;
+mod kem;
 mod keypair;
 mod publickey;
 mod secretkey;
 mod wasi_glue;
-mod x25519;
 
 use std::any::Any;
 use std::convert::TryFrom;
 
-use self::x25519::*;
+use self::dh::*;
+use self::kem::*;
 use crate::array_output::*;
 use crate::error::*;
 use crate::handles::*;
@@ -46,6 +48,7 @@ impl OptionsLike for KxOptions {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum KxAlgorithm {
     X25519,
+    Kyber768,
 }
 
 impl TryFrom<&str> for KxAlgorithm {
@@ -54,6 +57,7 @@ impl TryFrom<&str> for KxAlgorithm {
     fn try_from(alg_str: &str) -> Result<Self, CryptoError> {
         match alg_str.to_uppercase().as_str() {
             "X25519" => Ok(KxAlgorithm::X25519),
+            "KYBER768" => Ok(KxAlgorithm::Kyber768),
             _ => bail!(CryptoError::UnsupportedAlgorithm),
         }
     }
@@ -98,4 +102,42 @@ fn test_key_exchange() {
 
     ctx.keypair_close(kx_kp_handle1).unwrap();
     ctx.keypair_close(kx_kp_handle2).unwrap();
+}
+
+#[test]
+fn test_key_encapsulation() {
+    use crate::{AlgorithmType, CryptoCtx, KeyPairEncoding};
+
+    let ctx = CryptoCtx::new();
+
+    let kx_kp_handle = ctx
+        .keypair_generate(AlgorithmType::KeyExchange, "Kyber768", None)
+        .unwrap();
+    let pk = ctx.keypair_publickey(kx_kp_handle).unwrap();
+    let sk = ctx.keypair_secretkey(kx_kp_handle).unwrap();
+
+    let (secret_handle, encapsulated_secret_handle) = ctx.kx_encapsulate(pk).unwrap();
+    let mut secret_raw_bytes = vec![0u8; ctx.array_output_len(secret_handle).unwrap()];
+    ctx.array_output_pull(secret_handle, &mut secret_raw_bytes)
+        .unwrap();
+    let mut encapsulated_secret_raw_bytes =
+        vec![0u8; ctx.array_output_len(encapsulated_secret_handle).unwrap()];
+    ctx.array_output_pull(
+        encapsulated_secret_handle,
+        &mut encapsulated_secret_raw_bytes,
+    )
+    .unwrap();
+
+    let decapsulated_secret_handle = ctx
+        .kx_decapsulate(sk, &encapsulated_secret_raw_bytes)
+        .unwrap();
+    let mut decapsulated_secret_raw_bytes =
+        vec![0u8; ctx.array_output_len(decapsulated_secret_handle).unwrap()];
+    ctx.array_output_pull(
+        decapsulated_secret_handle,
+        &mut decapsulated_secret_raw_bytes,
+    )
+    .unwrap();
+
+    assert_eq!(secret_raw_bytes, decapsulated_secret_raw_bytes);
 }

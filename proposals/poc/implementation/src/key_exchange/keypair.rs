@@ -38,6 +38,7 @@ impl KxKeyPair {
     pub fn builder(alg: KxAlgorithm) -> Result<Box<dyn KxKeyPairBuilder>, CryptoError> {
         let builder = match alg {
             KxAlgorithm::X25519 => X25519KeyPairBuilder::new(alg),
+            KxAlgorithm::Kyber768 => Kyber768KeyPairBuilder::new(alg),
         };
         Ok(builder)
     }

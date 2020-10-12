@@ -24,7 +24,7 @@
   ;;;
   ;;; Both keys must be of the same type, or else the `$crypto_errno.incompatible_keys` error is returned.
   ;;; The algorithm also has to support this kind of key exchange. If this is not the case, the `$crypto_errno.invalid_operation` error is returned.
-  ;;; 
+  ;;;
   ;;; Otherwide, a raw shared key is returned, and can be imported as a symmetric key.
   ;;; ```
   (@interface func (export "kx_dh")
@@ -32,5 +32,29 @@
     (param $sk $secretkey)
     (result $error $crypto_errno)
     (result $shared_secret $array_output)
+  )
+
+  ;;; Create a shared secret and encrypt it for the given public key.
+  ;;;
+  ;;; This operation is only compatible with specific algorithms.
+  ;;; If a selected algorithm doesn't support it, `$crypto_errno.invalid_operation` is returned.
+  ;;;
+  ;;; On success, both the shared secret and its encrypted version are returned.
+  (@interface func (export "kx_encapsulate")
+    (param $pk $publickey)
+    (result $error $crypto_errno)
+    (result $secret $array_output)
+    (result $encapsulated_secret $array_output)
+  )
+
+  ;;; Decapsulate an encapsulated secret crated with `kx_encapsulate`
+  ;;;
+  ;;; Return the secret, or `$crypto_errno.verification_failed` on error.
+  (@interface func (export "kx_decapsulate")
+    (param $sk $secretkey)
+    (param $encapsulated_secret (@witx const_pointer u8))
+    (param $encapsulated_secret_len $size)
+    (result $error $crypto_errno)
+    (result $secret $array_output)
   )
 )

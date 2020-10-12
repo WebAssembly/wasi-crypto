@@ -2237,3 +2237,44 @@ Otherwide, a raw shared key is returned, and can be imported as a symmetric key.
 
 - <a href="#kx_dh.shared_secret" name="kx_dh.shared_secret"></a> `shared_secret`: [`array_output`](#array_output)
 
+
+---
+
+#### <a href="#kx_encapsulate" name="kx_encapsulate"></a> `kx_encapsulate(pk: publickey) -> (crypto_errno, array_output, array_output)`
+Create a shared secret and encrypt it for the given public key.
+
+This operation is only compatible with specific algorithms.
+If a selected algorithm doesn't support it, `$crypto_errno.invalid_operation` is returned.
+
+On success, both the shared secret and its encrypted version are returned.
+
+##### Params
+- <a href="#kx_encapsulate.pk" name="kx_encapsulate.pk"></a> `pk`: [`publickey`](#publickey)
+
+##### Results
+- <a href="#kx_encapsulate.error" name="kx_encapsulate.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#kx_encapsulate.secret" name="kx_encapsulate.secret"></a> `secret`: [`array_output`](#array_output)
+
+- <a href="#kx_encapsulate.encapsulated_secret" name="kx_encapsulate.encapsulated_secret"></a> `encapsulated_secret`: [`array_output`](#array_output)
+
+
+---
+
+#### <a href="#kx_decapsulate" name="kx_decapsulate"></a> `kx_decapsulate(sk: secretkey, encapsulated_secret: ConstPointer<u8>, encapsulated_secret_len: size) -> (crypto_errno, array_output)`
+Decapsulate an encapsulated secret crated with [`kx_encapsulate`](#kx_encapsulate)
+
+Return the secret, or `$crypto_errno.verification_failed` on error.
+
+##### Params
+- <a href="#kx_decapsulate.sk" name="kx_decapsulate.sk"></a> `sk`: [`secretkey`](#secretkey)
+
+- <a href="#kx_decapsulate.encapsulated_secret" name="kx_decapsulate.encapsulated_secret"></a> `encapsulated_secret`: `ConstPointer<u8>`
+
+- <a href="#kx_decapsulate.encapsulated_secret_len" name="kx_decapsulate.encapsulated_secret_len"></a> `encapsulated_secret_len`: [`size`](#size)
+
+##### Results
+- <a href="#kx_decapsulate.error" name="kx_decapsulate.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+- <a href="#kx_decapsulate.secret" name="kx_decapsulate.secret"></a> `secret`: [`array_output`](#array_output)
+

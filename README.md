@@ -11,4 +11,4 @@ processes, goals, scope, and deliverables.
 
 * [High-level goals](docs/HighLevelGoals.md)
 * [WASI cryptography API security design document](design/security.md)
-* [Proof of concept](proposals/poc) implementation of an ongoing proposal
+* [API proposals](proposals) and implementations

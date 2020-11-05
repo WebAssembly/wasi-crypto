@@ -123,10 +123,10 @@ The named option was not set.
 The caller tried to read the value of an option that was not set.
 This error is used to make the distinction between an empty option, and an option that was not set and left to its default value.
 
-- <a href="#crypto_errno.key_not_found" name="crypto_errno.key_not_found"></a> `key_not_found`
+- <a href="#crypto_errno.not_found" name="crypto_errno.not_found"></a> `not_found`
 A key or key pair matching the requested identifier cannot be found using the supplied information.
 
-This error is returned by a key manager via the `keypair_from_id()` function.
+This error is returned by a secrets manager via the `keypair_from_id()` function.
 
 - <a href="#crypto_errno.parameters_missing" name="crypto_errno.parameters_missing"></a> `parameters_missing`
 The algorithm requires parameters that haven't been set.
@@ -145,8 +145,8 @@ Multiple keys have been provided, but they do not share the same type.
 
 This error is returned when trying to build a key pair from a public key and a secret key that were created for different and incompatible algorithms.
 
-- <a href="#crypto_errno.expired_key" name="crypto_errno.expired_key"></a> `expired_key`
-A managed key expired and cannot be used any more.
+- <a href="#crypto_errno.expired" name="crypto_errno.expired"></a> `expired`
+A managed key or secret expired and cannot be used any more.
 
 ## <a href="#keypair_encoding" name="keypair_encoding"></a> `keypair_encoding`: Enum(`u16`)
 Encoding to use for importing or exporting a key pair.
@@ -268,6 +268,13 @@ Size: 4
 
 Alignment: 4
 
+## <a href="#timestamp" name="timestamp"></a> `timestamp`: `u64`
+A UNIX timestamp, in seconds since 01/01/1970.
+
+Size: 8
+
+Alignment: 8
+
 ## <a href="#array_output" name="array_output"></a> `array_output`
 Handle for functions returning output whose size may be large or not known in advance.
 
@@ -295,8 +302,8 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#key_manager" name="key_manager"></a> `key_manager`
-A handle to the optional key management facilities offered by a host.
+## <a href="#secrets_manager" name="secrets_manager"></a> `secrets_manager`
+A handle to the optional secrets management facilities offered by a host.
 
 This is used to generate, retrieve and invalidate managed keys.
 
@@ -509,7 +516,7 @@ Objects are reference counted. It is safe to close an object immediately after t
 #### <a href="#options_set" name="options_set"></a> `options_set(handle: options, name: string, value: ConstPointer<u8>, value_len: size) -> crypto_errno`
 Set or update an option.
 
-This is used to set algorithm-specific parameters, but also to provide credentials for the key management facilities, if required.
+This is used to set algorithm-specific parameters, but also to provide credentials for the secrets management facilities, if required.
 
 This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
 
@@ -618,65 +625,65 @@ array_output_pull(output_handle, &mut out)?;
 
 ---
 
-#### <a href="#key_manager_open" name="key_manager_open"></a> `key_manager_open(options: opt_options) -> (crypto_errno, key_manager)`
+#### <a href="#secrets_manager_open" name="secrets_manager_open"></a> `secrets_manager_open(options: opt_options) -> (crypto_errno, secrets_manager)`
 __(optional)__
-Create a context to use a key manager.
+Create a context to use a secrets manager.
 
 The set of required and supported options is defined by the host.
 
-The function returns the `unsupported_feature` error code if key management facilities are not supported by the host.
+The function returns the `unsupported_feature` error code if secrets management facilities are not supported by the host.
 This is also an optional import, meaning that the function may not even exist.
 
 ##### Params
-- <a href="#key_manager_open.options" name="key_manager_open.options"></a> `options`: [`opt_options`](#opt_options)
+- <a href="#secrets_manager_open.options" name="secrets_manager_open.options"></a> `options`: [`opt_options`](#opt_options)
 
 ##### Results
-- <a href="#key_manager_open.error" name="key_manager_open.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+- <a href="#secrets_manager_open.error" name="secrets_manager_open.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-- <a href="#key_manager_open.handle" name="key_manager_open.handle"></a> `handle`: [`key_manager`](#key_manager)
+- <a href="#secrets_manager_open.handle" name="secrets_manager_open.handle"></a> `handle`: [`secrets_manager`](#secrets_manager)
 
 
 ---
 
-#### <a href="#key_manager_close" name="key_manager_close"></a> `key_manager_close(key_manager: key_manager) -> crypto_errno`
+#### <a href="#secrets_manager_close" name="secrets_manager_close"></a> `secrets_manager_close(secrets_manager: secrets_manager) -> crypto_errno`
 __(optional)__
-Destroy a key manager context.
+Destroy a secrets manager context.
 
-The function returns the `unsupported_feature` error code if key management facilities are not supported by the host.
+The function returns the `unsupported_feature` error code if secrets management facilities are not supported by the host.
 This is also an optional import, meaning that the function may not even exist.
 
 ##### Params
-- <a href="#key_manager_close.key_manager" name="key_manager_close.key_manager"></a> `key_manager`: [`key_manager`](#key_manager)
+- <a href="#secrets_manager_close.secrets_manager" name="secrets_manager_close.secrets_manager"></a> `secrets_manager`: [`secrets_manager`](#secrets_manager)
 
 ##### Results
-- <a href="#key_manager_close.error" name="key_manager_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+- <a href="#secrets_manager_close.error" name="secrets_manager_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 
 ---
 
-#### <a href="#key_manager_invalidate" name="key_manager_invalidate"></a> `key_manager_invalidate(key_manager: key_manager, key_id: ConstPointer<u8>, key_id_len: size, key_version: version) -> crypto_errno`
+#### <a href="#secrets_manager_invalidate" name="secrets_manager_invalidate"></a> `secrets_manager_invalidate(secrets_manager: secrets_manager, key_id: ConstPointer<u8>, key_id_len: size, key_version: version) -> crypto_errno`
 __(optional)__
 Invalidate a managed key or key pair given an identifier and a version.
 
-This asks the key manager to delete or revoke a stored key, a specific version of a key..
+This asks the secrets manager to delete or revoke a stored key, a specific version of a key.
 
 `key_version` can be set to a version number, to [`version.latest`](#version.latest) to invalidate the current version, or to [`version.all`](#version.all) to invalidate all versions of a key.
 
-The function returns `unsupported_feature` if this operation is not supported by the host, and `key_not_found` if the identifier and version don't match any existing key.
+The function returns `unsupported_feature` if this operation is not supported by the host, and `not_found` if the identifier and version don't match any existing key.
 
 This is an optional import, meaning that the function may not even exist.
 
 ##### Params
-- <a href="#key_manager_invalidate.key_manager" name="key_manager_invalidate.key_manager"></a> `key_manager`: [`key_manager`](#key_manager)
+- <a href="#secrets_manager_invalidate.secrets_manager" name="secrets_manager_invalidate.secrets_manager"></a> `secrets_manager`: [`secrets_manager`](#secrets_manager)
 
-- <a href="#key_manager_invalidate.key_id" name="key_manager_invalidate.key_id"></a> `key_id`: `ConstPointer<u8>`
+- <a href="#secrets_manager_invalidate.key_id" name="secrets_manager_invalidate.key_id"></a> `key_id`: `ConstPointer<u8>`
 
-- <a href="#key_manager_invalidate.key_id_len" name="key_manager_invalidate.key_id_len"></a> `key_id_len`: [`size`](#size)
+- <a href="#secrets_manager_invalidate.key_id_len" name="secrets_manager_invalidate.key_id_len"></a> `key_id_len`: [`size`](#size)
 
-- <a href="#key_manager_invalidate.key_version" name="key_manager_invalidate.key_version"></a> `key_version`: [`version`](#version)
+- <a href="#secrets_manager_invalidate.key_version" name="secrets_manager_invalidate.key_version"></a> `key_version`: [`version`](#version)
 
 ##### Results
-- <a href="#key_manager_invalidate.error" name="key_manager_invalidate.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+- <a href="#secrets_manager_invalidate.error" name="secrets_manager_invalidate.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 ## <a href="#wasi_ephemeral_crypto_asymmetric_common" name="wasi_ephemeral_crypto_asymmetric_common"></a> wasi_ephemeral_crypto_asymmetric_common
 ### Imports
@@ -754,15 +761,15 @@ let kp_handle = ctx.keypair_import(AlgorithmType::Signatures, "RSA_PKCS1_2048_81
 
 ---
 
-#### <a href="#keypair_generate_managed" name="keypair_generate_managed"></a> `keypair_generate_managed(key_manager: key_manager, algorithm_type: algorithm_type, algorithm: string, options: opt_options) -> (crypto_errno, keypair)`
+#### <a href="#keypair_generate_managed" name="keypair_generate_managed"></a> `keypair_generate_managed(secrets_manager: secrets_manager, algorithm_type: algorithm_type, algorithm: string, options: opt_options) -> (crypto_errno, keypair)`
 __(optional)__
 Generate a new managed key pair.
 
-The key pair is generated and stored by the key management facilities.
+The key pair is generated and stored by the secrets management facilities.
 
 It may be used through its identifier, but the host may not allow it to be exported.
 
-The function returns the `unsupported_feature` error code if key management facilities are not supported by the host,
+The function returns the `unsupported_feature` error code if secrets management facilities are not supported by the host,
 or `unsupported_algorithm` if a key cannot be created for the chosen algorithm.
 
 The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
@@ -770,7 +777,7 @@ The function may also return `unsupported_algorithm` if the algorithm is not sup
 This is also an optional import, meaning that the function may not even exist.
 
 ##### Params
-- <a href="#keypair_generate_managed.key_manager" name="keypair_generate_managed.key_manager"></a> `key_manager`: [`key_manager`](#key_manager)
+- <a href="#keypair_generate_managed.secrets_manager" name="keypair_generate_managed.secrets_manager"></a> `secrets_manager`: [`secrets_manager`](#secrets_manager)
 
 - <a href="#keypair_generate_managed.algorithm_type" name="keypair_generate_managed.algorithm_type"></a> `algorithm_type`: [`algorithm_type`](#algorithm_type)
 
@@ -786,7 +793,31 @@ This is also an optional import, meaning that the function may not even exist.
 
 ---
 
-#### <a href="#keypair_replace_managed" name="keypair_replace_managed"></a> `keypair_replace_managed(key_manager: key_manager, kp_old: keypair, kp_new: keypair) -> (crypto_errno, version)`
+#### <a href="#keypair_store_managed" name="keypair_store_managed"></a> `keypair_store_managed(secrets_manager: secrets_manager, kp: keypair, kp_id: Pointer<u8>, kp_id_max_len: size) -> crypto_errno`
+__(optional)__
+Store a key pair into the secrets manager.
+
+On success, the function stores the key pair identifier into `$kp_id`,
+into which up to `$kp_id_max_len` can be written.
+
+The function returns `overflow` if the supplied buffer is too small.
+
+##### Params
+- <a href="#keypair_store_managed.secrets_manager" name="keypair_store_managed.secrets_manager"></a> `secrets_manager`: [`secrets_manager`](#secrets_manager)
+
+- <a href="#keypair_store_managed.kp" name="keypair_store_managed.kp"></a> `kp`: [`keypair`](#keypair)
+
+- <a href="#keypair_store_managed.kp_id" name="keypair_store_managed.kp_id"></a> `kp_id`: `Pointer<u8>`
+
+- <a href="#keypair_store_managed.kp_id_max_len" name="keypair_store_managed.kp_id_max_len"></a> `kp_id_max_len`: [`size`](#size)
+
+##### Results
+- <a href="#keypair_store_managed.error" name="keypair_store_managed.error"></a> `error`: [`crypto_errno`](#crypto_errno)
+
+
+---
+
+#### <a href="#keypair_replace_managed" name="keypair_replace_managed"></a> `keypair_replace_managed(secrets_manager: secrets_manager, kp_old: keypair, kp_new: keypair) -> (crypto_errno, version)`
 __(optional)__
 Replace a managed key pair.
 
@@ -800,17 +831,17 @@ It does several things:
 
 Both keys must share the same algorithm and have compatible parameters. If this is not the case, `incompatible_keys` is returned.
 
-The function may also return the `unsupported_feature` error code if key management facilities are not supported by the host,
+The function may also return the `unsupported_feature` error code if secrets management facilities are not supported by the host,
 or if keys cannot be rotated.
 
-Finally, `prohibited_operation` can be returned if `$kp_new` wasn't created by the key manager, and the key manager prohibits imported keys.
+Finally, `prohibited_operation` can be returned if `$kp_new` wasn't created by the secrets manager, and the secrets manager prohibits imported keys.
 
 If the operation succeeded, the new version is returned.
 
 This is an optional import, meaning that the function may not even exist.
 
 ##### Params
-- <a href="#keypair_replace_managed.key_manager" name="keypair_replace_managed.key_manager"></a> `key_manager`: [`key_manager`](#key_manager)
+- <a href="#keypair_replace_managed.secrets_manager" name="keypair_replace_managed.secrets_manager"></a> `secrets_manager`: [`secrets_manager`](#secrets_manager)
 
 - <a href="#keypair_replace_managed.kp_old" name="keypair_replace_managed.kp_old"></a> `kp_old`: [`keypair`](#keypair)
 
@@ -849,18 +880,18 @@ This is an optional import, meaning that the function may not even exist.
 
 ---
 
-#### <a href="#keypair_from_id" name="keypair_from_id"></a> `keypair_from_id(key_manager: key_manager, kp_id: ConstPointer<u8>, kp_id_len: size, kp_version: version) -> (crypto_errno, keypair)`
+#### <a href="#keypair_from_id" name="keypair_from_id"></a> `keypair_from_id(secrets_manager: secrets_manager, kp_id: ConstPointer<u8>, kp_id_len: size, kp_version: version) -> (crypto_errno, keypair)`
 __(optional)__
 Return a managed key pair from a key identifier.
 
 `kp_version` can be set to `version_latest` to retrieve the most recent version of a key pair.
 
-If no key pair matching the provided information is found, `key_not_found` is returned instead.
+If no key pair matching the provided information is found, `not_found` is returned instead.
 
 This is an optional import, meaning that the function may not even exist.
 ``
 ##### Params
-- <a href="#keypair_from_id.key_manager" name="keypair_from_id.key_manager"></a> `key_manager`: [`key_manager`](#key_manager)
+- <a href="#keypair_from_id.secrets_manager" name="keypair_from_id.secrets_manager"></a> `secrets_manager`: [`secrets_manager`](#secrets_manager)
 
 - <a href="#keypair_from_id.kp_id" name="keypair_from_id.kp_id"></a> `kp_id`: `ConstPointer<u8>`
 

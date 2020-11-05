@@ -55,7 +55,7 @@ impl SymmetricState {
             SymmetricAlgorithm::Aes128Gcm | SymmetricAlgorithm::Aes256Gcm => {
                 SymmetricState::new(Box::new(AesGcmSymmetricState::new(alg, key, options)?))
             }
-            SymmetricAlgorithm::Xoodyak128 | SymmetricAlgorithm::Xoodyak256 => {
+            SymmetricAlgorithm::Xoodyak128 | SymmetricAlgorithm::Xoodyak160 => {
                 SymmetricState::new(Box::new(XoodyakSymmetricState::new(alg, key, options)?))
             }
             _ => bail!(CryptoError::UnsupportedAlgorithm),

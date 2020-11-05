@@ -119,8 +119,8 @@
 
     ;;; A key or key pair matching the requested identifier cannot be found using the supplied information.
     ;;;
-    ;;; This error is returned by a key manager via the `keypair_from_id()` function.
-    $key_not_found
+    ;;; This error is returned by a secrets manager via the `keypair_from_id()` function.
+    $not_found
 
     ;;; The algorithm requires parameters that haven't been set.
     ;;;
@@ -139,8 +139,8 @@
     ;;; This error is returned when trying to build a key pair from a public key and a secret key that were created for different and incompatible algorithms.
     $incompatible_keys
 
-    ;;; A managed key expired and cannot be used any more.
-    $expired_key
+    ;;; A managed key or secret expired and cannot be used any more.
+    $expired
   )
 )
 
@@ -241,6 +241,9 @@
 ;;; Size of a value.
 (typename $size (@witx usize))
 
+;;; A UNIX timestamp, in seconds since 01/01/1970.
+(typename $timestamp u64)
+
 ;;; Handle for functions returning output whose size may be large or not known in advance.
 ;;;
 ;;; An `array_output` object contains a host-allocated byte array.
@@ -258,10 +261,10 @@
 ;;; The exact set of allowed options depends on the algorithm being used.
 (typename $options (handle))
 
-;;; A handle to the optional key management facilities offered by a host.
+;;; A handle to the optional secrets management facilities offered by a host.
 ;;;
 ;;; This is used to generate, retrieve and invalidate managed keys.
-(typename $key_manager (handle))
+(typename $secrets_manager (handle))
 
 ;;; A key pair.
 (typename $keypair (handle))
@@ -355,7 +358,7 @@
 
   ;;; Set or update an option.
   ;;;
-  ;;; This is used to set algorithm-specific parameters, but also to provide credentials for the key management facilities, if required.
+  ;;; This is used to set algorithm-specific parameters, but also to provide credentials for the secrets management facilities, if required.
   ;;;
   ;;; This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
   (@interface func (export "options_set")
@@ -424,40 +427,40 @@
   )
 
   ;;; __(optional)__
-  ;;; Create a context to use a key manager.
+  ;;; Create a context to use a secrets manager.
   ;;;
   ;;; The set of required and supported options is defined by the host.
   ;;;
-  ;;; The function returns the `unsupported_feature` error code if key management facilities are not supported by the host.
+  ;;; The function returns the `unsupported_feature` error code if secrets management facilities are not supported by the host.
   ;;; This is also an optional import, meaning that the function may not even exist.
-  (@interface func (export "key_manager_open")
+  (@interface func (export "secrets_manager_open")
     (param $options $opt_options)
     (result $error $crypto_errno)
-    (result $handle $key_manager)
+    (result $handle $secrets_manager)
   )
 
   ;;; __(optional)__
-  ;;; Destroy a key manager context.
+  ;;; Destroy a secrets manager context.
   ;;;
-  ;;; The function returns the `unsupported_feature` error code if key management facilities are not supported by the host.
+  ;;; The function returns the `unsupported_feature` error code if secrets management facilities are not supported by the host.
   ;;; This is also an optional import, meaning that the function may not even exist.
-  (@interface func (export "key_manager_close")
-    (param $key_manager $key_manager)
+  (@interface func (export "secrets_manager_close")
+    (param $secrets_manager $secrets_manager)
     (result $error $crypto_errno)
   )
 
   ;;; __(optional)__
   ;;; Invalidate a managed key or key pair given an identifier and a version.
   ;;;
-  ;;; This asks the key manager to delete or revoke a stored key, a specific version of a key..
+  ;;; This asks the secrets manager to delete or revoke a stored key, a specific version of a key.
   ;;;
   ;;; `key_version` can be set to a version number, to `version.latest` to invalidate the current version, or to `version.all` to invalidate all versions of a key.
   ;;;
-  ;;; The function returns `unsupported_feature` if this operation is not supported by the host, and `key_not_found` if the identifier and version don't match any existing key.
+  ;;; The function returns `unsupported_feature` if this operation is not supported by the host, and `not_found` if the identifier and version don't match any existing key.
   ;;;
   ;;; This is an optional import, meaning that the function may not even exist.
-  (@interface func (export "key_manager_invalidate")
-    (param $key_manager $key_manager)
+  (@interface func (export "secrets_manager_invalidate")
+    (param $secrets_manager $secrets_manager)
     (param $key_id (@witx const_pointer u8))
     (param $key_id_len $size)
     (param $key_version $version)

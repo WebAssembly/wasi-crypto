@@ -11,7 +11,7 @@ impl crate::wasi_ephemeral_crypto_asymmetric_common::WasiEphemeralCryptoAsymmetr
 
     fn keypair_generate_managed(
         &self,
-        key_manager_handle: guest_types::KeyManager,
+        secrets_manager_handle: guest_types::SecretsManager,
         alg_type: guest_types::AlgorithmType,
         alg_str: &wiggle::GuestPtr<'_, str>,
         options_handle: &guest_types::OptOptions,
@@ -24,7 +24,7 @@ impl crate::wasi_ephemeral_crypto_asymmetric_common::WasiEphemeralCryptoAsymmetr
         Ok(self
             .ctx
             .keypair_generate_managed(
-                key_manager_handle.into(),
+                secrets_manager_handle.into(),
                 alg_type.into(),
                 alg_str,
                 options_handle.map(Into::into),
@@ -32,16 +32,34 @@ impl crate::wasi_ephemeral_crypto_asymmetric_common::WasiEphemeralCryptoAsymmetr
             .into())
     }
 
+    fn keypair_store_managed(
+        &self,
+        secrets_manager_handle: guest_types::SecretsManager,
+        kp_handle: guest_types::Keypair,
+        kp_id_ptr: &wiggle::GuestPtr<'_, u8>,
+        kp_id_max_len: guest_types::Size,
+    ) -> Result<(), guest_types::CryptoErrno> {
+        let key_id_buf = &mut *kp_id_ptr.as_array(kp_id_max_len).as_slice()?;
+        Ok(self
+            .ctx
+            .keypair_store_managed(
+                secrets_manager_handle.into(),
+                kp_handle.into(),
+                key_id_buf.into(),
+            )?
+            .into())
+    }
+
     fn keypair_replace_managed(
         &self,
-        key_manager_handle: guest_types::KeyManager,
+        secrets_manager_handle: guest_types::SecretsManager,
         kp_old_handle: guest_types::Keypair,
         kp_new_handle: guest_types::Keypair,
     ) -> Result<guest_types::Version, guest_types::CryptoErrno> {
         Ok(self
             .ctx
             .keypair_replace_managed(
-                key_manager_handle.into(),
+                secrets_manager_handle.into(),
                 kp_old_handle.into(),
                 kp_new_handle.into(),
             )?
@@ -50,7 +68,7 @@ impl crate::wasi_ephemeral_crypto_asymmetric_common::WasiEphemeralCryptoAsymmetr
 
     fn keypair_from_id(
         &self,
-        key_manager_handle: guest_types::KeyManager,
+        secrets_manager_handle: guest_types::SecretsManager,
         kp_id_ptr: &wiggle::GuestPtr<'_, u8>,
         kp_id_len: guest_types::Size,
         kp_version: guest_types::Version,
@@ -58,7 +76,7 @@ impl crate::wasi_ephemeral_crypto_asymmetric_common::WasiEphemeralCryptoAsymmetr
         let kp_id = &*kp_id_ptr.as_array(kp_id_len).as_slice()?;
         Ok(self
             .ctx
-            .keypair_from_id(key_manager_handle.into(), kp_id, kp_version.into())?
+            .keypair_from_id(secrets_manager_handle.into(), kp_id, kp_version.into())?
             .into())
     }
 

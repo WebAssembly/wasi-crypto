@@ -4,20 +4,20 @@ use crate::version::Version;
 use crate::CryptoCtx;
 
 #[derive(Clone, Debug)]
-pub struct KeyManager {}
+pub struct SecretsManager {}
 
 impl CryptoCtx {
-    pub fn key_manager_open(&self, _options: Option<Handle>) -> Result<Handle, CryptoError> {
+    pub fn secrets_manager_open(&self, _options: Option<Handle>) -> Result<Handle, CryptoError> {
         bail!(CryptoError::UnsupportedFeature)
     }
 
-    pub fn key_manager_close(&self, _key_manager_handle: Handle) -> Result<(), CryptoError> {
+    pub fn secrets_manager_close(&self, _secrets_manager_handle: Handle) -> Result<(), CryptoError> {
         bail!(CryptoError::UnsupportedFeature)
     }
 
-    pub fn key_manager_invalidate(
+    pub fn secrets_manager_invalidate(
         &self,
-        _key_manager_handle: Handle,
+        _secrets_manager_handle: Handle,
         _key_id: &[u8],
         _key_version: Version,
     ) -> Result<(), CryptoError> {

@@ -52,22 +52,37 @@
   ;;; __(optional)__
   ;;; Generate a new managed symmetric key.
   ;;;
-  ;;; The key is generated and stored by the key management facilities.
+  ;;; The key is generated and stored by the secrets management facilities.
   ;;;
   ;;; It may be used through its identifier, but the host may not allow it to be exported.
   ;;;
-  ;;; The function returns the `unsupported_feature` error code if key management facilities are not supported by the host,
+  ;;; The function returns the `unsupported_feature` error code if secrets management facilities are not supported by the host,
   ;;; or `unsupported_algorithm` if a key cannot be created for the chosen algorithm.
   ;;;
   ;;; The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
   ;;;
   ;;; This is also an optional import, meaning that the function may not even exist.
   (@interface func (export "symmetric_key_generate_managed")
-    (param $key_manager $key_manager)
+    (param $secrets_manager $secrets_manager)
     (param $algorithm string)
     (param $options $opt_options)
     (result $error $crypto_errno)
     (result $handle $symmetric_key)
+  )
+
+  ;;; __(optional)__
+  ;;; Store a symmetric key into the secrets manager.
+  ;;;
+  ;;; On success, the function stores the key identifier into `$symmetric_key_id`,
+  ;;; into which up to `$symmetric_key_id_max_len` can be written.
+  ;;;
+  ;;; The function returns `overflow` if the supplied buffer is too small.
+  (@interface func (export "symmetric_key_store_managed")
+    (param $secrets_manager $secrets_manager)
+    (param $symmetric_key $symmetric_key)
+    (param $symmetric_key_id (@witx pointer u8))
+    (param $symmetric_key_id_max_len $size)
+    (result $error $crypto_errno)
   )
 
   ;;; __(optional)__
@@ -83,16 +98,16 @@
   ;;;
   ;;; Both keys must share the same algorithm and have compatible parameters. If this is not the case, `incompatible_keys` is returned.
   ;;;
-  ;;; The function may also return the `unsupported_feature` error code if key management facilities are not supported by the host,
+  ;;; The function may also return the `unsupported_feature` error code if secrets management facilities are not supported by the host,
   ;;; or if keys cannot be rotated.
   ;;;
-  ;;; Finally, `prohibited_operation` can be returned if `$symmetric_key_new` wasn't created by the key manager, and the key manager prohibits imported keys.
+  ;;; Finally, `prohibited_operation` can be returned if `$symmetric_key_new` wasn't created by the secrets manager, and the secrets manager prohibits imported keys.
   ;;;
   ;;; If the operation succeeded, the new version is returned.
   ;;;
   ;;; This is an optional import, meaning that the function may not even exist.
   (@interface func (export "symmetric_key_replace_managed")
-    (param $key_manager $key_manager)
+    (param $secrets_manager $secrets_manager)
     (param $symmetric_key_old $symmetric_key)
     (param $symmetric_key_new $symmetric_key)
     (result $error $crypto_errno)
@@ -119,11 +134,11 @@
   ;;;
   ;;; `kp_version` can be set to `version_latest` to retrieve the most recent version of a symmetric key.
   ;;;
-  ;;; If no key matching the provided information is found, `key_not_found` is returned instead.
+  ;;; If no key matching the provided information is found, `not_found` is returned instead.
   ;;;
   ;;; This is an optional import, meaning that the function may not even exist.
   (@interface func (export "symmetric_key_from_id")
-    (param $key_manager $key_manager)
+    (param $secrets_manager $secrets_manager)
     (param $symmetric_key_id (@witx const_pointer u8))
     (param $symmetric_key_id_len $size)
     (param $symmetric_key_version $version)
@@ -295,8 +310,8 @@
   ;;; let mut out = [0u8; 16];
   ;;; let mut out2 = [0u8; 16];
   ;;; let mut ciphertext = [0u8; 20];
-  ;;; let key_handle = ctx.symmetric_key_generate("Xoodyak-256", None)?;
-  ;;; let state_handle = ctx.symmetric_state_open("Xoodyak-256", Some(key_handle), None)?;
+  ;;; let key_handle = ctx.symmetric_key_generate("Xoodyak-128", None)?;
+  ;;; let state_handle = ctx.symmetric_state_open("Xoodyak-128", Some(key_handle), None)?;
   ;;; ctx.symmetric_state_absorb(state_handle, b"data")?;
   ;;; ctx.symmetric_state_encrypt(state_handle, &mut ciphertext, b"abcd")?;
   ;;; ctx.symmetric_state_absorb(state_handle, b"more data")?;
@@ -304,7 +319,7 @@
   ;;; ctx.symmetric_state_squeeze(state_handle, &mut out2)?;
   ;;; ctx.symmetric_state_ratchet(state_handle)?;
   ;;; ctx.symmetric_state_absorb(state_handle, b"more data")?;
-  ;;; let next_key_handle = ctx.symmetric_state_squeeze_key(state_handle, "Xoodyak-256")?;
+  ;;; let next_key_handle = ctx.symmetric_state_squeeze_key(state_handle, "Xoodyak-128")?;
   ;;; // ...
   ;;; ```
 

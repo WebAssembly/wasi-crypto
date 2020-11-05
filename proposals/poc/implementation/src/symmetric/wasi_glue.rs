@@ -5,11 +5,11 @@ use crate::types as guest_types;
 use crate::WasiCryptoCtx;
 
 impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for WasiCryptoCtx {
-    // --- key_manager
+    // --- secrets_manager
 
     fn symmetric_key_generate_managed(
         &self,
-        key_manager_handle: guest_types::KeyManager,
+        secrets_manager_handle: guest_types::SecretsManager,
         alg_str: &wiggle::GuestPtr<'_, str>,
         options_handle: &guest_types::OptOptions,
     ) -> Result<guest_types::SymmetricKey, guest_types::CryptoErrno> {
@@ -21,23 +21,43 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         Ok(self
             .ctx
             .symmetric_key_generate_managed(
-                key_manager_handle.into(),
+                secrets_manager_handle.into(),
                 alg_str,
                 options_handle.map(Into::into),
             )?
             .into())
     }
 
+    fn symmetric_key_store_managed(
+        &self,
+        secrets_manager_handle: guest_types::SecretsManager,
+        symmetric_key_handle: guest_types::SymmetricKey,
+        symmetric_key_id_ptr: &wiggle::GuestPtr<'_, u8>,
+        symmetric_key_id_max_len: guest_types::Size,
+    ) -> Result<(), guest_types::CryptoErrno> {
+        let key_id_buf = &mut *symmetric_key_id_ptr
+            .as_array(symmetric_key_id_max_len)
+            .as_slice()?;
+        Ok(self
+            .ctx
+            .symmetric_key_store_managed(
+                secrets_manager_handle.into(),
+                symmetric_key_handle.into(),
+                key_id_buf.into(),
+            )?
+            .into())
+    }
+
     fn symmetric_key_replace_managed(
         &self,
-        key_manager_handle: guest_types::KeyManager,
+        secrets_manager_handle: guest_types::SecretsManager,
         symmetric_key_old_handle: guest_types::SymmetricKey,
         symmetric_key_new_handle: guest_types::SymmetricKey,
     ) -> Result<guest_types::Version, guest_types::CryptoErrno> {
         Ok(self
             .ctx
             .symmetric_key_replace_managed(
-                key_manager_handle.into(),
+                secrets_manager_handle.into(),
                 symmetric_key_old_handle.into(),
                 symmetric_key_new_handle.into(),
             )?
@@ -46,7 +66,7 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
 
     fn symmetric_key_from_id(
         &self,
-        key_manager_handle: guest_types::KeyManager,
+        secrets_manager_handle: guest_types::SecretsManager,
         symmetric_key_id_ptr: &wiggle::GuestPtr<'_, u8>,
         symmetric_key_id_len: guest_types::Size,
         symmetric_key_version: guest_types::Version,
@@ -57,7 +77,7 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         Ok(self
             .ctx
             .symmetric_key_from_id(
-                key_manager_handle.into(),
+                secrets_manager_handle.into(),
                 symmetric_key_id,
                 symmetric_key_version.into(),
             )?

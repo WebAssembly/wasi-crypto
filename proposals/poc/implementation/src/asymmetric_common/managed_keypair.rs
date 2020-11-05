@@ -6,7 +6,7 @@ use crate::{AlgorithmType, CryptoCtx};
 impl CryptoCtx {
     pub fn keypair_generate_managed(
         &self,
-        _key_manager_handle: Handle,
+        _secrets_manager_handle: Handle,
         _alg_type: AlgorithmType,
         _alg_str: &str,
         _options_handle: Option<Handle>,
@@ -14,9 +14,19 @@ impl CryptoCtx {
         bail!(CryptoError::UnsupportedFeature)
     }
 
+    pub fn keypair_store_managed(
+        &self,
+        _secrets_manager_handle: Handle,
+        kp_handle: Handle,
+        _key_id_buf: &mut [u8],
+    ) -> Result<(), CryptoError> {
+        let _kp = self.handles.symmetric_key.get(kp_handle)?;
+        bail!(CryptoError::UnsupportedFeature)
+    }
+
     pub fn keypair_replace_managed(
         &self,
-        _key_manager_handle: Handle,
+        _secrets_manager_handle: Handle,
         kp_old_handle: Handle,
         kp_new_handle: Handle,
     ) -> Result<Version, CryptoError> {
@@ -24,9 +34,10 @@ impl CryptoCtx {
         let _kp_new = self.handles.keypair.get(kp_new_handle)?;
         bail!(CryptoError::UnsupportedFeature)
     }
+
     pub fn keypair_from_id(
         &self,
-        _key_manager_handle: Handle,
+        _secrets_manager_handle: Handle,
         _symmetric_key_id: &[u8],
         _symmetric_key_version: Version,
     ) -> Result<Handle, CryptoError> {

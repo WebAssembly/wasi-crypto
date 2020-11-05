@@ -14,7 +14,7 @@ mod asymmetric_common;
 mod error;
 mod handles;
 mod key_exchange;
-mod key_manager;
+mod secrets_manager;
 mod options;
 mod signatures;
 mod symmetric;
@@ -28,7 +28,7 @@ use array_output::*;
 use asymmetric_common::*;
 use handles::*;
 use key_exchange::*;
-use key_manager::*;
+use secrets_manager::*;
 use options::*;
 use signatures::*;
 use symmetric::*;
@@ -71,7 +71,8 @@ wiggle::from_witx!({
 pub mod wasi_modules {
     pub use crate::{
         wasi_ephemeral_crypto_asymmetric_common, wasi_ephemeral_crypto_common,
-        wasi_ephemeral_crypto_signatures, wasi_ephemeral_crypto_symmetric,
+        wasi_ephemeral_crypto_kx, wasi_ephemeral_crypto_signatures,
+        wasi_ephemeral_crypto_symmetric,
     };
 }
 
@@ -87,7 +88,7 @@ pub struct HandleManagers {
     pub symmetric_state: HandlesManager<SymmetricState>,
     pub symmetric_key: HandlesManager<SymmetricKey>,
     pub symmetric_tag: HandlesManager<SymmetricTag>,
-    pub key_manager: HandlesManager<KeyManager>,
+    pub secrets_manager: HandlesManager<SecretsManager>,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -131,7 +132,7 @@ impl CryptoCtx {
                 symmetric_state: HandlesManager::new(0x08),
                 symmetric_key: HandlesManager::new(0x09),
                 symmetric_tag: HandlesManager::new(0x0a),
-                key_manager: HandlesManager::new(0x0b),
+                secrets_manager: HandlesManager::new(0x0b),
             },
         }
     }

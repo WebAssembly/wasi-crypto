@@ -58,13 +58,13 @@ pub enum CryptoError {
     #[error("Option not set")]
     OptionNotSet,
     #[error("Key not found")]
-    KeyNotFound,
+    NotFound,
     #[error("Parameters missing")]
     ParametersMissing,
     #[error("Incompatible keys")]
     IncompatibleKeys,
-    #[error("Expired key")]
-    ExpiredKey,
+    #[error("Expired secret")]
+    Expired,
 }
 
 impl From<CryptoError> for guest_types::CryptoErrno {
@@ -95,10 +95,10 @@ impl From<CryptoError> for guest_types::CryptoErrno {
             CryptoError::InvalidOperation => guest_types::CryptoErrno::InvalidOperation,
             CryptoError::NonceRequired => guest_types::CryptoErrno::NonceRequired,
             CryptoError::OptionNotSet => guest_types::CryptoErrno::OptionNotSet,
-            CryptoError::KeyNotFound => guest_types::CryptoErrno::KeyNotFound,
+            CryptoError::NotFound => guest_types::CryptoErrno::NotFound,
             CryptoError::ParametersMissing => guest_types::CryptoErrno::ParametersMissing,
             CryptoError::IncompatibleKeys => guest_types::CryptoErrno::IncompatibleKeys,
-            CryptoError::ExpiredKey => guest_types::CryptoErrno::ExpiredKey,
+            CryptoError::Expired => guest_types::CryptoErrno::Expired,
         }
     }
 }

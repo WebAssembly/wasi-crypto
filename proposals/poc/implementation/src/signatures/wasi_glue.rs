@@ -18,15 +18,15 @@ impl crate::wasi_ephemeral_crypto_signatures::WasiEphemeralCryptoSignatures for 
     fn signature_import(
         &self,
         alg_str: &wiggle::GuestPtr<'_, str>,
-        encoding: guest_types::SignatureEncoding,
         encoded_ptr: &wiggle::GuestPtr<'_, u8>,
         encoded_len: guest_types::Size,
+        encoding: guest_types::SignatureEncoding,
     ) -> Result<guest_types::Signature, guest_types::CryptoErrno> {
         let alg_str = &*alg_str.as_str()?;
         let encoded = &*encoded_ptr.as_array(encoded_len).as_slice()?;
         Ok(self
             .ctx
-            .signature_import(alg_str, encoding.into(), encoded)?
+            .signature_import(alg_str, encoded, encoding.into())?
             .into())
     }
 

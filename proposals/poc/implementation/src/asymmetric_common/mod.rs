@@ -1,6 +1,7 @@
 use crate::array_output::*;
 use crate::error::*;
 use crate::handles::*;
+use crate::key_exchange::*;
 use crate::signatures::*;
 use crate::version::Version;
 use crate::CryptoCtx;

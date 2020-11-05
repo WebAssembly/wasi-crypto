@@ -1,7 +1,7 @@
 use super::*;
 use crate::signatures::SignatureSecretKey;
 use crate::types as guest_types;
-use crate::{AlgorithmType, CryptoCtx, HandleManagers};
+use crate::{AlgorithmType, CryptoCtx};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SecretKeyEncoding {
@@ -24,12 +24,27 @@ impl From<guest_types::SecretkeyEncoding> for SecretKeyEncoding {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub enum SecretKey {
     Signature(SignatureSecretKey),
+    KeyExchange(KxSecretKey),
 }
 
 impl SecretKey {
+    pub(crate) fn into_signature_secret_key(self) -> Result<SignatureSecretKey, CryptoError> {
+        match self {
+            SecretKey::Signature(sk) => Ok(sk),
+            _ => bail!(CryptoError::InvalidHandle),
+        }
+    }
+
+    pub(crate) fn into_kx_secret_key(self) -> Result<KxSecretKey, CryptoError> {
+        match self {
+            SecretKey::KeyExchange(sk) => Ok(sk),
+            _ => bail!(CryptoError::InvalidHandle),
+        }
+    }
+
     fn import(
         _alg_type: AlgorithmType,
         _alg_str: &str,
@@ -39,12 +54,18 @@ impl SecretKey {
         bail!(CryptoError::NotImplemented)
     }
 
-    fn export(
-        _handles: &HandleManagers,
-        _sk: Handle,
-        _encoding: SecretKeyEncoding,
-    ) -> Result<Vec<u8>, CryptoError> {
-        bail!(CryptoError::NotImplemented)
+    fn export(&self, encoding: SecretKeyEncoding) -> Result<Vec<u8>, CryptoError> {
+        match self {
+            SecretKey::Signature(sk) => Ok(sk.export(encoding)?),
+            SecretKey::KeyExchange(sk) => Ok(sk.export(encoding)?),
+        }
+    }
+
+    pub fn publickey(&self) -> Result<PublicKey, CryptoError> {
+        match self {
+            SecretKey::Signature(sk) => Ok(PublicKey::Signature(sk.publickey()?)),
+            SecretKey::KeyExchange(sk) => Ok(PublicKey::KeyExchange(sk.publickey()?)),
+        }
     }
 }
 
@@ -63,12 +84,20 @@ impl CryptoCtx {
 
     pub fn secretkey_export(
         &self,
-        sk: Handle,
+        sk_handle: Handle,
         encoding: SecretKeyEncoding,
     ) -> Result<Handle, CryptoError> {
-        let encoded = SecretKey::export(&self.handles, sk, encoding)?;
+        let sk = self.handles.secretkey.get(sk_handle)?;
+        let encoded = sk.export(encoding)?;
         let array_output_handle = ArrayOutput::register(&self.handles, encoded)?;
         Ok(array_output_handle)
+    }
+
+    pub fn publickey(&self, sk_handle: Handle) -> Result<Handle, CryptoError> {
+        let sk = self.handles.secretkey.get(sk_handle)?;
+        let pk = sk.publickey()?;
+        let handle = self.handles.publickey.register(pk)?;
+        Ok(handle)
     }
 
     pub fn secretkey_close(&self, sk: Handle) -> Result<(), CryptoError> {

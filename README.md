@@ -6,9 +6,9 @@ This repository is for development of Cryptography API proposals for the
 Please refer to those groups' documentation for more information on their
 processes, goals, scope, and deliverables.
 
-[WASI Subgroup]: https://github.com/WebAssembly/WASI
-[WebAssembly Community Group]: https://www.w3.org/community/webassembly/
+* [WASI Subgroup]: https://github.com/WebAssembly/WASI
+* [WebAssembly Community Group]: https://www.w3.org/community/webassembly/
 
 * [High-level goals](docs/HighLevelGoals.md)
 * [WASI cryptography API security design document](design/security.md)
-* [Proof of concept](proposals/poc) implementation of an ongoing proposal
+* [API proposals](proposals) and implementations

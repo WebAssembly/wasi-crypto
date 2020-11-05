@@ -54,7 +54,7 @@ impl SymmetricKey {
             SymmetricAlgorithm::Aes128Gcm | SymmetricAlgorithm::Aes256Gcm => {
                 AesGcmSymmetricKeyBuilder::new(alg)
             }
-            SymmetricAlgorithm::Xoodyak128 | SymmetricAlgorithm::Xoodyak256 => {
+            SymmetricAlgorithm::Xoodyak128 | SymmetricAlgorithm::Xoodyak160 => {
                 XoodyakSymmetricKeyBuilder::new(alg)
             }
             _ => bail!(CryptoError::InvalidOperation),

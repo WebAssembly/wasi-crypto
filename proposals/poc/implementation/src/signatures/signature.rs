@@ -214,8 +214,8 @@ impl CryptoCtx {
     pub fn signature_import(
         &self,
         alg_str: &str,
-        encoding: SignatureEncoding,
         encoded: &[u8],
+        encoding: SignatureEncoding,
     ) -> Result<Handle, CryptoError> {
         let alg = SignatureAlgorithm::try_from(alg_str)?;
         let signature = match encoding {

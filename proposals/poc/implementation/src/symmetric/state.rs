@@ -55,7 +55,7 @@ impl SymmetricState {
             SymmetricAlgorithm::Aes128Gcm | SymmetricAlgorithm::Aes256Gcm => {
                 SymmetricState::new(Box::new(AesGcmSymmetricState::new(alg, key, options)?))
             }
-            SymmetricAlgorithm::Xoodyak128 | SymmetricAlgorithm::Xoodyak256 => {
+            SymmetricAlgorithm::Xoodyak128 | SymmetricAlgorithm::Xoodyak160 => {
                 SymmetricState::new(Box::new(XoodyakSymmetricState::new(alg, key, options)?))
             }
             _ => bail!(CryptoError::UnsupportedAlgorithm),
@@ -115,6 +115,8 @@ pub trait SymmetricStateLike: Sync + Send {
         data: &[u8],
     ) -> Result<SymmetricTag, CryptoError> {
         ensure!(out.len() >= data.len(), CryptoError::Overflow);
+        ensure!(out.len() == data.len(), CryptoError::InvalidLength);
+
         self.encrypt_detached_unchecked(out, data)
     }
 
@@ -156,6 +158,8 @@ pub trait SymmetricStateLike: Sync + Send {
         raw_tag: &[u8],
     ) -> Result<usize, CryptoError> {
         ensure!(out.len() >= data.len(), CryptoError::Overflow);
+        ensure!(out.len() == data.len(), CryptoError::InvalidLength);
+
         match self.decrypt_detached_unchecked(out, data, raw_tag) {
             Ok(out_len) => Ok(out_len),
             Err(e) => {

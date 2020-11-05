@@ -89,32 +89,32 @@ impl crate::wasi_ephemeral_crypto_common::WasiEphemeralCryptoCommon for WasiCryp
             .try_into()?)
     }
 
-    // --- key_manager
+    // --- secrets_manager
 
-    fn key_manager_open(
+    fn secrets_manager_open(
         &self,
         options_handle: &guest_types::OptOptions,
-    ) -> Result<guest_types::KeyManager, guest_types::CryptoErrno> {
+    ) -> Result<guest_types::SecretsManager, guest_types::CryptoErrno> {
         let options_handle = match *options_handle {
             guest_types::OptOptions::Some(options_handle) => Some(options_handle),
             guest_types::OptOptions::None => None,
         };
         Ok(self
             .ctx
-            .key_manager_open(options_handle.map(Into::into))?
+            .secrets_manager_open(options_handle.map(Into::into))?
             .into())
     }
 
-    fn key_manager_close(
+    fn secrets_manager_close(
         &self,
-        key_manager_handle: guest_types::KeyManager,
+        secrets_manager_handle: guest_types::SecretsManager,
     ) -> Result<(), guest_types::CryptoErrno> {
-        Ok(self.ctx.key_manager_close(key_manager_handle.into())?)
+        Ok(self.ctx.secrets_manager_close(secrets_manager_handle.into())?)
     }
 
-    fn key_manager_invalidate(
+    fn secrets_manager_invalidate(
         &self,
-        key_manager_handle: guest_types::KeyManager,
+        secrets_manager_handle: guest_types::SecretsManager,
         key_id_ptr: &wiggle::GuestPtr<'_, u8>,
         key_id_len: guest_types::Size,
         key_version: guest_types::Version,
@@ -122,7 +122,7 @@ impl crate::wasi_ephemeral_crypto_common::WasiEphemeralCryptoCommon for WasiCryp
         let key_id: &[u8] = { &*key_id_ptr.as_array(key_id_len).as_slice()? };
         Ok(self
             .ctx
-            .key_manager_invalidate(key_manager_handle.into(), key_id, key_version.into())?
+            .secrets_manager_invalidate(secrets_manager_handle.into(), key_id, key_version.into())?
             .into())
     }
 }

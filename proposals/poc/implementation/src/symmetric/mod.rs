@@ -132,7 +132,7 @@ pub enum SymmetricAlgorithm {
     Aes128Gcm,
     Aes256Gcm,
     Xoodyak128,
-    Xoodyak256,
+    Xoodyak160,
 }
 
 impl TryFrom<&str> for SymmetricAlgorithm {
@@ -152,7 +152,7 @@ impl TryFrom<&str> for SymmetricAlgorithm {
             "AES-128-GCM" => Ok(SymmetricAlgorithm::Aes128Gcm),
             "AES-256-GCM" => Ok(SymmetricAlgorithm::Aes256Gcm),
             "XOODYAK-128" => Ok(SymmetricAlgorithm::Xoodyak128),
-            "XOODYAK-256" => Ok(SymmetricAlgorithm::Xoodyak256),
+            "XOODYAK-160" => Ok(SymmetricAlgorithm::Xoodyak160),
             _ => bail!(CryptoError::UnsupportedAlgorithm),
         }
     }

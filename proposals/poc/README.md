@@ -7,9 +7,12 @@ A proposal for a WASI cryptography API.
   * symmetric operations ([witx](witx/proposal_siymmetric.witx), [doc](witx/proposal_symmetric.md))
   * common types and functions for asymmetric operations ([witx](witx/proposal_asymmetric_common.witx), [doc](witx/proposal_asymmetric_common.md))
   * signatures ([witx](witx/proposal_signatures.witx), [doc](witx/proposal_signatures.md))
+  * key exchange ([witx](witx/proposal_kx.witx), [doc](witx/proposal_kx.md))
+* [Short API overview](witx/wasi_ephemeral_crypto.txt)
 * [Toy implementation](https://github.com/jedisct1/wasi-crypto-preview/tree/master/implementation)
 * [Wasmtime integration](https://github.com/jedisct1/wasmtime-crypto)
 * [Example AssemblyScript bindings](https://github.com/jedisct1/as-crypto)
+* [Example Rust bindings](https://github.com/jedisct1/rust-wasi-crypto-guest-api)
 
 ## Testing the API
 
@@ -24,7 +27,7 @@ Other languages can use the [`wasmtime` fork](https://github.com/jedisct1/wasmti
 
 In that configuration, the API can be accessed via the exported `wasi_ephemeral_crypto` module.
 
-See the AssemblyScript bindings as an example.
+See the AssemblyScript and Rust bindings as an example.
 
 Currently supported algorithms as a proof of concept:
 
@@ -48,3 +51,5 @@ Currently supported algorithms as a proof of concept:
 * `AES-256-GCM`
 * `XOODYAK-128`
 * `XOODYAK-256`
+* `X25519`
+* `KYBER768`

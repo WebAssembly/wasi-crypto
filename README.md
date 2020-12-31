@@ -10,5 +10,16 @@ processes, goals, scope, and deliverables.
 [WebAssembly Community Group]: https://www.w3.org/community/webassembly/
 
 * [High-level goals](docs/HighLevelGoals.md)
-* [WASI cryptography API security design document](design/security.md)
-* [API proposals](proposals) and implementations
+* [Security design document](design/security.md)
+* [Specification](docs/wasi-crypto.md)
+* Interface definitions:
+  * common types and functions ([witx](witx/proposal_common.witx), [doc](witx/proposal_common.md))
+  * symmetric operations ([witx](witx/proposal_siymmetric.witx), [doc](witx/proposal_symmetric.md))
+  * common types and functions for asymmetric operations ([witx](witx/proposal_asymmetric_common.witx), [doc](witx/proposal_asymmetric_common.md))
+  * signatures ([witx](witx/proposal_signatures.witx), [doc](witx/proposal_signatures.md))
+  * key exchange ([witx](witx/proposal_kx.witx), [doc](witx/proposal_kx.md))
+  * external secrets ([witx](witx/proposal_external_secrets.witx), [doc](witx/proposal_external_secrets.md))
+* [Concise API overview](witx/wasi_ephemeral_crypto.txt)
+* [Wasmtime implementation](implementations/wasmtime) - [Temporary Wasmtime fork with wasi-crypto integration](https://github.com/jedisct1/wasmtime-crypto)
+* [Example AssemblyScript bindings](implementations/bindings/assemblyscript)
+* [Example Rust bindings](implementations/bindings/rust)

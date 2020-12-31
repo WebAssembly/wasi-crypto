@@ -1,0 +1,641 @@
+API overview
+
+crypto_errno: enum(u16)
+    - success = 0
+    - guest_error = 1
+    - not_implemented = 2
+    - unsupported_feature = 3
+    - prohibited_operation = 4
+    - unsupported_encoding = 5
+    - unsupported_algorithm = 6
+    - unsupported_option = 7
+    - invalid_key = 8
+    - invalid_length = 9
+    - verification_failed = 10
+    - rng_error = 11
+    - algorithm_failure = 12
+    - invalid_signature = 13
+    - closed = 14
+    - invalid_handle = 15
+    - overflow = 16
+    - internal_error = 17
+    - too_many_handles = 18
+    - key_not_supported = 19
+    - key_required = 20
+    - invalid_tag = 21
+    - invalid_operation = 22
+    - nonce_required = 23
+    - invalid_nonce = 24
+    - option_not_set = 25
+    - not_found = 26
+    - parameters_missing = 27
+    - in_progress = 28
+    - incompatible_keys = 29
+    - expired = 30
+
+keypair_encoding: enum(u16)
+    - raw = 0
+    - pkcs8 = 1
+    - pem = 2
+    - local = 3
+
+publickey_encoding: enum(u16)
+    - raw = 0
+    - pkcs8 = 1
+    - pem = 2
+    - sec = 3
+    - compressed_sec = 4
+    - local = 5
+
+secretkey_encoding: enum(u16)
+    - raw = 0
+    - pkcs8 = 1
+    - pem = 2
+    - sec = 3
+    - compressed_sec = 4
+    - local = 5
+
+signature_encoding: enum(u16)
+    - raw = 0
+    - der = 1
+
+algorithm_type: enum(u16)
+    - signatures = 0
+    - symmetric = 1
+    - key_exchange = 2
+
+version: int(u64)
+    - unspecified = 0
+    - latest = 1
+    - all = 2
+
+alias size = usize
+
+alias timestamp = u64
+
+array_output: handle
+
+options: handle
+
+secrets_manager: handle
+
+keypair: handle
+
+signature_state: handle
+
+signature: handle
+
+publickey: handle
+
+secretkey: handle
+
+signature_verification_state: handle
+
+symmetric_state: handle
+
+symmetric_key: handle
+
+symmetric_tag: handle
+
+opt_options_u: enum(u8)
+    - some = 0
+    - none = 1
+
+union opt_options (tag: opt_options_u, padding: 8 bytes)
+    - some: options (if tag=0)
+    - none: void (if tag=1)
+
+opt_symmetric_key_u: enum(u8)
+    - some = 0
+    - none = 1
+
+union opt_symmetric_key (tag: opt_symmetric_key_u, padding: 8 bytes)
+    - some: symmetric_key (if tag=0)
+    - none: void (if tag=1)
+
+signature_keypair: alias(keypair)
+
+signature_publickey: alias(publickey)
+
+signature_secretkey: alias(secretkey)
+
+kx_keypair: alias(keypair)
+
+kx_publickey: alias(publickey)
+
+kx_secretkey: alias(secretkey)
+
+
+----------------------[Module: wasi_ephemeral_crypto_common]----------------------
+
+function options_open(): crypto_errno
+    - Input:
+        - algorithm_type: algorithm_type
+    - Output:
+        - handle: mut_ptr<options>
+
+function options_close(): crypto_errno
+    - Input:
+        - handle: options
+
+function options_set(): crypto_errno
+    - Input:
+        - handle: options
+        - name_ptr: wasi_string_ptr
+        - name_len: usize
+        - value: ptr<u8>
+        - value_len: size
+
+function options_set_u64(): crypto_errno
+    - Input:
+        - handle: options
+        - name_ptr: wasi_string_ptr
+        - name_len: usize
+        - value: u64
+
+function options_set_guest_buffer(): crypto_errno
+    - Input:
+        - handle: options
+        - name_ptr: wasi_string_ptr
+        - name_len: usize
+        - buffer: mut_ptr<u8>
+        - buffer_len: size
+
+function array_output_len(): crypto_errno
+    - Input:
+        - array_output: array_output
+    - Output:
+        - len: mut_ptr<size>
+
+function array_output_pull(): crypto_errno
+    - Input:
+        - array_output: array_output
+        - buf: mut_ptr<u8>
+        - buf_len: size
+    - Output:
+        - len: mut_ptr<size>
+
+function secrets_manager_open(): crypto_errno
+    - Input:
+        - options: opt_options
+    - Output:
+        - handle: mut_ptr<secrets_manager>
+
+function secrets_manager_close(): crypto_errno
+    - Input:
+        - secrets_manager: secrets_manager
+
+function secrets_manager_invalidate(): crypto_errno
+    - Input:
+        - secrets_manager: secrets_manager
+        - key_id: ptr<u8>
+        - key_id_len: size
+        - key_version: version
+
+
+----------------------[Module: wasi_ephemeral_crypto_asymmetric_common]----------------------
+
+function keypair_generate(): crypto_errno
+    - Input:
+        - algorithm_type: algorithm_type
+        - algorithm_ptr: wasi_string_ptr
+        - algorithm_len: usize
+        - options: opt_options
+    - Output:
+        - handle: mut_ptr<keypair>
+
+function keypair_import(): crypto_errno
+    - Input:
+        - algorithm_type: algorithm_type
+        - algorithm_ptr: wasi_string_ptr
+        - algorithm_len: usize
+        - encoded: ptr<u8>
+        - encoded_len: size
+        - encoding: keypair_encoding
+    - Output:
+        - handle: mut_ptr<keypair>
+
+function keypair_generate_managed(): crypto_errno
+    - Input:
+        - secrets_manager: secrets_manager
+        - algorithm_type: algorithm_type
+        - algorithm_ptr: wasi_string_ptr
+        - algorithm_len: usize
+        - options: opt_options
+    - Output:
+        - handle: mut_ptr<keypair>
+
+function keypair_store_managed(): crypto_errno
+    - Input:
+        - secrets_manager: secrets_manager
+        - kp: keypair
+        - kp_id: mut_ptr<u8>
+        - kp_id_max_len: size
+
+function keypair_replace_managed(): crypto_errno
+    - Input:
+        - secrets_manager: secrets_manager
+        - kp_old: keypair
+        - kp_new: keypair
+    - Output:
+        - version: mut_ptr<version>
+
+function keypair_id(): crypto_errno
+    - Input:
+        - kp: keypair
+        - kp_id: mut_ptr<u8>
+        - kp_id_max_len: size
+    - Output:
+        - kp_id_len: mut_ptr<size>
+        - version: mut_ptr<version>
+
+function keypair_from_id(): crypto_errno
+    - Input:
+        - secrets_manager: secrets_manager
+        - kp_id: ptr<u8>
+        - kp_id_len: size
+        - kp_version: version
+    - Output:
+        - handle: mut_ptr<keypair>
+
+function keypair_from_pk_and_sk(): crypto_errno
+    - Input:
+        - publickey: publickey
+        - secretkey: secretkey
+    - Output:
+        - handle: mut_ptr<keypair>
+
+function keypair_export(): crypto_errno
+    - Input:
+        - kp: keypair
+        - encoding: keypair_encoding
+    - Output:
+        - encoded: mut_ptr<array_output>
+
+function keypair_publickey(): crypto_errno
+    - Input:
+        - kp: keypair
+    - Output:
+        - pk: mut_ptr<publickey>
+
+function keypair_secretkey(): crypto_errno
+    - Input:
+        - kp: keypair
+    - Output:
+        - sk: mut_ptr<secretkey>
+
+function keypair_close(): crypto_errno
+    - Input:
+        - kp: keypair
+
+function publickey_import(): crypto_errno
+    - Input:
+        - algorithm_type: algorithm_type
+        - algorithm_ptr: wasi_string_ptr
+        - algorithm_len: usize
+        - encoded: ptr<u8>
+        - encoded_len: size
+        - encoding: publickey_encoding
+    - Output:
+        - pk: mut_ptr<publickey>
+
+function publickey_export(): crypto_errno
+    - Input:
+        - pk: publickey
+        - encoding: publickey_encoding
+    - Output:
+        - encoded: mut_ptr<array_output>
+
+function publickey_verify(): crypto_errno
+    - Input:
+        - pk: publickey
+
+function publickey_from_secretkey(): crypto_errno
+    - Input:
+        - sk: secretkey
+    - Output:
+        - pk: mut_ptr<publickey>
+
+function publickey_close(): crypto_errno
+    - Input:
+        - pk: publickey
+
+function secretkey_import(): crypto_errno
+    - Input:
+        - algorithm_type: algorithm_type
+        - algorithm_ptr: wasi_string_ptr
+        - algorithm_len: usize
+        - encoded: ptr<u8>
+        - encoded_len: size
+        - encoding: secretkey_encoding
+    - Output:
+        - sk: mut_ptr<secretkey>
+
+function secretkey_export(): crypto_errno
+    - Input:
+        - sk: secretkey
+        - encoding: secretkey_encoding
+    - Output:
+        - encoded: mut_ptr<array_output>
+
+function secretkey_close(): crypto_errno
+    - Input:
+        - sk: secretkey
+
+
+----------------------[Module: wasi_ephemeral_crypto_signatures]----------------------
+
+function signature_export(): crypto_errno
+    - Input:
+        - signature: signature
+        - encoding: signature_encoding
+    - Output:
+        - encoded: mut_ptr<array_output>
+
+function signature_import(): crypto_errno
+    - Input:
+        - algorithm_ptr: wasi_string_ptr
+        - algorithm_len: usize
+        - encoded: ptr<u8>
+        - encoded_len: size
+        - encoding: signature_encoding
+    - Output:
+        - signature: mut_ptr<signature>
+
+function signature_state_open(): crypto_errno
+    - Input:
+        - kp: signature_keypair
+    - Output:
+        - state: mut_ptr<signature_state>
+
+function signature_state_update(): crypto_errno
+    - Input:
+        - state: signature_state
+        - input: ptr<u8>
+        - input_len: size
+
+function signature_state_sign(): crypto_errno
+    - Input:
+        - state: signature_state
+    - Output:
+        - signature: mut_ptr<array_output>
+
+function signature_state_close(): crypto_errno
+    - Input:
+        - state: signature_state
+
+function signature_verification_state_open(): crypto_errno
+    - Input:
+        - kp: signature_publickey
+    - Output:
+        - state: mut_ptr<signature_verification_state>
+
+function signature_verification_state_update(): crypto_errno
+    - Input:
+        - state: signature_verification_state
+        - input: ptr<u8>
+        - input_len: size
+
+function signature_verification_state_verify(): crypto_errno
+    - Input:
+        - state: signature_verification_state
+        - signature: signature
+
+function signature_verification_state_close(): crypto_errno
+    - Input:
+        - state: signature_verification_state
+
+function signature_close(): crypto_errno
+    - Input:
+        - signature: signature
+
+
+----------------------[Module: wasi_ephemeral_crypto_symmetric]----------------------
+
+function symmetric_key_generate(): crypto_errno
+    - Input:
+        - algorithm_ptr: wasi_string_ptr
+        - algorithm_len: usize
+        - options: opt_options
+    - Output:
+        - handle: mut_ptr<symmetric_key>
+
+function symmetric_key_import(): crypto_errno
+    - Input:
+        - algorithm_ptr: wasi_string_ptr
+        - algorithm_len: usize
+        - raw: ptr<u8>
+        - raw_len: size
+    - Output:
+        - handle: mut_ptr<symmetric_key>
+
+function symmetric_key_export(): crypto_errno
+    - Input:
+        - symmetric_key: symmetric_key
+    - Output:
+        - encoded: mut_ptr<array_output>
+
+function symmetric_key_close(): crypto_errno
+    - Input:
+        - symmetric_key: symmetric_key
+
+function symmetric_key_generate_managed(): crypto_errno
+    - Input:
+        - secrets_manager: secrets_manager
+        - algorithm_ptr: wasi_string_ptr
+        - algorithm_len: usize
+        - options: opt_options
+    - Output:
+        - handle: mut_ptr<symmetric_key>
+
+function symmetric_key_store_managed(): crypto_errno
+    - Input:
+        - secrets_manager: secrets_manager
+        - symmetric_key: symmetric_key
+        - symmetric_key_id: mut_ptr<u8>
+        - symmetric_key_id_max_len: size
+
+function symmetric_key_replace_managed(): crypto_errno
+    - Input:
+        - secrets_manager: secrets_manager
+        - symmetric_key_old: symmetric_key
+        - symmetric_key_new: symmetric_key
+    - Output:
+        - version: mut_ptr<version>
+
+function symmetric_key_id(): crypto_errno
+    - Input:
+        - symmetric_key: symmetric_key
+        - symmetric_key_id: mut_ptr<u8>
+        - symmetric_key_id_max_len: size
+    - Output:
+        - symmetric_key_id_len: mut_ptr<size>
+        - version: mut_ptr<version>
+
+function symmetric_key_from_id(): crypto_errno
+    - Input:
+        - secrets_manager: secrets_manager
+        - symmetric_key_id: ptr<u8>
+        - symmetric_key_id_len: size
+        - symmetric_key_version: version
+    - Output:
+        - handle: mut_ptr<symmetric_key>
+
+function symmetric_state_open(): crypto_errno
+    - Input:
+        - algorithm_ptr: wasi_string_ptr
+        - algorithm_len: usize
+        - key: opt_symmetric_key
+        - options: opt_options
+    - Output:
+        - symmetric_state: mut_ptr<symmetric_state>
+
+function symmetric_state_options_get(): crypto_errno
+    - Input:
+        - handle: symmetric_state
+        - name_ptr: wasi_string_ptr
+        - name_len: usize
+        - value: mut_ptr<u8>
+        - value_max_len: size
+    - Output:
+        - value_len: mut_ptr<size>
+
+function symmetric_state_options_get_u64(): crypto_errno
+    - Input:
+        - handle: symmetric_state
+        - name_ptr: wasi_string_ptr
+        - name_len: usize
+    - Output:
+        - value: mut_ptr<u64>
+
+function symmetric_state_close(): crypto_errno
+    - Input:
+        - handle: symmetric_state
+
+function symmetric_state_absorb(): crypto_errno
+    - Input:
+        - handle: symmetric_state
+        - data: ptr<u8>
+        - data_len: size
+
+function symmetric_state_squeeze(): crypto_errno
+    - Input:
+        - handle: symmetric_state
+        - out: mut_ptr<u8>
+        - out_len: size
+
+function symmetric_state_squeeze_tag(): crypto_errno
+    - Input:
+        - handle: symmetric_state
+    - Output:
+        - symmetric_tag: mut_ptr<symmetric_tag>
+
+function symmetric_state_squeeze_key(): crypto_errno
+    - Input:
+        - handle: symmetric_state
+        - alg_str_ptr: wasi_string_ptr
+        - alg_str_len: usize
+    - Output:
+        - symmetric_key: mut_ptr<symmetric_key>
+
+function symmetric_state_max_tag_len(): crypto_errno
+    - Input:
+        - handle: symmetric_state
+    - Output:
+        - len: mut_ptr<size>
+
+function symmetric_state_encrypt(): crypto_errno
+    - Input:
+        - handle: symmetric_state
+        - out: mut_ptr<u8>
+        - out_len: size
+        - data: ptr<u8>
+        - data_len: size
+    - Output:
+        - actual_out_len: mut_ptr<size>
+
+function symmetric_state_encrypt_detached(): crypto_errno
+    - Input:
+        - handle: symmetric_state
+        - out: mut_ptr<u8>
+        - out_len: size
+        - data: ptr<u8>
+        - data_len: size
+    - Output:
+        - symmetric_tag: mut_ptr<symmetric_tag>
+
+function symmetric_state_decrypt(): crypto_errno
+    - Input:
+        - handle: symmetric_state
+        - out: mut_ptr<u8>
+        - out_len: size
+        - data: ptr<u8>
+        - data_len: size
+    - Output:
+        - actual_out_len: mut_ptr<size>
+
+function symmetric_state_decrypt_detached(): crypto_errno
+    - Input:
+        - handle: symmetric_state
+        - out: mut_ptr<u8>
+        - out_len: size
+        - data: ptr<u8>
+        - data_len: size
+        - raw_tag: ptr<u8>
+        - raw_tag_len: size
+    - Output:
+        - actual_out_len: mut_ptr<size>
+
+function symmetric_state_ratchet(): crypto_errno
+    - Input:
+        - handle: symmetric_state
+
+function symmetric_tag_len(): crypto_errno
+    - Input:
+        - symmetric_tag: symmetric_tag
+    - Output:
+        - len: mut_ptr<size>
+
+function symmetric_tag_pull(): crypto_errno
+    - Input:
+        - symmetric_tag: symmetric_tag
+        - buf: mut_ptr<u8>
+        - buf_len: size
+    - Output:
+        - len: mut_ptr<size>
+
+function symmetric_tag_verify(): crypto_errno
+    - Input:
+        - symmetric_tag: symmetric_tag
+        - expected_raw_tag_ptr: ptr<u8>
+        - expected_raw_tag_len: size
+
+function symmetric_tag_close(): crypto_errno
+    - Input:
+        - symmetric_tag: symmetric_tag
+
+
+----------------------[Module: wasi_ephemeral_crypto_kx]----------------------
+
+function kx_dh(): crypto_errno
+    - Input:
+        - pk: publickey
+        - sk: secretkey
+    - Output:
+        - shared_secret: mut_ptr<array_output>
+
+function kx_encapsulate(): crypto_errno
+    - Input:
+        - pk: publickey
+    - Output:
+        - secret: mut_ptr<array_output>
+        - encapsulated_secret: mut_ptr<array_output>
+
+function kx_decapsulate(): crypto_errno
+    - Input:
+        - sk: secretkey
+        - encapsulated_secret: ptr<u8>
+        - encapsulated_secret_len: size
+    - Output:
+        - secret: mut_ptr<array_output>
+

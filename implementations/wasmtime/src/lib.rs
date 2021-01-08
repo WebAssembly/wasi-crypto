@@ -44,28 +44,28 @@ pub use version::Version;
 static REBUILD_IF_WITX_FILE_IS_UPDATED: [&str; 5] = [
     include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/../witx/proposal_common.witx"
+        "/../../witx/proposal_common.witx"
     )),
     include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/../witx/proposal_asymmetric_common.witx"
+        "/../../witx/proposal_asymmetric_common.witx"
     )),
     include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/../witx/proposal_signatures.witx"
+        "/../../witx/proposal_signatures.witx"
     )),
     include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/../witx/proposal_symmetric.witx"
+        "/../../witx/proposal_symmetric.witx"
     )),
     include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/../witx/proposal_kx.witx"
+        "/../../witx/proposal_kx.witx"
     )),
 ];
 
 wiggle::from_witx!({
-    witx: ["$CARGO_MANIFEST_DIR/../witx/wasi_ephemeral_crypto.witx"],
+    witx: ["$CARGO_MANIFEST_DIR/../../witx/wasi_ephemeral_crypto.witx"],
     ctx: WasiCryptoCtx
 });
 

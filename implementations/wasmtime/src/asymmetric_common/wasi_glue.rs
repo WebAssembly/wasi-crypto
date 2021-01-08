@@ -39,7 +39,7 @@ impl crate::wasi_ephemeral_crypto_asymmetric_common::WasiEphemeralCryptoAsymmetr
         kp_id_ptr: &wiggle::GuestPtr<'_, u8>,
         kp_id_max_len: guest_types::Size,
     ) -> Result<(), guest_types::CryptoErrno> {
-        let key_id_buf = &mut *kp_id_ptr.as_array(kp_id_max_len).as_slice()?;
+        let key_id_buf = &mut *kp_id_ptr.as_array(kp_id_max_len).as_slice_mut()?;
         Ok(self
             .ctx
             .keypair_store_managed(
@@ -121,7 +121,7 @@ impl crate::wasi_ephemeral_crypto_asymmetric_common::WasiEphemeralCryptoAsymmetr
         kp_id_ptr: &wiggle::GuestPtr<'_, u8>,
         kp_id_max_len: guest_types::Size,
     ) -> Result<(guest_types::Size, guest_types::Version), guest_types::CryptoErrno> {
-        let kp_id_buf = &mut *kp_id_ptr.as_array(kp_id_max_len as _).as_slice()?;
+        let kp_id_buf = &mut *kp_id_ptr.as_array(kp_id_max_len as _).as_slice_mut()?;
         let (kp_id, version) = self.ctx.keypair_id(kp_handle.into())?;
         ensure!(kp_id.len() <= kp_id_buf.len(), CryptoError::Overflow.into());
         kp_id_buf.copy_from_slice(&kp_id);

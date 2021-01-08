@@ -37,7 +37,7 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
     ) -> Result<(), guest_types::CryptoErrno> {
         let key_id_buf = &mut *symmetric_key_id_ptr
             .as_array(symmetric_key_id_max_len)
-            .as_slice()?;
+            .as_slice_mut()?;
         Ok(self
             .ctx
             .symmetric_key_store_managed(
@@ -131,7 +131,7 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
     ) -> Result<(guest_types::Size, guest_types::Version), guest_types::CryptoErrno> {
         let key_id_buf = &mut *symmetric_key_id_ptr
             .as_array(symmetric_key_id_max_len)
-            .as_slice()?;
+            .as_slice_mut()?;
         let (key_id, version) = self.ctx.symmetric_key_id(symmetric_key_handle.into())?;
         ensure!(
             key_id.len() <= key_id_buf.len(),
@@ -183,7 +183,7 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         value_max_len: guest_types::Size,
     ) -> Result<guest_types::Size, guest_types::CryptoErrno> {
         let name_str: &str = &*name_str.as_str()?;
-        let value = &mut *value_ptr.as_array(value_max_len).as_slice()?;
+        let value = &mut *value_ptr.as_array(value_max_len).as_slice_mut()?;
         Ok(self
             .ctx
             .options_get(symmetric_state_handle.into(), name_str, value)?
@@ -230,7 +230,7 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         out_ptr: &wiggle::GuestPtr<'_, u8>,
         out_len: guest_types::Size,
     ) -> Result<(), guest_types::CryptoErrno> {
-        let out = &mut *out_ptr.as_array(out_len).as_slice()?;
+        let out = &mut *out_ptr.as_array(out_len).as_slice_mut()?;
         Ok(self
             .ctx
             .symmetric_state_squeeze(symmetric_state_handle.into(), out)?
@@ -277,7 +277,7 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         data_ptr: &wiggle::GuestPtr<'_, u8>,
         data_len: guest_types::Size,
     ) -> Result<guest_types::Size, guest_types::CryptoErrno> {
-        let out = &mut *out_ptr.as_array(out_len).as_slice()?;
+        let out = &mut *out_ptr.as_array(out_len).as_slice_mut()?;
         let data = &*data_ptr.as_array(data_len).as_slice()?;
         Ok(self
             .ctx
@@ -293,7 +293,7 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         data_ptr: &wiggle::GuestPtr<'_, u8>,
         data_len: guest_types::Size,
     ) -> Result<guest_types::SymmetricTag, guest_types::CryptoErrno> {
-        let out = &mut *out_ptr.as_array(out_len).as_slice()?;
+        let out = &mut *out_ptr.as_array(out_len).as_slice_mut()?;
         let data = &*data_ptr.as_array(data_len).as_slice()?;
         Ok(self
             .ctx
@@ -309,7 +309,7 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         data_ptr: &wiggle::GuestPtr<'_, u8>,
         data_len: guest_types::Size,
     ) -> Result<guest_types::Size, guest_types::CryptoErrno> {
-        let out = &mut *out_ptr.as_array(out_len).as_slice()?;
+        let out = &mut *out_ptr.as_array(out_len).as_slice_mut()?;
         let data = &*data_ptr.as_array(data_len).as_slice()?;
         Ok(self
             .ctx
@@ -327,7 +327,7 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         raw_tag_ptr: &wiggle::GuestPtr<'_, u8>,
         raw_tag_len: guest_types::Size,
     ) -> Result<guest_types::Size, guest_types::CryptoErrno> {
-        let out = &mut *out_ptr.as_array(out_len).as_slice()?;
+        let out = &mut *out_ptr.as_array(out_len).as_slice_mut()?;
         let data = &*data_ptr.as_array(data_len).as_slice()?;
         let raw_tag: &[u8] = &*raw_tag_ptr.as_array(raw_tag_len).as_slice()?;
         Ok(self
@@ -363,7 +363,7 @@ impl crate::wasi_ephemeral_crypto_symmetric::WasiEphemeralCryptoSymmetric for Wa
         buf_ptr: &wiggle::GuestPtr<'_, u8>,
         buf_len: guest_types::Size,
     ) -> Result<guest_types::Size, guest_types::CryptoErrno> {
-        let buf = &mut *buf_ptr.as_array(buf_len).as_slice()?;
+        let buf = &mut *buf_ptr.as_array(buf_len).as_slice_mut()?;
         Ok(self
             .ctx
             .symmetric_tag_pull(symmetric_tag_handle.into(), buf)?

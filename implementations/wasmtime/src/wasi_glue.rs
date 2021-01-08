@@ -44,7 +44,7 @@ impl crate::wasi_ephemeral_crypto_common::WasiEphemeralCryptoCommon for WasiCryp
     ) -> Result<(), guest_types::CryptoErrno> {
         let name_str: &str = &*name_str.as_str()?;
         let buffer: &'static mut [u8] =
-            unsafe { std::mem::transmute(&mut *buffer_ptr.as_array(buffer_len).as_slice()?) };
+            unsafe { std::mem::transmute(&mut *buffer_ptr.as_array(buffer_len).as_slice_mut()?) };
         Ok(self
             .ctx
             .options_set_guest_buffer(options_handle.into(), name_str, buffer)?
@@ -82,7 +82,7 @@ impl crate::wasi_ephemeral_crypto_common::WasiEphemeralCryptoCommon for WasiCryp
         buf_ptr: &wiggle::GuestPtr<'_, u8>,
         buf_len: guest_types::Size,
     ) -> Result<guest_types::Size, guest_types::CryptoErrno> {
-        let buf: &mut [u8] = { &mut *buf_ptr.as_array(buf_len).as_slice()? };
+        let buf: &mut [u8] = { &mut *buf_ptr.as_array(buf_len).as_slice_mut()? };
         Ok(self
             .ctx
             .array_output_pull(array_output_handle.into(), buf)?

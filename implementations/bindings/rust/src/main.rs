@@ -21,7 +21,6 @@ fn doit() -> Result<(), WasiCryptoError> {
     let key = SymmetricKey::generate("AES-128-GCM", Some(&options))?;
     let mut state = SymmetricState::new("AES-128-GCM", Some(&key), Some(&options))?;
     let ciphertext = state.encrypt(b"test")?;
-    println!("{:?}", ciphertext);
     let mut state = SymmetricState::new("AES-128-GCM", Some(&key), Some(&options))?;
     state.decrypt(&ciphertext)?;
     Ok(())

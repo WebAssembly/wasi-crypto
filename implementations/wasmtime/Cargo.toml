@@ -3,6 +3,7 @@ name = "wasi-crypto"
 version = "0.1.2"
 authors = ["Frank Denis <github@pureftpd.org>"]
 edition = "2018"
+publish = false
 
 [dependencies]
 aes-gcm = "0.8"

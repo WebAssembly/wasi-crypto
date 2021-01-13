@@ -80,7 +80,7 @@ impl SymmetricKeyBuilder for XoodyakSymmetricKeyBuilder {
     fn key_len(&self) -> Result<usize, CryptoError> {
         match self.alg {
             SymmetricAlgorithm::Xoodyak128 => Ok(16),
-            SymmetricAlgorithm::Xoodyak160 => Ok(24),
+            SymmetricAlgorithm::Xoodyak160 => Ok(20),
             _ => bail!(CryptoError::UnsupportedAlgorithm),
         }
     }

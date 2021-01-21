@@ -28,9 +28,11 @@ serde = { version = "1.0", features = ["derive"] }
 sha2 = "0.9"
 subtle = "2.4"
 thiserror = "1.0"
-wiggle = { version = "0.22", optional = true }
 xoodyak = "0.7"
 zeroize = "1.2"
 
 [features]
 default = ["pqcrypto"]
+
+[badges]
+maintenance = { status = "experimental" }

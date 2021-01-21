@@ -3,7 +3,12 @@ name = "wasi-crypto"
 version = "0.1.2"
 authors = ["Frank Denis <github@pureftpd.org>"]
 edition = "2018"
-publish = false
+description = "Experimental implementation of the WASI cryptography APIs"
+documentation = "https://docs.rs/wasi-crypto"
+license = "Apache-2.0 WITH LLVM-exception"
+categories = ["wasm", "crypto"]
+keywords = ["webassembly", "wasm", "crypto"]
+repository = "https://github.com/webassembly/wasi-crypto"
 
 [dependencies]
 aes-gcm = "0.8"

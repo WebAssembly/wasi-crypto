@@ -6,7 +6,7 @@ edition = "2018"
 description = "Experimental implementation of the WASI cryptography APIs"
 documentation = "https://docs.rs/wasi-crypto"
 license = "Apache-2.0 WITH LLVM-exception"
-categories = ["wasm", "crypto"]
+categories = ["wasm", "cryptography"]
 keywords = ["webassembly", "wasm", "crypto"]
 repository = "https://github.com/webassembly/wasi-crypto"
 

@@ -40,7 +40,7 @@ pub use handles::Handle;
 pub use signatures::SignatureEncoding;
 pub use version::Version;
 
-pub struct HandleManagers {
+pub (crate) struct HandleManagers {
     pub array_output: HandlesManager<ArrayOutput>,
     pub options: HandlesManager<Options>,
     pub keypair: HandlesManager<KeyPair>,

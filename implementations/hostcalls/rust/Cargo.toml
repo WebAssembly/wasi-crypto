@@ -1,6 +1,6 @@
 [package]
 name = "wasi-crypto"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["Frank Denis <github@pureftpd.org>"]
 edition = "2018"
 description = "Experimental implementation of the WASI cryptography APIs"
@@ -19,7 +19,6 @@ chacha20poly1305 = "0.7"
 curve25519-dalek = "3"
 derivative = "2.1"
 ed25519-dalek = "1.0"
-getrandom = "0.2"
 hkdf = "0.10"
 hmac = "0.10"
 k256 = { version = "0.7", features = ["ecdsa", "std", "zeroize", "pkcs8", "pem"] }

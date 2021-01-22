@@ -14,7 +14,7 @@ pub mod prelude {
 
 use prelude::*;
 
-fn doit() -> Result<(), WasiCryptoError> {
+fn main() -> Result<(), WasiCryptoError> {
     let mut options = SymmetricOptions::new();
     let nonce = [0u8; 12];
     options.set("nonce", &nonce)?;
@@ -24,8 +24,4 @@ fn doit() -> Result<(), WasiCryptoError> {
     let mut state = SymmetricState::new("AES-128-GCM", Some(&key), Some(&options))?;
     state.decrypt(&ciphertext)?;
     Ok(())
-}
-
-fn main() {
-    doit().unwrap()
 }

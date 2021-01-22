@@ -10,6 +10,7 @@ mod tag;
 mod xoodyak;
 
 use self::aes_gcm::*;
+use self::chacha_poly::*;
 use self::hkdf::*;
 use self::hmac_sha2::*;
 use self::key::*;

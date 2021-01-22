@@ -57,6 +57,9 @@ impl SymmetricKey {
             SymmetricAlgorithm::Xoodyak128 | SymmetricAlgorithm::Xoodyak160 => {
                 XoodyakSymmetricKeyBuilder::new(alg)
             }
+            SymmetricAlgorithm::ChaCha20Poly1305 | SymmetricAlgorithm::XChaCha20Poly1305 => {
+                ChaChaPolySymmetricKeyBuilder::new(alg)
+            }
             _ => bail!(CryptoError::InvalidOperation),
         };
         Ok(builder)

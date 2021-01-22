@@ -93,8 +93,8 @@ impl SymmetricKeyBuilder for ChaChaPolySymmetricKeyBuilder {
 
     fn key_len(&self) -> Result<usize, CryptoError> {
         match self.alg {
-            SymmetricAlgorithm::Aes128Gcm => Ok(16),
-            SymmetricAlgorithm::Aes256Gcm => Ok(32),
+            SymmetricAlgorithm::ChaCha20Poly1305 => Ok(16),
+            SymmetricAlgorithm::XChaCha20Poly1305 => Ok(32),
             _ => bail!(CryptoError::UnsupportedAlgorithm),
         }
     }
@@ -131,7 +131,7 @@ impl ChaChaPolySymmetricState {
             );
             Ok(nonce_vec.clone())
         })?;
-        let aes_gcm_impl = match alg {
+        let chapoly_impl = match alg {
             SymmetricAlgorithm::ChaCha20Poly1305 => ChaChaPolyVariant::ChaCha(
                 ChaCha20Poly1305::new(GenericArray::from_slice(key.as_raw()?)),
             ),
@@ -143,7 +143,7 @@ impl ChaChaPolySymmetricState {
         let state = ChaChaPolySymmetricState {
             alg,
             options: options.clone(),
-            ctx: aes_gcm_impl,
+            ctx: chapoly_impl,
             ad: vec![],
             nonce: Some(nonce),
         };

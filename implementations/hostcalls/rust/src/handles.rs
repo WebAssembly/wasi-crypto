@@ -11,7 +11,7 @@ struct HandlesManagerInner<HandleType: Clone + Sync> {
     type_id: u8,
 }
 
-pub (crate) struct HandlesManager<HandleType: Clone + Send + Sync> {
+pub(crate) struct HandlesManager<HandleType: Clone + Send + Sync> {
     inner: Mutex<HandlesManagerInner<HandleType>>,
 }
 

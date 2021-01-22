@@ -25,7 +25,7 @@ impl ArrayOutput {
         ArrayOutput(Cursor::new(data))
     }
 
-    pub (crate) fn register(handles: &HandleManagers, data: Vec<u8>) -> Result<Handle, CryptoError> {
+    pub(crate) fn register(handles: &HandleManagers, data: Vec<u8>) -> Result<Handle, CryptoError> {
         let array_output = ArrayOutput::new(data);
         let handle = handles.array_output.register(array_output)?;
         Ok(handle)

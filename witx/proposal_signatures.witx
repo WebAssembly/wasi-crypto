@@ -28,8 +28,7 @@
   (@interface func (export "signature_export")
     (param $signature $signature)
     (param $encoding $signature_encoding)
-    (result $error $crypto_errno)
-    (result $encoded $array_output)
+    (result $error (expected $array_output (error $crypto_errno)))
   )
 
   ;;; Create a signature object.
@@ -50,8 +49,7 @@
     (param $encoded (@witx const_pointer u8))
     (param $encoded_len $size)
     (param $encoding $signature_encoding)
-    (result $error $crypto_errno)
-    (result $signature $signature)
+    (result $error (expected $signature (error $crypto_errno)))
   )
 
   ;;; Create a new state to collect data to compute a signature on.
@@ -72,8 +70,7 @@
   ;;; ```
   (@interface func (export "signature_state_open")
     (param $kp $signature_keypair)
-    (result $error $crypto_errno)
-    (result $state $signature_state)
+    (result $error (expected $signature_state (error $crypto_errno)))
   )
 
   ;;; Absorb data into the signature state.
@@ -83,7 +80,7 @@
     (param $state $signature_state)
     (param $input (@witx const_pointer u8))
     (param $input_len $size)
-    (result $error $crypto_errno)
+    (result $error (expected (error $crypto_errno)))
   )
 
   ;;; Compute a signature for all the data collected up to that point.
@@ -91,8 +88,7 @@
   ;;; The function can be called multiple times for incremental signing.
   (@interface func (export "signature_state_sign")
     (param $state $signature_state)
-    (result $error $crypto_errno)
-    (result $signature $array_output)
+    (result $error (expected $array_output (error $crypto_errno)))
   )
 
   ;;; Destroy a signature state.
@@ -102,7 +98,7 @@
   ;;; Note that closing a signature state doesn't close or invalidate the key pair object, that be reused for further signatures.
   (@interface func (export "signature_state_close")
     (param $state $signature_state)
-    (result $error $crypto_errno)
+    (result $error (expected (error $crypto_errno)))
   )
 
   ;;; Create a new state to collect data to verify a signature on.
@@ -122,8 +118,7 @@
   ;;; ```
   (@interface func (export "signature_verification_state_open")
     (param $kp $signature_publickey)
-    (result $error $crypto_errno)
-    (result $state $signature_verification_state)
+    (result $error (expected $signature_verification_state (error $crypto_errno)))
   )
 
   ;;; Absorb data into the signature verification state.
@@ -133,7 +128,7 @@
     (param $state $signature_verification_state)
     (param $input (@witx const_pointer u8))
     (param $input_len $size)
-    (result $error $crypto_errno)
+    (result $error (expected (error $crypto_errno)))
   )
 
   ;;; Check that the given signature is verifies for the data collected up to that point point.
@@ -144,7 +139,7 @@
   (@interface func (export "signature_verification_state_verify")
     (param $state $signature_verification_state)
     (param $signature $signature)
-    (result $error $crypto_errno)
+    (result $error (expected (error $crypto_errno)))
   )
 
   ;;; Destroy a signature verification state.
@@ -154,7 +149,7 @@
   ;;; Note that closing a signature state doesn't close or invalidate the public key object, that be reused for further verifications.
   (@interface func (export "signature_verification_state_close")
     (param $state $signature_verification_state)
-    (result $error $crypto_errno)
+    (result $error (expected (error $crypto_errno)))
   )
 
   ;;; Destroy a signature.
@@ -162,6 +157,6 @@
   ;;; Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
   (@interface func (export "signature_close")
     (param $signature $signature)
-    (result $error $crypto_errno)
+    (result $error (expected (error $crypto_errno)))
   )
 )

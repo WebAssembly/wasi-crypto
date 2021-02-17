@@ -13,7 +13,8 @@
   (@interface func (export "symmetric_key_generate")
     (param $algorithm string)
     (param $options $opt_options)
-    (result $error (expected $symmetric_key (error $crypto_errno)))
+    (result $error $crypto_errno)
+    (result $handle $symmetric_key)
   )
 
   ;;; Create a symmetric key from raw material.
@@ -25,7 +26,8 @@
     (param $algorithm string)
     (param $raw (@witx const_pointer u8))
     (param $raw_len $size)
-    (result $error (expected $symmetric_key (error $crypto_errno)))
+    (result $error $crypto_errno)
+    (result $handle $symmetric_key)
   )
 
   ;;; Export a symmetric key as raw material.
@@ -35,7 +37,8 @@
   ;;; May return `prohibited_operation` if this operation is denied.
   (@interface func (export "symmetric_key_export")
     (param $symmetric_key $symmetric_key)
-    (result $error (expected $array_output (error $crypto_errno)))
+    (result $error $crypto_errno)
+    (result $encoded $array_output)
   )
 
   ;;; Destroy a symmetric key.
@@ -43,7 +46,7 @@
   ;;; Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
   (@interface func (export "symmetric_key_close")
     (param $symmetric_key $symmetric_key)
-    (result $error (expected (error $crypto_errno)))
+    (result $error $crypto_errno)
   )
 
   ;;; __(optional)__
@@ -63,7 +66,8 @@
     (param $secrets_manager $secrets_manager)
     (param $algorithm string)
     (param $options $opt_options)
-    (result $error (expected $symmetric_key (error $crypto_errno)))
+    (result $error $crypto_errno)
+    (result $handle $symmetric_key)
   )
 
   ;;; __(optional)__
@@ -78,7 +82,7 @@
     (param $symmetric_key $symmetric_key)
     (param $symmetric_key_id (@witx pointer u8))
     (param $symmetric_key_id_max_len $size)
-    (result $error (expected (error $crypto_errno)))
+    (result $error $crypto_errno)
   )
 
   ;;; __(optional)__
@@ -106,7 +110,8 @@
     (param $secrets_manager $secrets_manager)
     (param $symmetric_key_old $symmetric_key)
     (param $symmetric_key_new $symmetric_key)
-    (result $error (expected $version (error $crypto_errno)))
+    (result $error $crypto_errno)
+    (result $version $version)
   )
 
   ;;; __(optional)__
@@ -119,7 +124,9 @@
     (param $symmetric_key $symmetric_key)
     (param $symmetric_key_id (@witx pointer u8))
     (param $symmetric_key_id_max_len $size)
-    (result $error (expected (tuple $size $version) (error $crypto_errno)))
+    (result $error $crypto_errno)
+    (result $symmetric_key_id_len $size)
+    (result $version $version)
   )
 
   ;;; __(optional)__
@@ -135,7 +142,8 @@
     (param $symmetric_key_id (@witx const_pointer u8))
     (param $symmetric_key_id_len $size)
     (param $symmetric_key_version $version)
-    (result $error (expected $symmetric_key (error $crypto_errno)))
+    (result $error $crypto_errno)
+    (result $handle $symmetric_key)
   )
 
   ;;; Create a new state to aborb and produce data using symmetric operations.
@@ -319,7 +327,8 @@
     (param $algorithm string)
     (param $key $opt_symmetric_key)
     (param $options $opt_options)
-    (result $error (expected $symmetric_state (error $crypto_errno)))
+    (result $error $crypto_errno)
+    (result $symmetric_state $symmetric_state)
   )
 
   ;;; Retrieve a parameter from the current state.
@@ -334,7 +343,8 @@
     (param $name string)
     (param $value (@witx pointer u8))
     (param $value_max_len $size)
-    (result $error (expected $size (error $crypto_errno)))
+    (result $error $crypto_errno)
+    (result $value_len $size)
   )
 
   ;;; Retrieve an integer parameter from the current state.
@@ -347,7 +357,8 @@
   (@interface func (export "symmetric_state_options_get_u64")
     (param $handle $symmetric_state)
     (param $name string)
-    (result $error (expected $u64 (error $crypto_errno)))
+    (result $error $crypto_errno)
+    (result $value u64)
   )
 
   ;;; Destroy a symmetric state.
@@ -355,7 +366,7 @@
   ;;; Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
   (@interface func (export "symmetric_state_close")
     (param $handle $symmetric_state)
-    (result $error (expected (error $crypto_errno)))
+    (result $error $crypto_errno)
   )
 
   ;;; Absorb data into the state.
@@ -374,7 +385,7 @@
     (param $handle $symmetric_state)
     (param $data (@witx const_pointer u8))
     (param $data_len $size)
-    (result $error (expected (error $crypto_errno)))
+    (result $error $crypto_errno)
   )
 
   ;;; Squeeze bytes from the state.
@@ -392,7 +403,7 @@
     (param $handle $symmetric_state)
     (param $out (@witx pointer u8))
     (param $out_len $size)
-    (result $error (expected (error $crypto_errno)))
+    (result $error $crypto_errno)
   )
 
   ;;; Compute and return a tag for all the data injected into the state so far.
@@ -407,7 +418,8 @@
   ;;; In that case, the guest should retry with the same parameters until the function completes.
   (@interface func (export "symmetric_state_squeeze_tag")
     (param $handle $symmetric_state)
-    (result $error (expected $symmetric_tag (error $crypto_errno)))
+    (result $error $crypto_errno)
+    (result $symmetric_tag $symmetric_tag)
   )
 
   ;;; Use the current state to produce a key for a target algorithm.
@@ -419,7 +431,8 @@
   (@interface func (export "symmetric_state_squeeze_key")
     (param $handle $symmetric_state)
     (param $alg_str string)
-    (result $error (expected $symmetric_key (error $crypto_errno)))
+    (result $error $crypto_errno)
+    (result $symmetric_key $symmetric_key)
   )
 
   ;;; Return the maximum length of an authentication tag for the current algorithm.
@@ -433,7 +446,8 @@
   ;;; For a decryption operation, the size of the buffer that will store the decrypted data must be `ciphertext_len - symmetric_state_max_tag_len()`.
   (@interface func (export "symmetric_state_max_tag_len")
     (param $handle $symmetric_state)
-    (result $error (expected $size (error $crypto_errno)))
+    (result $error $crypto_errno)
+    (result $len $size)
   )
 
   ;;; Encrypt data with an attached tag.
@@ -453,7 +467,8 @@
     (param $out_len $size)
     (param $data (@witx const_pointer u8))
     (param $data_len $size)
-    (result $error (expected $size (error $crypto_errno)))
+    (result $error $crypto_errno)
+    (result $actual_out_len $size)
   )
 
   ;;; Encrypt data, with a detached tag.
@@ -473,7 +488,8 @@
     (param $out_len $size)
     (param $data (@witx const_pointer u8))
     (param $data_len $size)
-    (result $error (expected $symmetric_tag (error $crypto_errno)))
+    (result $error $crypto_errno)
+    (result $symmetric_tag $symmetric_tag)
   )
 
   ;;; - **Stream cipher:** adds the input to the stream cipher output. `out_len` and `data_len` can be equal, as no authentication tags will be added.
@@ -495,7 +511,8 @@
     (param $out_len $size)
     (param $data (@witx const_pointer u8))
     (param $data_len $size)
-    (result $error (expected $size (error $crypto_errno)))
+    (result $error $crypto_errno)
+    (result $actual_out_len $size)
   )
 
   ;;; - **Stream cipher:** returns `invalid_operation` since stream ciphers do not include authentication tags.
@@ -520,7 +537,8 @@
     (param $data_len $size)
     (param $raw_tag (@witx const_pointer u8))
     (param $raw_tag_len $size)
-    (result $error (expected $size (error $crypto_errno)))
+    (result $error $crypto_errno)
+    (result $actual_out_len $size)
   )
 
   ;;; Make it impossible to recover the previous state.
@@ -530,7 +548,7 @@
   ;;; `invalid_operation` is returned for algorithms not supporting ratcheting.
   (@interface func (export "symmetric_state_ratchet")
     (param $handle $symmetric_state)
-    (result $error (expected (error $crypto_errno)))
+    (result $error $crypto_errno)
   )
 
   ;;; Return the length of an authentication tag.
@@ -538,7 +556,8 @@
   ;;; This function can be used by a guest to allocate the correct buffer size to copy a computed authentication tag.
   (@interface func (export "symmetric_tag_len")
     (param $symmetric_tag $symmetric_tag)
-    (result $error (expected $size (error $crypto_errno)))
+    (result $error $crypto_errno)
+    (result $len $size)
   )
 
   ;;; Copy an authentication tag into a guest-allocated buffer.
@@ -559,7 +578,8 @@
     (param $symmetric_tag $symmetric_tag)
     (param $buf (@witx pointer u8))
     (param $buf_len $size)
-    (result $error (expected $size (error $crypto_errno)))
+    (result $error $crypto_errno)
+    (result $len $size)
   )
 
   ;;; Verify that a computed authentication tag matches the expected value, in constant-time.
@@ -581,7 +601,7 @@
     (param $symmetric_tag $symmetric_tag)
     (param $expected_raw_tag_ptr (@witx const_pointer u8))
     (param $expected_raw_tag_len $size)
-    (result $error (expected (error $crypto_errno)))
+    (result $error $crypto_errno)
   )
 
   ;;; Explicitly destroy an unused authentication tag.
@@ -591,6 +611,6 @@
   ;;; Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
   (@interface func (export "symmetric_tag_close")
     (param $symmetric_tag $symmetric_tag)
-    (result $error (expected (error $crypto_errno)))
+    (result $error $crypto_errno)
   )
 )

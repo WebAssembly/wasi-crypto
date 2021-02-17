@@ -1,12 +1,12 @@
 # Types
-## <a href="#crypto_errno" name="crypto_errno"></a> `crypto_errno`: `Variant`
+## <a href="#crypto_errno" name="crypto_errno"></a> `crypto_errno`: Enum(`u16`)
 Error codes.
 
 Size: 2
 
 Alignment: 2
 
-### Variant cases
+### Variants
 - <a href="#crypto_errno.success" name="crypto_errno.success"></a> `success`
 Operation succeeded.
 
@@ -151,14 +151,14 @@ This error is returned when trying to build a key pair from a public key and a s
 - <a href="#crypto_errno.expired" name="crypto_errno.expired"></a> `expired`
 A managed key or secret expired and cannot be used any more.
 
-## <a href="#keypair_encoding" name="keypair_encoding"></a> `keypair_encoding`: `Variant`
+## <a href="#keypair_encoding" name="keypair_encoding"></a> `keypair_encoding`: Enum(`u16`)
 Encoding to use for importing or exporting a key pair.
 
 Size: 2
 
 Alignment: 2
 
-### Variant cases
+### Variants
 - <a href="#keypair_encoding.raw" name="keypair_encoding.raw"></a> `raw`
 Raw bytes.
 
@@ -171,14 +171,14 @@ PEM encoding.
 - <a href="#keypair_encoding.local" name="keypair_encoding.local"></a> `local`
 Implementation-defined encoding.
 
-## <a href="#publickey_encoding" name="publickey_encoding"></a> `publickey_encoding`: `Variant`
+## <a href="#publickey_encoding" name="publickey_encoding"></a> `publickey_encoding`: Enum(`u16`)
 Encoding to use for importing or exporting a public key.
 
 Size: 2
 
 Alignment: 2
 
-### Variant cases
+### Variants
 - <a href="#publickey_encoding.raw" name="publickey_encoding.raw"></a> `raw`
 Raw bytes.
 
@@ -197,14 +197,14 @@ Compressed SEC encoding.
 - <a href="#publickey_encoding.local" name="publickey_encoding.local"></a> `local`
 Implementation-defined encoding.
 
-## <a href="#secretkey_encoding" name="secretkey_encoding"></a> `secretkey_encoding`: `Variant`
+## <a href="#secretkey_encoding" name="secretkey_encoding"></a> `secretkey_encoding`: Enum(`u16`)
 Encoding to use for importing or exporting a secret key.
 
 Size: 2
 
 Alignment: 2
 
-### Variant cases
+### Variants
 - <a href="#secretkey_encoding.raw" name="secretkey_encoding.raw"></a> `raw`
 Raw bytes.
 
@@ -223,49 +223,52 @@ Compressed SEC encoding.
 - <a href="#secretkey_encoding.local" name="secretkey_encoding.local"></a> `local`
 Implementation-defined encoding.
 
-## <a href="#signature_encoding" name="signature_encoding"></a> `signature_encoding`: `Variant`
+## <a href="#signature_encoding" name="signature_encoding"></a> `signature_encoding`: Enum(`u16`)
 Encoding to use for importing or exporting a signature.
 
 Size: 2
 
 Alignment: 2
 
-### Variant cases
+### Variants
 - <a href="#signature_encoding.raw" name="signature_encoding.raw"></a> `raw`
 Raw bytes.
 
 - <a href="#signature_encoding.der" name="signature_encoding.der"></a> `der`
 DER encoding.
 
-## <a href="#algorithm_type" name="algorithm_type"></a> `algorithm_type`: `Variant`
+## <a href="#algorithm_type" name="algorithm_type"></a> `algorithm_type`: Enum(`u16`)
 An algorithm category.
 
 Size: 2
 
 Alignment: 2
 
-### Variant cases
+### Variants
 - <a href="#algorithm_type.signatures" name="algorithm_type.signatures"></a> `signatures`
 
 - <a href="#algorithm_type.symmetric" name="algorithm_type.symmetric"></a> `symmetric`
 
 - <a href="#algorithm_type.key_exchange" name="algorithm_type.key_exchange"></a> `key_exchange`
 
-## <a href="#version" name="version"></a> `version`: `u64`
+## <a href="#version" name="version"></a> `version`: Int(`u64`)
 Version of a managed key.
 
-A version can be an arbitrary [`u64`](#u64) integer, with the expection of some reserved values.
+A version can be an arbitrary `u64` integer, with the expection of some reserved values.
 
 Size: 8
 
 Alignment: 8
 
-### Constants
+### Consts
 - <a href="#version.unspecified" name="version.unspecified"></a> `unspecified`
+Key doesn't support versioning.
 
 - <a href="#version.latest" name="version.latest"></a> `latest`
+Use the latest version of a key.
 
 - <a href="#version.all" name="version.all"></a> `all`
+Perform an operation over all versions of a key.
 
 ## <a href="#size" name="size"></a> `size`: `usize`
 Size of a value.
@@ -281,7 +284,7 @@ Size: 8
 
 Alignment: 8
 
-## <a href="#array_output" name="array_output"></a> `array_output`: `Handle`
+## <a href="#array_output" name="array_output"></a> `array_output`
 Handle for functions returning output whose size may be large or not known in advance.
 
 An [`array_output`](#array_output) object contains a host-allocated byte array.
@@ -296,7 +299,7 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#options" name="options"></a> `options`: `Handle`
+## <a href="#options" name="options"></a> `options`
 A set of options.
 
 This type is used to set non-default parameters.
@@ -308,7 +311,7 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#secrets_manager" name="secrets_manager"></a> `secrets_manager`: `Handle`
+## <a href="#secrets_manager" name="secrets_manager"></a> `secrets_manager`
 A handle to the optional secrets management facilities offered by a host.
 
 This is used to generate, retrieve and invalidate managed keys.
@@ -318,7 +321,7 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#keypair" name="keypair"></a> `keypair`: `Handle`
+## <a href="#keypair" name="keypair"></a> `keypair`
 A key pair.
 
 Size: 4
@@ -326,7 +329,7 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#signature_state" name="signature_state"></a> `signature_state`: `Handle`
+## <a href="#signature_state" name="signature_state"></a> `signature_state`
 A state to absorb data to be signed.
 
 After a signature has been computed or verified, the state remains valid for further operations.
@@ -338,7 +341,7 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#signature" name="signature"></a> `signature`: `Handle`
+## <a href="#signature" name="signature"></a> `signature`
 A signature.
 
 Size: 4
@@ -346,7 +349,7 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#publickey" name="publickey"></a> `publickey`: `Handle`
+## <a href="#publickey" name="publickey"></a> `publickey`
 A public key, for key exchange and signature verification.
 
 Size: 4
@@ -354,7 +357,7 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#secretkey" name="secretkey"></a> `secretkey`: `Handle`
+## <a href="#secretkey" name="secretkey"></a> `secretkey`
 A secret key, for key exchange mechanisms.
 
 Size: 4
@@ -362,7 +365,7 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#signature_verification_state" name="signature_verification_state"></a> `signature_verification_state`: `Handle`
+## <a href="#signature_verification_state" name="signature_verification_state"></a> `signature_verification_state`
 A state to absorb signed data to be verified.
 
 Size: 4
@@ -370,7 +373,7 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#symmetric_state" name="symmetric_state"></a> `symmetric_state`: `Handle`
+## <a href="#symmetric_state" name="symmetric_state"></a> `symmetric_state`
 A state to perform symmetric operations.
 
 The state is not reset nor invalidated after an option has been performed.
@@ -381,7 +384,7 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#symmetric_key" name="symmetric_key"></a> `symmetric_key`: `Handle`
+## <a href="#symmetric_key" name="symmetric_key"></a> `symmetric_key`
 A symmetric key.
 
 The key can be imported from raw bytes, or can be a reference to a managed key.
@@ -393,7 +396,7 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#symmetric_tag" name="symmetric_tag"></a> `symmetric_tag`: `Handle`
+## <a href="#symmetric_tag" name="symmetric_tag"></a> `symmetric_tag`
 An authentication tag.
 
 This is an object returned by functions computing authentication tags.
@@ -409,19 +412,19 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#opt_options_u" name="opt_options_u"></a> `opt_options_u`: `Variant`
+## <a href="#opt_options_u" name="opt_options_u"></a> `opt_options_u`: Enum(`u8`)
 Options index, only required by the Interface Types translation layer.
 
 Size: 1
 
 Alignment: 1
 
-### Variant cases
+### Variants
 - <a href="#opt_options_u.some" name="opt_options_u.some"></a> `some`
 
 - <a href="#opt_options_u.none" name="opt_options_u.none"></a> `none`
 
-## <a href="#opt_options" name="opt_options"></a> `opt_options`: `Variant`
+## <a href="#opt_options" name="opt_options"></a> `opt_options`: Union
 An optional options set.
 
 This union simulates an `Option<Options>` type to make the [`options`](#options) parameter of some functions optional.
@@ -430,28 +433,30 @@ Size: 8
 
 Alignment: 4
 
-### Variant Layout
-- size: 8
-- align: 4
+### Union Layout
 - tag_size: 1
-### Variant cases
+- tag_align: 1
+- contents_offset: 4
+- contents_size: 4
+- contents_align: 4
+### Union variants
 - <a href="#opt_options.some" name="opt_options.some"></a> `some`: [`options`](#options)
 
 - <a href="#opt_options.none" name="opt_options.none"></a> `none`
 
-## <a href="#opt_symmetric_key_u" name="opt_symmetric_key_u"></a> `opt_symmetric_key_u`: `Variant`
+## <a href="#opt_symmetric_key_u" name="opt_symmetric_key_u"></a> `opt_symmetric_key_u`: Enum(`u8`)
 Symmetric key index, only required by the Interface Types translation layer.
 
 Size: 1
 
 Alignment: 1
 
-### Variant cases
+### Variants
 - <a href="#opt_symmetric_key_u.some" name="opt_symmetric_key_u.some"></a> `some`
 
 - <a href="#opt_symmetric_key_u.none" name="opt_symmetric_key_u.none"></a> `none`
 
-## <a href="#opt_symmetric_key" name="opt_symmetric_key"></a> `opt_symmetric_key`: `Variant`
+## <a href="#opt_symmetric_key" name="opt_symmetric_key"></a> `opt_symmetric_key`: Union
 An optional symmetric key.
 
 This union simulates an `Option<SymmetricKey>` type to make the [`symmetric_key`](#symmetric_key) parameter of some functions optional.
@@ -460,20 +465,16 @@ Size: 8
 
 Alignment: 4
 
-### Variant Layout
-- size: 8
-- align: 4
+### Union Layout
 - tag_size: 1
-### Variant cases
+- tag_align: 1
+- contents_offset: 4
+- contents_size: 4
+- contents_align: 4
+### Union variants
 - <a href="#opt_symmetric_key.some" name="opt_symmetric_key.some"></a> `some`: [`symmetric_key`](#symmetric_key)
 
 - <a href="#opt_symmetric_key.none" name="opt_symmetric_key.none"></a> `none`
-
-## <a href="#u64" name="u64"></a> `u64`: `u64`
-
-Size: 8
-
-Alignment: 8
 
 # Modules
 ## <a href="#wasi_ephemeral_crypto_common" name="wasi_ephemeral_crypto_common"></a> wasi_ephemeral_crypto_common
@@ -483,7 +484,7 @@ Alignment: 8
 
 ---
 
-#### <a href="#options_open" name="options_open"></a> `options_open(algorithm_type: algorithm_type) -> Result<options, crypto_errno>`
+#### <a href="#options_open" name="options_open"></a> `options_open(algorithm_type: algorithm_type) -> (crypto_errno, options)`
 Create a new object to set non-default options.
 
 Example usage:
@@ -500,21 +501,14 @@ options_close(options_handle)?;
 - <a href="#options_open.algorithm_type" name="options_open.algorithm_type"></a> `algorithm_type`: [`algorithm_type`](#algorithm_type)
 
 ##### Results
-- <a href="#options_open.error" name="options_open.error"></a> `error`: `Result<options, crypto_errno>`
+- <a href="#options_open.error" name="options_open.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#options_open.error.ok" name="options_open.error.ok"></a> `ok`: [`options`](#options)
-
-- <a href="#options_open.error.err" name="options_open.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#options_open.handle" name="options_open.handle"></a> `handle`: [`options`](#options)
 
 
 ---
 
-#### <a href="#options_close" name="options_close"></a> `options_close(handle: options) -> Result<(), crypto_errno>`
+#### <a href="#options_close" name="options_close"></a> `options_close(handle: options) -> crypto_errno`
 Destroy an options object.
 
 Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
@@ -523,21 +517,12 @@ Objects are reference counted. It is safe to close an object immediately after t
 - <a href="#options_close.handle" name="options_close.handle"></a> `handle`: [`options`](#options)
 
 ##### Results
-- <a href="#options_close.error" name="options_close.error"></a> `error`: `Result<(), crypto_errno>`
-
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#options_close.error.ok" name="options_close.error.ok"></a> `ok`
-
-- <a href="#options_close.error.err" name="options_close.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#options_close.error" name="options_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 
 ---
 
-#### <a href="#options_set" name="options_set"></a> `options_set(handle: options, name: string, value: ConstPointer<u8>, value_len: size) -> Result<(), crypto_errno>`
+#### <a href="#options_set" name="options_set"></a> `options_set(handle: options, name: string, value: ConstPointer<u8>, value_len: size) -> crypto_errno`
 Set or update an option.
 
 This is used to set algorithm-specific parameters, but also to provide credentials for the secrets management facilities, if required.
@@ -554,21 +539,12 @@ This function may return `unsupported_option` if an option that doesn't exist fo
 - <a href="#options_set.value_len" name="options_set.value_len"></a> `value_len`: [`size`](#size)
 
 ##### Results
-- <a href="#options_set.error" name="options_set.error"></a> `error`: `Result<(), crypto_errno>`
-
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#options_set.error.ok" name="options_set.error.ok"></a> `ok`
-
-- <a href="#options_set.error.err" name="options_set.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#options_set.error" name="options_set.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 
 ---
 
-#### <a href="#options_set_u64" name="options_set_u64"></a> `options_set_u64(handle: options, name: string, value: u64) -> Result<(), crypto_errno>`
+#### <a href="#options_set_u64" name="options_set_u64"></a> `options_set_u64(handle: options, name: string, value: u64) -> crypto_errno`
 Set or update an integer option.
 
 This is used to set algorithm-specific parameters.
@@ -583,21 +559,12 @@ This function may return `unsupported_option` if an option that doesn't exist fo
 - <a href="#options_set_u64.value" name="options_set_u64.value"></a> `value`: `u64`
 
 ##### Results
-- <a href="#options_set_u64.error" name="options_set_u64.error"></a> `error`: `Result<(), crypto_errno>`
-
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#options_set_u64.error.ok" name="options_set_u64.error.ok"></a> `ok`
-
-- <a href="#options_set_u64.error.err" name="options_set_u64.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#options_set_u64.error" name="options_set_u64.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 
 ---
 
-#### <a href="#options_set_guest_buffer" name="options_set_guest_buffer"></a> `options_set_guest_buffer(handle: options, name: string, buffer: Pointer<u8>, buffer_len: size) -> Result<(), crypto_errno>`
+#### <a href="#options_set_guest_buffer" name="options_set_guest_buffer"></a> `options_set_guest_buffer(handle: options, name: string, buffer: Pointer<u8>, buffer_len: size) -> crypto_errno`
 Set or update a guest-allocated memory that the host can use or return data into.
 
 This is for example used to set the scratch buffer required by memory-hard functions.
@@ -614,21 +581,12 @@ This function may return `unsupported_option` if an option that doesn't exist fo
 - <a href="#options_set_guest_buffer.buffer_len" name="options_set_guest_buffer.buffer_len"></a> `buffer_len`: [`size`](#size)
 
 ##### Results
-- <a href="#options_set_guest_buffer.error" name="options_set_guest_buffer.error"></a> `error`: `Result<(), crypto_errno>`
-
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#options_set_guest_buffer.error.ok" name="options_set_guest_buffer.error.ok"></a> `ok`
-
-- <a href="#options_set_guest_buffer.error.err" name="options_set_guest_buffer.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#options_set_guest_buffer.error" name="options_set_guest_buffer.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 
 ---
 
-#### <a href="#array_output_len" name="array_output_len"></a> `array_output_len(array_output: array_output) -> Result<size, crypto_errno>`
+#### <a href="#array_output_len" name="array_output_len"></a> `array_output_len(array_output: array_output) -> (crypto_errno, size)`
 Return the length of an [`array_output`](#array_output) object.
 
 This allows a guest to allocate a buffer of the correct size in order to copy the output of a function returning this object type.
@@ -637,21 +595,14 @@ This allows a guest to allocate a buffer of the correct size in order to copy th
 - <a href="#array_output_len.array_output" name="array_output_len.array_output"></a> `array_output`: [`array_output`](#array_output)
 
 ##### Results
-- <a href="#array_output_len.error" name="array_output_len.error"></a> `error`: `Result<size, crypto_errno>`
+- <a href="#array_output_len.error" name="array_output_len.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#array_output_len.error.ok" name="array_output_len.error.ok"></a> `ok`: [`size`](#size)
-
-- <a href="#array_output_len.error.err" name="array_output_len.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#array_output_len.len" name="array_output_len.len"></a> `len`: [`size`](#size)
 
 
 ---
 
-#### <a href="#array_output_pull" name="array_output_pull"></a> `array_output_pull(array_output: array_output, buf: Pointer<u8>, buf_len: size) -> Result<size, crypto_errno>`
+#### <a href="#array_output_pull" name="array_output_pull"></a> `array_output_pull(array_output: array_output, buf: Pointer<u8>, buf_len: size) -> (crypto_errno, size)`
 Copy the content of an [`array_output`](#array_output) object into an application-allocated buffer.
 
 Multiple calls to that function can be made in order to consume the data in a streaming fashion, if necessary.
@@ -676,21 +627,14 @@ array_output_pull(output_handle, &mut out)?;
 - <a href="#array_output_pull.buf_len" name="array_output_pull.buf_len"></a> `buf_len`: [`size`](#size)
 
 ##### Results
-- <a href="#array_output_pull.error" name="array_output_pull.error"></a> `error`: `Result<size, crypto_errno>`
+- <a href="#array_output_pull.error" name="array_output_pull.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#array_output_pull.error.ok" name="array_output_pull.error.ok"></a> `ok`: [`size`](#size)
-
-- <a href="#array_output_pull.error.err" name="array_output_pull.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#array_output_pull.len" name="array_output_pull.len"></a> `len`: [`size`](#size)
 
 
 ---
 
-#### <a href="#secrets_manager_open" name="secrets_manager_open"></a> `secrets_manager_open(options: opt_options) -> Result<secrets_manager, crypto_errno>`
+#### <a href="#secrets_manager_open" name="secrets_manager_open"></a> `secrets_manager_open(options: opt_options) -> (crypto_errno, secrets_manager)`
 __(optional)__
 Create a context to use a secrets manager.
 
@@ -703,21 +647,14 @@ This is also an optional import, meaning that the function may not even exist.
 - <a href="#secrets_manager_open.options" name="secrets_manager_open.options"></a> `options`: [`opt_options`](#opt_options)
 
 ##### Results
-- <a href="#secrets_manager_open.error" name="secrets_manager_open.error"></a> `error`: `Result<secrets_manager, crypto_errno>`
+- <a href="#secrets_manager_open.error" name="secrets_manager_open.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#secrets_manager_open.error.ok" name="secrets_manager_open.error.ok"></a> `ok`: [`secrets_manager`](#secrets_manager)
-
-- <a href="#secrets_manager_open.error.err" name="secrets_manager_open.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#secrets_manager_open.handle" name="secrets_manager_open.handle"></a> `handle`: [`secrets_manager`](#secrets_manager)
 
 
 ---
 
-#### <a href="#secrets_manager_close" name="secrets_manager_close"></a> `secrets_manager_close(secrets_manager: secrets_manager) -> Result<(), crypto_errno>`
+#### <a href="#secrets_manager_close" name="secrets_manager_close"></a> `secrets_manager_close(secrets_manager: secrets_manager) -> crypto_errno`
 __(optional)__
 Destroy a secrets manager context.
 
@@ -728,21 +665,12 @@ This is also an optional import, meaning that the function may not even exist.
 - <a href="#secrets_manager_close.secrets_manager" name="secrets_manager_close.secrets_manager"></a> `secrets_manager`: [`secrets_manager`](#secrets_manager)
 
 ##### Results
-- <a href="#secrets_manager_close.error" name="secrets_manager_close.error"></a> `error`: `Result<(), crypto_errno>`
-
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#secrets_manager_close.error.ok" name="secrets_manager_close.error.ok"></a> `ok`
-
-- <a href="#secrets_manager_close.error.err" name="secrets_manager_close.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#secrets_manager_close.error" name="secrets_manager_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 
 ---
 
-#### <a href="#secrets_manager_invalidate" name="secrets_manager_invalidate"></a> `secrets_manager_invalidate(secrets_manager: secrets_manager, key_id: ConstPointer<u8>, key_id_len: size, key_version: version) -> Result<(), crypto_errno>`
+#### <a href="#secrets_manager_invalidate" name="secrets_manager_invalidate"></a> `secrets_manager_invalidate(secrets_manager: secrets_manager, key_id: ConstPointer<u8>, key_id_len: size, key_version: version) -> crypto_errno`
 __(optional)__
 Invalidate a managed key or key pair given an identifier and a version.
 
@@ -764,16 +692,7 @@ This is an optional import, meaning that the function may not even exist.
 - <a href="#secrets_manager_invalidate.key_version" name="secrets_manager_invalidate.key_version"></a> `key_version`: [`version`](#version)
 
 ##### Results
-- <a href="#secrets_manager_invalidate.error" name="secrets_manager_invalidate.error"></a> `error`: `Result<(), crypto_errno>`
-
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#secrets_manager_invalidate.error.ok" name="secrets_manager_invalidate.error.ok"></a> `ok`
-
-- <a href="#secrets_manager_invalidate.error.err" name="secrets_manager_invalidate.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#secrets_manager_invalidate.error" name="secrets_manager_invalidate.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 ## <a href="#wasi_ephemeral_crypto_symmetric" name="wasi_ephemeral_crypto_symmetric"></a> wasi_ephemeral_crypto_symmetric
 ### Imports
@@ -782,7 +701,7 @@ This is an optional import, meaning that the function may not even exist.
 
 ---
 
-#### <a href="#symmetric_key_generate" name="symmetric_key_generate"></a> `symmetric_key_generate(algorithm: string, options: opt_options) -> Result<symmetric_key, crypto_errno>`
+#### <a href="#symmetric_key_generate" name="symmetric_key_generate"></a> `symmetric_key_generate(algorithm: string, options: opt_options) -> (crypto_errno, symmetric_key)`
 Generate a new symmetric key for a given algorithm.
 
 [`options`](#options) can be `None` to use the default parameters, or an algoritm-specific set of parameters to override.
@@ -795,21 +714,14 @@ This function may return `unsupported_feature` if key generation is not supporte
 - <a href="#symmetric_key_generate.options" name="symmetric_key_generate.options"></a> `options`: [`opt_options`](#opt_options)
 
 ##### Results
-- <a href="#symmetric_key_generate.error" name="symmetric_key_generate.error"></a> `error`: `Result<symmetric_key, crypto_errno>`
+- <a href="#symmetric_key_generate.error" name="symmetric_key_generate.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_key_generate.error.ok" name="symmetric_key_generate.error.ok"></a> `ok`: [`symmetric_key`](#symmetric_key)
-
-- <a href="#symmetric_key_generate.error.err" name="symmetric_key_generate.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_key_generate.handle" name="symmetric_key_generate.handle"></a> `handle`: [`symmetric_key`](#symmetric_key)
 
 
 ---
 
-#### <a href="#symmetric_key_import" name="symmetric_key_import"></a> `symmetric_key_import(algorithm: string, raw: ConstPointer<u8>, raw_len: size) -> Result<symmetric_key, crypto_errno>`
+#### <a href="#symmetric_key_import" name="symmetric_key_import"></a> `symmetric_key_import(algorithm: string, raw: ConstPointer<u8>, raw_len: size) -> (crypto_errno, symmetric_key)`
 Create a symmetric key from raw material.
 
 The algorithm is internally stored along with the key, and trying to use the key with an operation expecting a different algorithm will return `invalid_key`.
@@ -824,21 +736,14 @@ The function may also return `unsupported_algorithm` if the algorithm is not sup
 - <a href="#symmetric_key_import.raw_len" name="symmetric_key_import.raw_len"></a> `raw_len`: [`size`](#size)
 
 ##### Results
-- <a href="#symmetric_key_import.error" name="symmetric_key_import.error"></a> `error`: `Result<symmetric_key, crypto_errno>`
+- <a href="#symmetric_key_import.error" name="symmetric_key_import.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_key_import.error.ok" name="symmetric_key_import.error.ok"></a> `ok`: [`symmetric_key`](#symmetric_key)
-
-- <a href="#symmetric_key_import.error.err" name="symmetric_key_import.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_key_import.handle" name="symmetric_key_import.handle"></a> `handle`: [`symmetric_key`](#symmetric_key)
 
 
 ---
 
-#### <a href="#symmetric_key_export" name="symmetric_key_export"></a> `symmetric_key_export(symmetric_key: symmetric_key) -> Result<array_output, crypto_errno>`
+#### <a href="#symmetric_key_export" name="symmetric_key_export"></a> `symmetric_key_export(symmetric_key: symmetric_key) -> (crypto_errno, array_output)`
 Export a symmetric key as raw material.
 
 This is mainly useful to export a managed key.
@@ -849,21 +754,14 @@ May return `prohibited_operation` if this operation is denied.
 - <a href="#symmetric_key_export.symmetric_key" name="symmetric_key_export.symmetric_key"></a> `symmetric_key`: [`symmetric_key`](#symmetric_key)
 
 ##### Results
-- <a href="#symmetric_key_export.error" name="symmetric_key_export.error"></a> `error`: `Result<array_output, crypto_errno>`
+- <a href="#symmetric_key_export.error" name="symmetric_key_export.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_key_export.error.ok" name="symmetric_key_export.error.ok"></a> `ok`: [`array_output`](#array_output)
-
-- <a href="#symmetric_key_export.error.err" name="symmetric_key_export.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_key_export.encoded" name="symmetric_key_export.encoded"></a> `encoded`: [`array_output`](#array_output)
 
 
 ---
 
-#### <a href="#symmetric_key_close" name="symmetric_key_close"></a> `symmetric_key_close(symmetric_key: symmetric_key) -> Result<(), crypto_errno>`
+#### <a href="#symmetric_key_close" name="symmetric_key_close"></a> `symmetric_key_close(symmetric_key: symmetric_key) -> crypto_errno`
 Destroy a symmetric key.
 
 Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
@@ -872,21 +770,12 @@ Objects are reference counted. It is safe to close an object immediately after t
 - <a href="#symmetric_key_close.symmetric_key" name="symmetric_key_close.symmetric_key"></a> `symmetric_key`: [`symmetric_key`](#symmetric_key)
 
 ##### Results
-- <a href="#symmetric_key_close.error" name="symmetric_key_close.error"></a> `error`: `Result<(), crypto_errno>`
-
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_key_close.error.ok" name="symmetric_key_close.error.ok"></a> `ok`
-
-- <a href="#symmetric_key_close.error.err" name="symmetric_key_close.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_key_close.error" name="symmetric_key_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 
 ---
 
-#### <a href="#symmetric_key_generate_managed" name="symmetric_key_generate_managed"></a> `symmetric_key_generate_managed(secrets_manager: secrets_manager, algorithm: string, options: opt_options) -> Result<symmetric_key, crypto_errno>`
+#### <a href="#symmetric_key_generate_managed" name="symmetric_key_generate_managed"></a> `symmetric_key_generate_managed(secrets_manager: secrets_manager, algorithm: string, options: opt_options) -> (crypto_errno, symmetric_key)`
 __(optional)__
 Generate a new managed symmetric key.
 
@@ -909,21 +798,14 @@ This is also an optional import, meaning that the function may not even exist.
 - <a href="#symmetric_key_generate_managed.options" name="symmetric_key_generate_managed.options"></a> `options`: [`opt_options`](#opt_options)
 
 ##### Results
-- <a href="#symmetric_key_generate_managed.error" name="symmetric_key_generate_managed.error"></a> `error`: `Result<symmetric_key, crypto_errno>`
+- <a href="#symmetric_key_generate_managed.error" name="symmetric_key_generate_managed.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_key_generate_managed.error.ok" name="symmetric_key_generate_managed.error.ok"></a> `ok`: [`symmetric_key`](#symmetric_key)
-
-- <a href="#symmetric_key_generate_managed.error.err" name="symmetric_key_generate_managed.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_key_generate_managed.handle" name="symmetric_key_generate_managed.handle"></a> `handle`: [`symmetric_key`](#symmetric_key)
 
 
 ---
 
-#### <a href="#symmetric_key_store_managed" name="symmetric_key_store_managed"></a> `symmetric_key_store_managed(secrets_manager: secrets_manager, symmetric_key: symmetric_key, symmetric_key_id: Pointer<u8>, symmetric_key_id_max_len: size) -> Result<(), crypto_errno>`
+#### <a href="#symmetric_key_store_managed" name="symmetric_key_store_managed"></a> `symmetric_key_store_managed(secrets_manager: secrets_manager, symmetric_key: symmetric_key, symmetric_key_id: Pointer<u8>, symmetric_key_id_max_len: size) -> crypto_errno`
 __(optional)__
 Store a symmetric key into the secrets manager.
 
@@ -942,21 +824,12 @@ The function returns `overflow` if the supplied buffer is too small.
 - <a href="#symmetric_key_store_managed.symmetric_key_id_max_len" name="symmetric_key_store_managed.symmetric_key_id_max_len"></a> `symmetric_key_id_max_len`: [`size`](#size)
 
 ##### Results
-- <a href="#symmetric_key_store_managed.error" name="symmetric_key_store_managed.error"></a> `error`: `Result<(), crypto_errno>`
-
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_key_store_managed.error.ok" name="symmetric_key_store_managed.error.ok"></a> `ok`
-
-- <a href="#symmetric_key_store_managed.error.err" name="symmetric_key_store_managed.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_key_store_managed.error" name="symmetric_key_store_managed.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 
 ---
 
-#### <a href="#symmetric_key_replace_managed" name="symmetric_key_replace_managed"></a> `symmetric_key_replace_managed(secrets_manager: secrets_manager, symmetric_key_old: symmetric_key, symmetric_key_new: symmetric_key) -> Result<version, crypto_errno>`
+#### <a href="#symmetric_key_replace_managed" name="symmetric_key_replace_managed"></a> `symmetric_key_replace_managed(secrets_manager: secrets_manager, symmetric_key_old: symmetric_key, symmetric_key_new: symmetric_key) -> (crypto_errno, version)`
 __(optional)__
 Replace a managed symmetric key.
 
@@ -987,21 +860,14 @@ This is an optional import, meaning that the function may not even exist.
 - <a href="#symmetric_key_replace_managed.symmetric_key_new" name="symmetric_key_replace_managed.symmetric_key_new"></a> `symmetric_key_new`: [`symmetric_key`](#symmetric_key)
 
 ##### Results
-- <a href="#symmetric_key_replace_managed.error" name="symmetric_key_replace_managed.error"></a> `error`: `Result<version, crypto_errno>`
+- <a href="#symmetric_key_replace_managed.error" name="symmetric_key_replace_managed.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 16
-- align: 8
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_key_replace_managed.error.ok" name="symmetric_key_replace_managed.error.ok"></a> `ok`: [`version`](#version)
-
-- <a href="#symmetric_key_replace_managed.error.err" name="symmetric_key_replace_managed.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_key_replace_managed.version" name="symmetric_key_replace_managed.version"></a> `version`: [`version`](#version)
 
 
 ---
 
-#### <a href="#symmetric_key_id" name="symmetric_key_id"></a> `symmetric_key_id(symmetric_key: symmetric_key, symmetric_key_id: Pointer<u8>, symmetric_key_id_max_len: size) -> Result<(size, version), crypto_errno>`
+#### <a href="#symmetric_key_id" name="symmetric_key_id"></a> `symmetric_key_id(symmetric_key: symmetric_key, symmetric_key_id: Pointer<u8>, symmetric_key_id_max_len: size) -> (crypto_errno, size, version)`
 __(optional)__
 Return the key identifier and version of a managed symmetric key.
 
@@ -1017,30 +883,16 @@ This is an optional import, meaning that the function may not even exist.
 - <a href="#symmetric_key_id.symmetric_key_id_max_len" name="symmetric_key_id.symmetric_key_id_max_len"></a> `symmetric_key_id_max_len`: [`size`](#size)
 
 ##### Results
-- <a href="#symmetric_key_id.error" name="symmetric_key_id.error"></a> `error`: `Result<(size, version), crypto_errno>`
+- <a href="#symmetric_key_id.error" name="symmetric_key_id.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 24
-- align: 8
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_key_id.error.ok" name="symmetric_key_id.error.ok"></a> `ok`: `(size, version)`
+- <a href="#symmetric_key_id.symmetric_key_id_len" name="symmetric_key_id.symmetric_key_id_len"></a> `symmetric_key_id_len`: [`size`](#size)
 
-####### Record members
-- <a href="#symmetric_key_id.error.ok.0" name="symmetric_key_id.error.ok.0"></a> `0`: [`size`](#size)
-
-Offset: 0
-
-- <a href="#symmetric_key_id.error.ok.1" name="symmetric_key_id.error.ok.1"></a> `1`: [`version`](#version)
-
-Offset: 8
-
-- <a href="#symmetric_key_id.error.err" name="symmetric_key_id.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_key_id.version" name="symmetric_key_id.version"></a> `version`: [`version`](#version)
 
 
 ---
 
-#### <a href="#symmetric_key_from_id" name="symmetric_key_from_id"></a> `symmetric_key_from_id(secrets_manager: secrets_manager, symmetric_key_id: ConstPointer<u8>, symmetric_key_id_len: size, symmetric_key_version: version) -> Result<symmetric_key, crypto_errno>`
+#### <a href="#symmetric_key_from_id" name="symmetric_key_from_id"></a> `symmetric_key_from_id(secrets_manager: secrets_manager, symmetric_key_id: ConstPointer<u8>, symmetric_key_id_len: size, symmetric_key_version: version) -> (crypto_errno, symmetric_key)`
 __(optional)__
 Return a managed symmetric key from a key identifier.
 
@@ -1060,21 +912,14 @@ This is an optional import, meaning that the function may not even exist.
 - <a href="#symmetric_key_from_id.symmetric_key_version" name="symmetric_key_from_id.symmetric_key_version"></a> `symmetric_key_version`: [`version`](#version)
 
 ##### Results
-- <a href="#symmetric_key_from_id.error" name="symmetric_key_from_id.error"></a> `error`: `Result<symmetric_key, crypto_errno>`
+- <a href="#symmetric_key_from_id.error" name="symmetric_key_from_id.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_key_from_id.error.ok" name="symmetric_key_from_id.error.ok"></a> `ok`: [`symmetric_key`](#symmetric_key)
-
-- <a href="#symmetric_key_from_id.error.err" name="symmetric_key_from_id.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_key_from_id.handle" name="symmetric_key_from_id.handle"></a> `handle`: [`symmetric_key`](#symmetric_key)
 
 
 ---
 
-#### <a href="#symmetric_state_open" name="symmetric_state_open"></a> `symmetric_state_open(algorithm: string, key: opt_symmetric_key, options: opt_options) -> Result<symmetric_state, crypto_errno>`
+#### <a href="#symmetric_state_open" name="symmetric_state_open"></a> `symmetric_state_open(algorithm: string, key: opt_symmetric_key, options: opt_options) -> (crypto_errno, symmetric_state)`
 Create a new state to aborb and produce data using symmetric operations.
 
 The state remains valid after every operation in order to support incremental updates.
@@ -1260,21 +1105,14 @@ let next_key_handle = ctx.symmetric_state_squeeze_key(state_handle, "Xoodyak-128
 - <a href="#symmetric_state_open.options" name="symmetric_state_open.options"></a> `options`: [`opt_options`](#opt_options)
 
 ##### Results
-- <a href="#symmetric_state_open.error" name="symmetric_state_open.error"></a> `error`: `Result<symmetric_state, crypto_errno>`
+- <a href="#symmetric_state_open.error" name="symmetric_state_open.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_state_open.error.ok" name="symmetric_state_open.error.ok"></a> `ok`: [`symmetric_state`](#symmetric_state)
-
-- <a href="#symmetric_state_open.error.err" name="symmetric_state_open.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_state_open.symmetric_state" name="symmetric_state_open.symmetric_state"></a> `symmetric_state`: [`symmetric_state`](#symmetric_state)
 
 
 ---
 
-#### <a href="#symmetric_state_options_get" name="symmetric_state_options_get"></a> `symmetric_state_options_get(handle: symmetric_state, name: string, value: Pointer<u8>, value_max_len: size) -> Result<size, crypto_errno>`
+#### <a href="#symmetric_state_options_get" name="symmetric_state_options_get"></a> `symmetric_state_options_get(handle: symmetric_state, name: string, value: Pointer<u8>, value_max_len: size) -> (crypto_errno, size)`
 Retrieve a parameter from the current state.
 
 In particular, `symmetric_state_options_get("nonce")` can be used to get a nonce that as automatically generated.
@@ -1293,21 +1131,14 @@ It may also return `unsupported_option` if the option doesn't exist for the chos
 - <a href="#symmetric_state_options_get.value_max_len" name="symmetric_state_options_get.value_max_len"></a> `value_max_len`: [`size`](#size)
 
 ##### Results
-- <a href="#symmetric_state_options_get.error" name="symmetric_state_options_get.error"></a> `error`: `Result<size, crypto_errno>`
+- <a href="#symmetric_state_options_get.error" name="symmetric_state_options_get.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_state_options_get.error.ok" name="symmetric_state_options_get.error.ok"></a> `ok`: [`size`](#size)
-
-- <a href="#symmetric_state_options_get.error.err" name="symmetric_state_options_get.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_state_options_get.value_len" name="symmetric_state_options_get.value_len"></a> `value_len`: [`size`](#size)
 
 
 ---
 
-#### <a href="#symmetric_state_options_get_u64" name="symmetric_state_options_get_u64"></a> `symmetric_state_options_get_u64(handle: symmetric_state, name: string) -> Result<u64, crypto_errno>`
+#### <a href="#symmetric_state_options_get_u64" name="symmetric_state_options_get_u64"></a> `symmetric_state_options_get_u64(handle: symmetric_state, name: string) -> (crypto_errno, u64)`
 Retrieve an integer parameter from the current state.
 
 In particular, `symmetric_state_options_get("nonce")` can be used to get a nonce that as automatically generated.
@@ -1322,21 +1153,14 @@ It may also return `unsupported_option` if the option doesn't exist for the chos
 - <a href="#symmetric_state_options_get_u64.name" name="symmetric_state_options_get_u64.name"></a> `name`: `string`
 
 ##### Results
-- <a href="#symmetric_state_options_get_u64.error" name="symmetric_state_options_get_u64.error"></a> `error`: `Result<u64, crypto_errno>`
+- <a href="#symmetric_state_options_get_u64.error" name="symmetric_state_options_get_u64.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 16
-- align: 8
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_state_options_get_u64.error.ok" name="symmetric_state_options_get_u64.error.ok"></a> `ok`: [`u64`](#u64)
-
-- <a href="#symmetric_state_options_get_u64.error.err" name="symmetric_state_options_get_u64.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_state_options_get_u64.value" name="symmetric_state_options_get_u64.value"></a> `value`: `u64`
 
 
 ---
 
-#### <a href="#symmetric_state_close" name="symmetric_state_close"></a> `symmetric_state_close(handle: symmetric_state) -> Result<(), crypto_errno>`
+#### <a href="#symmetric_state_close" name="symmetric_state_close"></a> `symmetric_state_close(handle: symmetric_state) -> crypto_errno`
 Destroy a symmetric state.
 
 Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
@@ -1345,21 +1169,12 @@ Objects are reference counted. It is safe to close an object immediately after t
 - <a href="#symmetric_state_close.handle" name="symmetric_state_close.handle"></a> `handle`: [`symmetric_state`](#symmetric_state)
 
 ##### Results
-- <a href="#symmetric_state_close.error" name="symmetric_state_close.error"></a> `error`: `Result<(), crypto_errno>`
-
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_state_close.error.ok" name="symmetric_state_close.error.ok"></a> `ok`
-
-- <a href="#symmetric_state_close.error.err" name="symmetric_state_close.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_state_close.error" name="symmetric_state_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 
 ---
 
-#### <a href="#symmetric_state_absorb" name="symmetric_state_absorb"></a> `symmetric_state_absorb(handle: symmetric_state, data: ConstPointer<u8>, data_len: size) -> Result<(), crypto_errno>`
+#### <a href="#symmetric_state_absorb" name="symmetric_state_absorb"></a> `symmetric_state_absorb(handle: symmetric_state, data: ConstPointer<u8>, data_len: size) -> crypto_errno`
 Absorb data into the state.
 
 - **Hash functions:** adds data to be hashed.
@@ -1381,21 +1196,12 @@ If too much data has been fed for the algorithm, `overflow` may be thrown.
 - <a href="#symmetric_state_absorb.data_len" name="symmetric_state_absorb.data_len"></a> `data_len`: [`size`](#size)
 
 ##### Results
-- <a href="#symmetric_state_absorb.error" name="symmetric_state_absorb.error"></a> `error`: `Result<(), crypto_errno>`
-
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_state_absorb.error.ok" name="symmetric_state_absorb.error.ok"></a> `ok`
-
-- <a href="#symmetric_state_absorb.error.err" name="symmetric_state_absorb.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_state_absorb.error" name="symmetric_state_absorb.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 
 ---
 
-#### <a href="#symmetric_state_squeeze" name="symmetric_state_squeeze"></a> `symmetric_state_squeeze(handle: symmetric_state, out: Pointer<u8>, out_len: size) -> Result<(), crypto_errno>`
+#### <a href="#symmetric_state_squeeze" name="symmetric_state_squeeze"></a> `symmetric_state_squeeze(handle: symmetric_state, out: Pointer<u8>, out_len: size) -> crypto_errno`
 Squeeze bytes from the state.
 
 - **Hash functions:** this tries to output an `out_len` bytes digest from the absorbed data. The hash function output will be truncated if necessary. If the requested size is too large, the `invalid_len` error code is returned.
@@ -1416,21 +1222,12 @@ In that case, the guest should retry with the same parameters until the function
 - <a href="#symmetric_state_squeeze.out_len" name="symmetric_state_squeeze.out_len"></a> `out_len`: [`size`](#size)
 
 ##### Results
-- <a href="#symmetric_state_squeeze.error" name="symmetric_state_squeeze.error"></a> `error`: `Result<(), crypto_errno>`
-
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_state_squeeze.error.ok" name="symmetric_state_squeeze.error.ok"></a> `ok`
-
-- <a href="#symmetric_state_squeeze.error.err" name="symmetric_state_squeeze.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_state_squeeze.error" name="symmetric_state_squeeze.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 
 ---
 
-#### <a href="#symmetric_state_squeeze_tag" name="symmetric_state_squeeze_tag"></a> `symmetric_state_squeeze_tag(handle: symmetric_state) -> Result<symmetric_tag, crypto_errno>`
+#### <a href="#symmetric_state_squeeze_tag" name="symmetric_state_squeeze_tag"></a> `symmetric_state_squeeze_tag(handle: symmetric_state) -> (crypto_errno, symmetric_tag)`
 Compute and return a tag for all the data injected into the state so far.
 
 - **MAC functions**: returns a tag authenticating the absorbed data.
@@ -1446,21 +1243,14 @@ In that case, the guest should retry with the same parameters until the function
 - <a href="#symmetric_state_squeeze_tag.handle" name="symmetric_state_squeeze_tag.handle"></a> `handle`: [`symmetric_state`](#symmetric_state)
 
 ##### Results
-- <a href="#symmetric_state_squeeze_tag.error" name="symmetric_state_squeeze_tag.error"></a> `error`: `Result<symmetric_tag, crypto_errno>`
+- <a href="#symmetric_state_squeeze_tag.error" name="symmetric_state_squeeze_tag.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_state_squeeze_tag.error.ok" name="symmetric_state_squeeze_tag.error.ok"></a> `ok`: [`symmetric_tag`](#symmetric_tag)
-
-- <a href="#symmetric_state_squeeze_tag.error.err" name="symmetric_state_squeeze_tag.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_state_squeeze_tag.symmetric_tag" name="symmetric_state_squeeze_tag.symmetric_tag"></a> `symmetric_tag`: [`symmetric_tag`](#symmetric_tag)
 
 
 ---
 
-#### <a href="#symmetric_state_squeeze_key" name="symmetric_state_squeeze_key"></a> `symmetric_state_squeeze_key(handle: symmetric_state, alg_str: string) -> Result<symmetric_key, crypto_errno>`
+#### <a href="#symmetric_state_squeeze_key" name="symmetric_state_squeeze_key"></a> `symmetric_state_squeeze_key(handle: symmetric_state, alg_str: string) -> (crypto_errno, symmetric_key)`
 Use the current state to produce a key for a target algorithm.
 
 For extract-then-expand constructions, this returns the PRK.
@@ -1474,21 +1264,14 @@ For session-base authentication encryption, this returns a key that can be used 
 - <a href="#symmetric_state_squeeze_key.alg_str" name="symmetric_state_squeeze_key.alg_str"></a> `alg_str`: `string`
 
 ##### Results
-- <a href="#symmetric_state_squeeze_key.error" name="symmetric_state_squeeze_key.error"></a> `error`: `Result<symmetric_key, crypto_errno>`
+- <a href="#symmetric_state_squeeze_key.error" name="symmetric_state_squeeze_key.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_state_squeeze_key.error.ok" name="symmetric_state_squeeze_key.error.ok"></a> `ok`: [`symmetric_key`](#symmetric_key)
-
-- <a href="#symmetric_state_squeeze_key.error.err" name="symmetric_state_squeeze_key.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_state_squeeze_key.symmetric_key" name="symmetric_state_squeeze_key.symmetric_key"></a> `symmetric_key`: [`symmetric_key`](#symmetric_key)
 
 
 ---
 
-#### <a href="#symmetric_state_max_tag_len" name="symmetric_state_max_tag_len"></a> `symmetric_state_max_tag_len(handle: symmetric_state) -> Result<size, crypto_errno>`
+#### <a href="#symmetric_state_max_tag_len" name="symmetric_state_max_tag_len"></a> `symmetric_state_max_tag_len(handle: symmetric_state) -> (crypto_errno, size)`
 Return the maximum length of an authentication tag for the current algorithm.
 
 This allows guests to compute the size required to store a ciphertext along with its authentication tag.
@@ -1503,21 +1286,14 @@ For a decryption operation, the size of the buffer that will store the decrypted
 - <a href="#symmetric_state_max_tag_len.handle" name="symmetric_state_max_tag_len.handle"></a> `handle`: [`symmetric_state`](#symmetric_state)
 
 ##### Results
-- <a href="#symmetric_state_max_tag_len.error" name="symmetric_state_max_tag_len.error"></a> `error`: `Result<size, crypto_errno>`
+- <a href="#symmetric_state_max_tag_len.error" name="symmetric_state_max_tag_len.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_state_max_tag_len.error.ok" name="symmetric_state_max_tag_len.error.ok"></a> `ok`: [`size`](#size)
-
-- <a href="#symmetric_state_max_tag_len.error.err" name="symmetric_state_max_tag_len.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_state_max_tag_len.len" name="symmetric_state_max_tag_len.len"></a> `len`: [`size`](#size)
 
 
 ---
 
-#### <a href="#symmetric_state_encrypt" name="symmetric_state_encrypt"></a> `symmetric_state_encrypt(handle: symmetric_state, out: Pointer<u8>, out_len: size, data: ConstPointer<u8>, data_len: size) -> Result<size, crypto_errno>`
+#### <a href="#symmetric_state_encrypt" name="symmetric_state_encrypt"></a> `symmetric_state_encrypt(handle: symmetric_state, out: Pointer<u8>, out_len: size, data: ConstPointer<u8>, data_len: size) -> (crypto_errno, size)`
 Encrypt data with an attached tag.
 
 - **Stream cipher:** adds the input to the stream cipher output. `out_len` and `data_len` can be equal, as no authentication tags will be added.
@@ -1542,21 +1318,14 @@ The function returns the actual size of the ciphertext along with the tag.
 - <a href="#symmetric_state_encrypt.data_len" name="symmetric_state_encrypt.data_len"></a> `data_len`: [`size`](#size)
 
 ##### Results
-- <a href="#symmetric_state_encrypt.error" name="symmetric_state_encrypt.error"></a> `error`: `Result<size, crypto_errno>`
+- <a href="#symmetric_state_encrypt.error" name="symmetric_state_encrypt.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_state_encrypt.error.ok" name="symmetric_state_encrypt.error.ok"></a> `ok`: [`size`](#size)
-
-- <a href="#symmetric_state_encrypt.error.err" name="symmetric_state_encrypt.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_state_encrypt.actual_out_len" name="symmetric_state_encrypt.actual_out_len"></a> `actual_out_len`: [`size`](#size)
 
 
 ---
 
-#### <a href="#symmetric_state_encrypt_detached" name="symmetric_state_encrypt_detached"></a> `symmetric_state_encrypt_detached(handle: symmetric_state, out: Pointer<u8>, out_len: size, data: ConstPointer<u8>, data_len: size) -> Result<symmetric_tag, crypto_errno>`
+#### <a href="#symmetric_state_encrypt_detached" name="symmetric_state_encrypt_detached"></a> `symmetric_state_encrypt_detached(handle: symmetric_state, out: Pointer<u8>, out_len: size, data: ConstPointer<u8>, data_len: size) -> (crypto_errno, symmetric_tag)`
 Encrypt data, with a detached tag.
 
 - **Stream cipher:** returns `invalid_operation` since stream ciphers do not include authentication tags.
@@ -1581,21 +1350,14 @@ The function returns the tag.
 - <a href="#symmetric_state_encrypt_detached.data_len" name="symmetric_state_encrypt_detached.data_len"></a> `data_len`: [`size`](#size)
 
 ##### Results
-- <a href="#symmetric_state_encrypt_detached.error" name="symmetric_state_encrypt_detached.error"></a> `error`: `Result<symmetric_tag, crypto_errno>`
+- <a href="#symmetric_state_encrypt_detached.error" name="symmetric_state_encrypt_detached.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_state_encrypt_detached.error.ok" name="symmetric_state_encrypt_detached.error.ok"></a> `ok`: [`symmetric_tag`](#symmetric_tag)
-
-- <a href="#symmetric_state_encrypt_detached.error.err" name="symmetric_state_encrypt_detached.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_state_encrypt_detached.symmetric_tag" name="symmetric_state_encrypt_detached.symmetric_tag"></a> `symmetric_tag`: [`symmetric_tag`](#symmetric_tag)
 
 
 ---
 
-#### <a href="#symmetric_state_decrypt" name="symmetric_state_decrypt"></a> `symmetric_state_decrypt(handle: symmetric_state, out: Pointer<u8>, out_len: size, data: ConstPointer<u8>, data_len: size) -> Result<size, crypto_errno>`
+#### <a href="#symmetric_state_decrypt" name="symmetric_state_decrypt"></a> `symmetric_state_decrypt(handle: symmetric_state, out: Pointer<u8>, out_len: size, data: ConstPointer<u8>, data_len: size) -> (crypto_errno, size)`
 - **Stream cipher:** adds the input to the stream cipher output. `out_len` and `data_len` can be equal, as no authentication tags will be added.
 - **AEAD:** decrypts `data` into `out`. Additional data must have been previously absorbed using `symmetric_state_absorb()`.
 - **SHOE, Xoodyak, Strobe:** decrypts data, squeezes a tag and verify that it matches the one that was appended to the ciphertext.
@@ -1622,21 +1384,14 @@ The function returns the actual size of the decrypted message, which can be smal
 - <a href="#symmetric_state_decrypt.data_len" name="symmetric_state_decrypt.data_len"></a> `data_len`: [`size`](#size)
 
 ##### Results
-- <a href="#symmetric_state_decrypt.error" name="symmetric_state_decrypt.error"></a> `error`: `Result<size, crypto_errno>`
+- <a href="#symmetric_state_decrypt.error" name="symmetric_state_decrypt.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_state_decrypt.error.ok" name="symmetric_state_decrypt.error.ok"></a> `ok`: [`size`](#size)
-
-- <a href="#symmetric_state_decrypt.error.err" name="symmetric_state_decrypt.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_state_decrypt.actual_out_len" name="symmetric_state_decrypt.actual_out_len"></a> `actual_out_len`: [`size`](#size)
 
 
 ---
 
-#### <a href="#symmetric_state_decrypt_detached" name="symmetric_state_decrypt_detached"></a> `symmetric_state_decrypt_detached(handle: symmetric_state, out: Pointer<u8>, out_len: size, data: ConstPointer<u8>, data_len: size, raw_tag: ConstPointer<u8>, raw_tag_len: size) -> Result<size, crypto_errno>`
+#### <a href="#symmetric_state_decrypt_detached" name="symmetric_state_decrypt_detached"></a> `symmetric_state_decrypt_detached(handle: symmetric_state, out: Pointer<u8>, out_len: size, data: ConstPointer<u8>, data_len: size, raw_tag: ConstPointer<u8>, raw_tag_len: size) -> (crypto_errno, size)`
 - **Stream cipher:** returns `invalid_operation` since stream ciphers do not include authentication tags.
 - **AEAD:** decrypts `data` into `out`. Additional data must have been previously absorbed using `symmetric_state_absorb()`.
 - **SHOE, Xoodyak, Strobe:** decrypts data, squeezes a tag and verify that it matches the expected one.
@@ -1668,21 +1423,14 @@ The function returns the actual size of the decrypted message.
 - <a href="#symmetric_state_decrypt_detached.raw_tag_len" name="symmetric_state_decrypt_detached.raw_tag_len"></a> `raw_tag_len`: [`size`](#size)
 
 ##### Results
-- <a href="#symmetric_state_decrypt_detached.error" name="symmetric_state_decrypt_detached.error"></a> `error`: `Result<size, crypto_errno>`
+- <a href="#symmetric_state_decrypt_detached.error" name="symmetric_state_decrypt_detached.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_state_decrypt_detached.error.ok" name="symmetric_state_decrypt_detached.error.ok"></a> `ok`: [`size`](#size)
-
-- <a href="#symmetric_state_decrypt_detached.error.err" name="symmetric_state_decrypt_detached.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_state_decrypt_detached.actual_out_len" name="symmetric_state_decrypt_detached.actual_out_len"></a> `actual_out_len`: [`size`](#size)
 
 
 ---
 
-#### <a href="#symmetric_state_ratchet" name="symmetric_state_ratchet"></a> `symmetric_state_ratchet(handle: symmetric_state) -> Result<(), crypto_errno>`
+#### <a href="#symmetric_state_ratchet" name="symmetric_state_ratchet"></a> `symmetric_state_ratchet(handle: symmetric_state) -> crypto_errno`
 Make it impossible to recover the previous state.
 
 This operation is supported by some systems keeping a rolling state over an entire session, for forward security.
@@ -1693,21 +1441,12 @@ This operation is supported by some systems keeping a rolling state over an enti
 - <a href="#symmetric_state_ratchet.handle" name="symmetric_state_ratchet.handle"></a> `handle`: [`symmetric_state`](#symmetric_state)
 
 ##### Results
-- <a href="#symmetric_state_ratchet.error" name="symmetric_state_ratchet.error"></a> `error`: `Result<(), crypto_errno>`
-
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_state_ratchet.error.ok" name="symmetric_state_ratchet.error.ok"></a> `ok`
-
-- <a href="#symmetric_state_ratchet.error.err" name="symmetric_state_ratchet.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_state_ratchet.error" name="symmetric_state_ratchet.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 
 ---
 
-#### <a href="#symmetric_tag_len" name="symmetric_tag_len"></a> `symmetric_tag_len(symmetric_tag: symmetric_tag) -> Result<size, crypto_errno>`
+#### <a href="#symmetric_tag_len" name="symmetric_tag_len"></a> `symmetric_tag_len(symmetric_tag: symmetric_tag) -> (crypto_errno, size)`
 Return the length of an authentication tag.
 
 This function can be used by a guest to allocate the correct buffer size to copy a computed authentication tag.
@@ -1716,21 +1455,14 @@ This function can be used by a guest to allocate the correct buffer size to copy
 - <a href="#symmetric_tag_len.symmetric_tag" name="symmetric_tag_len.symmetric_tag"></a> `symmetric_tag`: [`symmetric_tag`](#symmetric_tag)
 
 ##### Results
-- <a href="#symmetric_tag_len.error" name="symmetric_tag_len.error"></a> `error`: `Result<size, crypto_errno>`
+- <a href="#symmetric_tag_len.error" name="symmetric_tag_len.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_tag_len.error.ok" name="symmetric_tag_len.error.ok"></a> `ok`: [`size`](#size)
-
-- <a href="#symmetric_tag_len.error.err" name="symmetric_tag_len.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_tag_len.len" name="symmetric_tag_len.len"></a> `len`: [`size`](#size)
 
 
 ---
 
-#### <a href="#symmetric_tag_pull" name="symmetric_tag_pull"></a> `symmetric_tag_pull(symmetric_tag: symmetric_tag, buf: Pointer<u8>, buf_len: size) -> Result<size, crypto_errno>`
+#### <a href="#symmetric_tag_pull" name="symmetric_tag_pull"></a> `symmetric_tag_pull(symmetric_tag: symmetric_tag, buf: Pointer<u8>, buf_len: size) -> (crypto_errno, size)`
 Copy an authentication tag into a guest-allocated buffer.
 
 The handle automatically becomes invalid after this operation. Manually closing it is not required.
@@ -1754,21 +1486,14 @@ Otherwise, it returns the number of bytes that have been copied.
 - <a href="#symmetric_tag_pull.buf_len" name="symmetric_tag_pull.buf_len"></a> `buf_len`: [`size`](#size)
 
 ##### Results
-- <a href="#symmetric_tag_pull.error" name="symmetric_tag_pull.error"></a> `error`: `Result<size, crypto_errno>`
+- <a href="#symmetric_tag_pull.error" name="symmetric_tag_pull.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_tag_pull.error.ok" name="symmetric_tag_pull.error.ok"></a> `ok`: [`size`](#size)
-
-- <a href="#symmetric_tag_pull.error.err" name="symmetric_tag_pull.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_tag_pull.len" name="symmetric_tag_pull.len"></a> `len`: [`size`](#size)
 
 
 ---
 
-#### <a href="#symmetric_tag_verify" name="symmetric_tag_verify"></a> `symmetric_tag_verify(symmetric_tag: symmetric_tag, expected_raw_tag_ptr: ConstPointer<u8>, expected_raw_tag_len: size) -> Result<(), crypto_errno>`
+#### <a href="#symmetric_tag_verify" name="symmetric_tag_verify"></a> `symmetric_tag_verify(symmetric_tag: symmetric_tag, expected_raw_tag_ptr: ConstPointer<u8>, expected_raw_tag_len: size) -> crypto_errno`
 Verify that a computed authentication tag matches the expected value, in constant-time.
 
 The expected tag must be provided as a raw byte string.
@@ -1793,21 +1518,12 @@ ctx.symmetric_tag_verify(computed_tag_handle, expected_raw_tag)?;
 - <a href="#symmetric_tag_verify.expected_raw_tag_len" name="symmetric_tag_verify.expected_raw_tag_len"></a> `expected_raw_tag_len`: [`size`](#size)
 
 ##### Results
-- <a href="#symmetric_tag_verify.error" name="symmetric_tag_verify.error"></a> `error`: `Result<(), crypto_errno>`
-
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_tag_verify.error.ok" name="symmetric_tag_verify.error.ok"></a> `ok`
-
-- <a href="#symmetric_tag_verify.error.err" name="symmetric_tag_verify.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#symmetric_tag_verify.error" name="symmetric_tag_verify.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 
 ---
 
-#### <a href="#symmetric_tag_close" name="symmetric_tag_close"></a> `symmetric_tag_close(symmetric_tag: symmetric_tag) -> Result<(), crypto_errno>`
+#### <a href="#symmetric_tag_close" name="symmetric_tag_close"></a> `symmetric_tag_close(symmetric_tag: symmetric_tag) -> crypto_errno`
 Explicitly destroy an unused authentication tag.
 
 This is usually not necessary, as `symmetric_tag_pull()` automatically closes a tag after it has been copied.
@@ -1818,15 +1534,5 @@ Objects are reference counted. It is safe to close an object immediately after t
 - <a href="#symmetric_tag_close.symmetric_tag" name="symmetric_tag_close.symmetric_tag"></a> `symmetric_tag`: [`symmetric_tag`](#symmetric_tag)
 
 ##### Results
-- <a href="#symmetric_tag_close.error" name="symmetric_tag_close.error"></a> `error`: `Result<(), crypto_errno>`
-
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#symmetric_tag_close.error.ok" name="symmetric_tag_close.error.ok"></a> `ok`
-
-- <a href="#symmetric_tag_close.error.err" name="symmetric_tag_close.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
-
+- <a href="#symmetric_tag_close.error" name="symmetric_tag_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 

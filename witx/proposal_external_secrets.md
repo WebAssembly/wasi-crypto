@@ -1,12 +1,12 @@
 # Types
-## <a href="#crypto_errno" name="crypto_errno"></a> `crypto_errno`: `Variant`
+## <a href="#crypto_errno" name="crypto_errno"></a> `crypto_errno`: Enum(`u16`)
 Error codes.
 
 Size: 2
 
 Alignment: 2
 
-### Variant cases
+### Variants
 - <a href="#crypto_errno.success" name="crypto_errno.success"></a> `success`
 Operation succeeded.
 
@@ -151,14 +151,14 @@ This error is returned when trying to build a key pair from a public key and a s
 - <a href="#crypto_errno.expired" name="crypto_errno.expired"></a> `expired`
 A managed key or secret expired and cannot be used any more.
 
-## <a href="#keypair_encoding" name="keypair_encoding"></a> `keypair_encoding`: `Variant`
+## <a href="#keypair_encoding" name="keypair_encoding"></a> `keypair_encoding`: Enum(`u16`)
 Encoding to use for importing or exporting a key pair.
 
 Size: 2
 
 Alignment: 2
 
-### Variant cases
+### Variants
 - <a href="#keypair_encoding.raw" name="keypair_encoding.raw"></a> `raw`
 Raw bytes.
 
@@ -171,14 +171,14 @@ PEM encoding.
 - <a href="#keypair_encoding.local" name="keypair_encoding.local"></a> `local`
 Implementation-defined encoding.
 
-## <a href="#publickey_encoding" name="publickey_encoding"></a> `publickey_encoding`: `Variant`
+## <a href="#publickey_encoding" name="publickey_encoding"></a> `publickey_encoding`: Enum(`u16`)
 Encoding to use for importing or exporting a public key.
 
 Size: 2
 
 Alignment: 2
 
-### Variant cases
+### Variants
 - <a href="#publickey_encoding.raw" name="publickey_encoding.raw"></a> `raw`
 Raw bytes.
 
@@ -197,14 +197,14 @@ Compressed SEC encoding.
 - <a href="#publickey_encoding.local" name="publickey_encoding.local"></a> `local`
 Implementation-defined encoding.
 
-## <a href="#secretkey_encoding" name="secretkey_encoding"></a> `secretkey_encoding`: `Variant`
+## <a href="#secretkey_encoding" name="secretkey_encoding"></a> `secretkey_encoding`: Enum(`u16`)
 Encoding to use for importing or exporting a secret key.
 
 Size: 2
 
 Alignment: 2
 
-### Variant cases
+### Variants
 - <a href="#secretkey_encoding.raw" name="secretkey_encoding.raw"></a> `raw`
 Raw bytes.
 
@@ -223,49 +223,52 @@ Compressed SEC encoding.
 - <a href="#secretkey_encoding.local" name="secretkey_encoding.local"></a> `local`
 Implementation-defined encoding.
 
-## <a href="#signature_encoding" name="signature_encoding"></a> `signature_encoding`: `Variant`
+## <a href="#signature_encoding" name="signature_encoding"></a> `signature_encoding`: Enum(`u16`)
 Encoding to use for importing or exporting a signature.
 
 Size: 2
 
 Alignment: 2
 
-### Variant cases
+### Variants
 - <a href="#signature_encoding.raw" name="signature_encoding.raw"></a> `raw`
 Raw bytes.
 
 - <a href="#signature_encoding.der" name="signature_encoding.der"></a> `der`
 DER encoding.
 
-## <a href="#algorithm_type" name="algorithm_type"></a> `algorithm_type`: `Variant`
+## <a href="#algorithm_type" name="algorithm_type"></a> `algorithm_type`: Enum(`u16`)
 An algorithm category.
 
 Size: 2
 
 Alignment: 2
 
-### Variant cases
+### Variants
 - <a href="#algorithm_type.signatures" name="algorithm_type.signatures"></a> `signatures`
 
 - <a href="#algorithm_type.symmetric" name="algorithm_type.symmetric"></a> `symmetric`
 
 - <a href="#algorithm_type.key_exchange" name="algorithm_type.key_exchange"></a> `key_exchange`
 
-## <a href="#version" name="version"></a> `version`: `u64`
+## <a href="#version" name="version"></a> `version`: Int(`u64`)
 Version of a managed key.
 
-A version can be an arbitrary [`u64`](#u64) integer, with the expection of some reserved values.
+A version can be an arbitrary `u64` integer, with the expection of some reserved values.
 
 Size: 8
 
 Alignment: 8
 
-### Constants
+### Consts
 - <a href="#version.unspecified" name="version.unspecified"></a> `unspecified`
+Key doesn't support versioning.
 
 - <a href="#version.latest" name="version.latest"></a> `latest`
+Use the latest version of a key.
 
 - <a href="#version.all" name="version.all"></a> `all`
+Perform an operation over all versions of a key.
 
 ## <a href="#size" name="size"></a> `size`: `usize`
 Size of a value.
@@ -281,7 +284,7 @@ Size: 8
 
 Alignment: 8
 
-## <a href="#array_output" name="array_output"></a> `array_output`: `Handle`
+## <a href="#array_output" name="array_output"></a> `array_output`
 Handle for functions returning output whose size may be large or not known in advance.
 
 An [`array_output`](#array_output) object contains a host-allocated byte array.
@@ -296,7 +299,7 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#options" name="options"></a> `options`: `Handle`
+## <a href="#options" name="options"></a> `options`
 A set of options.
 
 This type is used to set non-default parameters.
@@ -308,7 +311,7 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#secrets_manager" name="secrets_manager"></a> `secrets_manager`: `Handle`
+## <a href="#secrets_manager" name="secrets_manager"></a> `secrets_manager`
 A handle to the optional secrets management facilities offered by a host.
 
 This is used to generate, retrieve and invalidate managed keys.
@@ -318,7 +321,7 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#keypair" name="keypair"></a> `keypair`: `Handle`
+## <a href="#keypair" name="keypair"></a> `keypair`
 A key pair.
 
 Size: 4
@@ -326,7 +329,7 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#signature_state" name="signature_state"></a> `signature_state`: `Handle`
+## <a href="#signature_state" name="signature_state"></a> `signature_state`
 A state to absorb data to be signed.
 
 After a signature has been computed or verified, the state remains valid for further operations.
@@ -338,7 +341,7 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#signature" name="signature"></a> `signature`: `Handle`
+## <a href="#signature" name="signature"></a> `signature`
 A signature.
 
 Size: 4
@@ -346,7 +349,7 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#publickey" name="publickey"></a> `publickey`: `Handle`
+## <a href="#publickey" name="publickey"></a> `publickey`
 A public key, for key exchange and signature verification.
 
 Size: 4
@@ -354,7 +357,7 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#secretkey" name="secretkey"></a> `secretkey`: `Handle`
+## <a href="#secretkey" name="secretkey"></a> `secretkey`
 A secret key, for key exchange mechanisms.
 
 Size: 4
@@ -362,7 +365,7 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#signature_verification_state" name="signature_verification_state"></a> `signature_verification_state`: `Handle`
+## <a href="#signature_verification_state" name="signature_verification_state"></a> `signature_verification_state`
 A state to absorb signed data to be verified.
 
 Size: 4
@@ -370,7 +373,7 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#symmetric_state" name="symmetric_state"></a> `symmetric_state`: `Handle`
+## <a href="#symmetric_state" name="symmetric_state"></a> `symmetric_state`
 A state to perform symmetric operations.
 
 The state is not reset nor invalidated after an option has been performed.
@@ -381,7 +384,7 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#symmetric_key" name="symmetric_key"></a> `symmetric_key`: `Handle`
+## <a href="#symmetric_key" name="symmetric_key"></a> `symmetric_key`
 A symmetric key.
 
 The key can be imported from raw bytes, or can be a reference to a managed key.
@@ -393,7 +396,7 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#symmetric_tag" name="symmetric_tag"></a> `symmetric_tag`: `Handle`
+## <a href="#symmetric_tag" name="symmetric_tag"></a> `symmetric_tag`
 An authentication tag.
 
 This is an object returned by functions computing authentication tags.
@@ -409,19 +412,19 @@ Size: 4
 Alignment: 4
 
 ### Supertypes
-## <a href="#opt_options_u" name="opt_options_u"></a> `opt_options_u`: `Variant`
+## <a href="#opt_options_u" name="opt_options_u"></a> `opt_options_u`: Enum(`u8`)
 Options index, only required by the Interface Types translation layer.
 
 Size: 1
 
 Alignment: 1
 
-### Variant cases
+### Variants
 - <a href="#opt_options_u.some" name="opt_options_u.some"></a> `some`
 
 - <a href="#opt_options_u.none" name="opt_options_u.none"></a> `none`
 
-## <a href="#opt_options" name="opt_options"></a> `opt_options`: `Variant`
+## <a href="#opt_options" name="opt_options"></a> `opt_options`: Union
 An optional options set.
 
 This union simulates an `Option<Options>` type to make the [`options`](#options) parameter of some functions optional.
@@ -430,28 +433,30 @@ Size: 8
 
 Alignment: 4
 
-### Variant Layout
-- size: 8
-- align: 4
+### Union Layout
 - tag_size: 1
-### Variant cases
+- tag_align: 1
+- contents_offset: 4
+- contents_size: 4
+- contents_align: 4
+### Union variants
 - <a href="#opt_options.some" name="opt_options.some"></a> `some`: [`options`](#options)
 
 - <a href="#opt_options.none" name="opt_options.none"></a> `none`
 
-## <a href="#opt_symmetric_key_u" name="opt_symmetric_key_u"></a> `opt_symmetric_key_u`: `Variant`
+## <a href="#opt_symmetric_key_u" name="opt_symmetric_key_u"></a> `opt_symmetric_key_u`: Enum(`u8`)
 Symmetric key index, only required by the Interface Types translation layer.
 
 Size: 1
 
 Alignment: 1
 
-### Variant cases
+### Variants
 - <a href="#opt_symmetric_key_u.some" name="opt_symmetric_key_u.some"></a> `some`
 
 - <a href="#opt_symmetric_key_u.none" name="opt_symmetric_key_u.none"></a> `none`
 
-## <a href="#opt_symmetric_key" name="opt_symmetric_key"></a> `opt_symmetric_key`: `Variant`
+## <a href="#opt_symmetric_key" name="opt_symmetric_key"></a> `opt_symmetric_key`: Union
 An optional symmetric key.
 
 This union simulates an `Option<SymmetricKey>` type to make the [`symmetric_key`](#symmetric_key) parameter of some functions optional.
@@ -460,20 +465,16 @@ Size: 8
 
 Alignment: 4
 
-### Variant Layout
-- size: 8
-- align: 4
+### Union Layout
 - tag_size: 1
-### Variant cases
+- tag_align: 1
+- contents_offset: 4
+- contents_size: 4
+- contents_align: 4
+### Union variants
 - <a href="#opt_symmetric_key.some" name="opt_symmetric_key.some"></a> `some`: [`symmetric_key`](#symmetric_key)
 
 - <a href="#opt_symmetric_key.none" name="opt_symmetric_key.none"></a> `none`
-
-## <a href="#u64" name="u64"></a> `u64`: `u64`
-
-Size: 8
-
-Alignment: 8
 
 # Modules
 ## <a href="#wasi_ephemeral_crypto_common" name="wasi_ephemeral_crypto_common"></a> wasi_ephemeral_crypto_common
@@ -483,7 +484,7 @@ Alignment: 8
 
 ---
 
-#### <a href="#options_open" name="options_open"></a> `options_open(algorithm_type: algorithm_type) -> Result<options, crypto_errno>`
+#### <a href="#options_open" name="options_open"></a> `options_open(algorithm_type: algorithm_type) -> (crypto_errno, options)`
 Create a new object to set non-default options.
 
 Example usage:
@@ -500,21 +501,14 @@ options_close(options_handle)?;
 - <a href="#options_open.algorithm_type" name="options_open.algorithm_type"></a> `algorithm_type`: [`algorithm_type`](#algorithm_type)
 
 ##### Results
-- <a href="#options_open.error" name="options_open.error"></a> `error`: `Result<options, crypto_errno>`
+- <a href="#options_open.error" name="options_open.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#options_open.error.ok" name="options_open.error.ok"></a> `ok`: [`options`](#options)
-
-- <a href="#options_open.error.err" name="options_open.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#options_open.handle" name="options_open.handle"></a> `handle`: [`options`](#options)
 
 
 ---
 
-#### <a href="#options_close" name="options_close"></a> `options_close(handle: options) -> Result<(), crypto_errno>`
+#### <a href="#options_close" name="options_close"></a> `options_close(handle: options) -> crypto_errno`
 Destroy an options object.
 
 Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
@@ -523,21 +517,12 @@ Objects are reference counted. It is safe to close an object immediately after t
 - <a href="#options_close.handle" name="options_close.handle"></a> `handle`: [`options`](#options)
 
 ##### Results
-- <a href="#options_close.error" name="options_close.error"></a> `error`: `Result<(), crypto_errno>`
-
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#options_close.error.ok" name="options_close.error.ok"></a> `ok`
-
-- <a href="#options_close.error.err" name="options_close.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#options_close.error" name="options_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 
 ---
 
-#### <a href="#options_set" name="options_set"></a> `options_set(handle: options, name: string, value: ConstPointer<u8>, value_len: size) -> Result<(), crypto_errno>`
+#### <a href="#options_set" name="options_set"></a> `options_set(handle: options, name: string, value: ConstPointer<u8>, value_len: size) -> crypto_errno`
 Set or update an option.
 
 This is used to set algorithm-specific parameters, but also to provide credentials for the secrets management facilities, if required.
@@ -554,21 +539,12 @@ This function may return `unsupported_option` if an option that doesn't exist fo
 - <a href="#options_set.value_len" name="options_set.value_len"></a> `value_len`: [`size`](#size)
 
 ##### Results
-- <a href="#options_set.error" name="options_set.error"></a> `error`: `Result<(), crypto_errno>`
-
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#options_set.error.ok" name="options_set.error.ok"></a> `ok`
-
-- <a href="#options_set.error.err" name="options_set.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#options_set.error" name="options_set.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 
 ---
 
-#### <a href="#options_set_u64" name="options_set_u64"></a> `options_set_u64(handle: options, name: string, value: u64) -> Result<(), crypto_errno>`
+#### <a href="#options_set_u64" name="options_set_u64"></a> `options_set_u64(handle: options, name: string, value: u64) -> crypto_errno`
 Set or update an integer option.
 
 This is used to set algorithm-specific parameters.
@@ -583,21 +559,12 @@ This function may return `unsupported_option` if an option that doesn't exist fo
 - <a href="#options_set_u64.value" name="options_set_u64.value"></a> `value`: `u64`
 
 ##### Results
-- <a href="#options_set_u64.error" name="options_set_u64.error"></a> `error`: `Result<(), crypto_errno>`
-
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#options_set_u64.error.ok" name="options_set_u64.error.ok"></a> `ok`
-
-- <a href="#options_set_u64.error.err" name="options_set_u64.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#options_set_u64.error" name="options_set_u64.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 
 ---
 
-#### <a href="#options_set_guest_buffer" name="options_set_guest_buffer"></a> `options_set_guest_buffer(handle: options, name: string, buffer: Pointer<u8>, buffer_len: size) -> Result<(), crypto_errno>`
+#### <a href="#options_set_guest_buffer" name="options_set_guest_buffer"></a> `options_set_guest_buffer(handle: options, name: string, buffer: Pointer<u8>, buffer_len: size) -> crypto_errno`
 Set or update a guest-allocated memory that the host can use or return data into.
 
 This is for example used to set the scratch buffer required by memory-hard functions.
@@ -614,21 +581,12 @@ This function may return `unsupported_option` if an option that doesn't exist fo
 - <a href="#options_set_guest_buffer.buffer_len" name="options_set_guest_buffer.buffer_len"></a> `buffer_len`: [`size`](#size)
 
 ##### Results
-- <a href="#options_set_guest_buffer.error" name="options_set_guest_buffer.error"></a> `error`: `Result<(), crypto_errno>`
-
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#options_set_guest_buffer.error.ok" name="options_set_guest_buffer.error.ok"></a> `ok`
-
-- <a href="#options_set_guest_buffer.error.err" name="options_set_guest_buffer.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#options_set_guest_buffer.error" name="options_set_guest_buffer.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 
 ---
 
-#### <a href="#array_output_len" name="array_output_len"></a> `array_output_len(array_output: array_output) -> Result<size, crypto_errno>`
+#### <a href="#array_output_len" name="array_output_len"></a> `array_output_len(array_output: array_output) -> (crypto_errno, size)`
 Return the length of an [`array_output`](#array_output) object.
 
 This allows a guest to allocate a buffer of the correct size in order to copy the output of a function returning this object type.
@@ -637,21 +595,14 @@ This allows a guest to allocate a buffer of the correct size in order to copy th
 - <a href="#array_output_len.array_output" name="array_output_len.array_output"></a> `array_output`: [`array_output`](#array_output)
 
 ##### Results
-- <a href="#array_output_len.error" name="array_output_len.error"></a> `error`: `Result<size, crypto_errno>`
+- <a href="#array_output_len.error" name="array_output_len.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#array_output_len.error.ok" name="array_output_len.error.ok"></a> `ok`: [`size`](#size)
-
-- <a href="#array_output_len.error.err" name="array_output_len.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#array_output_len.len" name="array_output_len.len"></a> `len`: [`size`](#size)
 
 
 ---
 
-#### <a href="#array_output_pull" name="array_output_pull"></a> `array_output_pull(array_output: array_output, buf: Pointer<u8>, buf_len: size) -> Result<size, crypto_errno>`
+#### <a href="#array_output_pull" name="array_output_pull"></a> `array_output_pull(array_output: array_output, buf: Pointer<u8>, buf_len: size) -> (crypto_errno, size)`
 Copy the content of an [`array_output`](#array_output) object into an application-allocated buffer.
 
 Multiple calls to that function can be made in order to consume the data in a streaming fashion, if necessary.
@@ -676,21 +627,14 @@ array_output_pull(output_handle, &mut out)?;
 - <a href="#array_output_pull.buf_len" name="array_output_pull.buf_len"></a> `buf_len`: [`size`](#size)
 
 ##### Results
-- <a href="#array_output_pull.error" name="array_output_pull.error"></a> `error`: `Result<size, crypto_errno>`
+- <a href="#array_output_pull.error" name="array_output_pull.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#array_output_pull.error.ok" name="array_output_pull.error.ok"></a> `ok`: [`size`](#size)
-
-- <a href="#array_output_pull.error.err" name="array_output_pull.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#array_output_pull.len" name="array_output_pull.len"></a> `len`: [`size`](#size)
 
 
 ---
 
-#### <a href="#secrets_manager_open" name="secrets_manager_open"></a> `secrets_manager_open(options: opt_options) -> Result<secrets_manager, crypto_errno>`
+#### <a href="#secrets_manager_open" name="secrets_manager_open"></a> `secrets_manager_open(options: opt_options) -> (crypto_errno, secrets_manager)`
 __(optional)__
 Create a context to use a secrets manager.
 
@@ -703,21 +647,14 @@ This is also an optional import, meaning that the function may not even exist.
 - <a href="#secrets_manager_open.options" name="secrets_manager_open.options"></a> `options`: [`opt_options`](#opt_options)
 
 ##### Results
-- <a href="#secrets_manager_open.error" name="secrets_manager_open.error"></a> `error`: `Result<secrets_manager, crypto_errno>`
+- <a href="#secrets_manager_open.error" name="secrets_manager_open.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#secrets_manager_open.error.ok" name="secrets_manager_open.error.ok"></a> `ok`: [`secrets_manager`](#secrets_manager)
-
-- <a href="#secrets_manager_open.error.err" name="secrets_manager_open.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#secrets_manager_open.handle" name="secrets_manager_open.handle"></a> `handle`: [`secrets_manager`](#secrets_manager)
 
 
 ---
 
-#### <a href="#secrets_manager_close" name="secrets_manager_close"></a> `secrets_manager_close(secrets_manager: secrets_manager) -> Result<(), crypto_errno>`
+#### <a href="#secrets_manager_close" name="secrets_manager_close"></a> `secrets_manager_close(secrets_manager: secrets_manager) -> crypto_errno`
 __(optional)__
 Destroy a secrets manager context.
 
@@ -728,21 +665,12 @@ This is also an optional import, meaning that the function may not even exist.
 - <a href="#secrets_manager_close.secrets_manager" name="secrets_manager_close.secrets_manager"></a> `secrets_manager`: [`secrets_manager`](#secrets_manager)
 
 ##### Results
-- <a href="#secrets_manager_close.error" name="secrets_manager_close.error"></a> `error`: `Result<(), crypto_errno>`
-
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#secrets_manager_close.error.ok" name="secrets_manager_close.error.ok"></a> `ok`
-
-- <a href="#secrets_manager_close.error.err" name="secrets_manager_close.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#secrets_manager_close.error" name="secrets_manager_close.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 
 ---
 
-#### <a href="#secrets_manager_invalidate" name="secrets_manager_invalidate"></a> `secrets_manager_invalidate(secrets_manager: secrets_manager, key_id: ConstPointer<u8>, key_id_len: size, key_version: version) -> Result<(), crypto_errno>`
+#### <a href="#secrets_manager_invalidate" name="secrets_manager_invalidate"></a> `secrets_manager_invalidate(secrets_manager: secrets_manager, key_id: ConstPointer<u8>, key_id_len: size, key_version: version) -> crypto_errno`
 __(optional)__
 Invalidate a managed key or key pair given an identifier and a version.
 
@@ -764,16 +692,7 @@ This is an optional import, meaning that the function may not even exist.
 - <a href="#secrets_manager_invalidate.key_version" name="secrets_manager_invalidate.key_version"></a> `key_version`: [`version`](#version)
 
 ##### Results
-- <a href="#secrets_manager_invalidate.error" name="secrets_manager_invalidate.error"></a> `error`: `Result<(), crypto_errno>`
-
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#secrets_manager_invalidate.error.ok" name="secrets_manager_invalidate.error.ok"></a> `ok`
-
-- <a href="#secrets_manager_invalidate.error.err" name="secrets_manager_invalidate.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#secrets_manager_invalidate.error" name="secrets_manager_invalidate.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 ## <a href="#wasi_ephemeral_crypto_exernal_secrets" name="wasi_ephemeral_crypto_exernal_secrets"></a> wasi_ephemeral_crypto_exernal_secrets
 ### Imports
@@ -782,7 +701,7 @@ This is an optional import, meaning that the function may not even exist.
 
 ---
 
-#### <a href="#external_secret_store" name="external_secret_store"></a> `external_secret_store(secrets_manager: secrets_manager, secret: ConstPointer<u8>, secret_len: size, expiration: timestamp, secret_id: Pointer<u8>, secret_id_max_len: size) -> Result<(), crypto_errno>`
+#### <a href="#external_secret_store" name="external_secret_store"></a> `external_secret_store(secrets_manager: secrets_manager, secret: ConstPointer<u8>, secret_len: size, expiration: timestamp, secret_id: Pointer<u8>, secret_id_max_len: size) -> crypto_errno`
 Store an external secret into the secrets manager.
 
 `$expiration` is the expiration date of the secret as a UNIX timestamp, in seconds.
@@ -807,21 +726,12 @@ If this function is not supported by the host the `$unsupported_feature` error i
 - <a href="#external_secret_store.secret_id_max_len" name="external_secret_store.secret_id_max_len"></a> `secret_id_max_len`: [`size`](#size)
 
 ##### Results
-- <a href="#external_secret_store.error" name="external_secret_store.error"></a> `error`: `Result<(), crypto_errno>`
-
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#external_secret_store.error.ok" name="external_secret_store.error.ok"></a> `ok`
-
-- <a href="#external_secret_store.error.err" name="external_secret_store.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#external_secret_store.error" name="external_secret_store.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 
 ---
 
-#### <a href="#external_secret_replace" name="external_secret_replace"></a> `external_secret_replace(secrets_manager: secrets_manager, secret: ConstPointer<u8>, secret_len: size, expiration: timestamp, secret_id: ConstPointer<u8>, secret_id_len: size) -> Result<version, crypto_errno>`
+#### <a href="#external_secret_replace" name="external_secret_replace"></a> `external_secret_replace(secrets_manager: secrets_manager, secret: ConstPointer<u8>, secret_len: size, expiration: timestamp, secret_id: ConstPointer<u8>, secret_id_len: size) -> (crypto_errno, version)`
 Replace a managed external with a new version.
 
 `$expiration` is the expiration date of the secret as a UNIX timestamp, in seconds.
@@ -845,21 +755,14 @@ If this function is not supported by the host the `$unsupported_feature` error i
 - <a href="#external_secret_replace.secret_id_len" name="external_secret_replace.secret_id_len"></a> `secret_id_len`: [`size`](#size)
 
 ##### Results
-- <a href="#external_secret_replace.error" name="external_secret_replace.error"></a> `error`: `Result<version, crypto_errno>`
+- <a href="#external_secret_replace.error" name="external_secret_replace.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 16
-- align: 8
-- tag_size: 4
-###### Variant cases
-- <a href="#external_secret_replace.error.ok" name="external_secret_replace.error.ok"></a> `ok`: [`version`](#version)
-
-- <a href="#external_secret_replace.error.err" name="external_secret_replace.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#external_secret_replace.secret_version" name="external_secret_replace.secret_version"></a> `secret_version`: [`version`](#version)
 
 
 ---
 
-#### <a href="#external_secret_from_id" name="external_secret_from_id"></a> `external_secret_from_id(secrets_manager: secrets_manager, secret_id: ConstPointer<u8>, secret_id_len: size, secret_version: version) -> Result<array_output, crypto_errno>`
+#### <a href="#external_secret_from_id" name="external_secret_from_id"></a> `external_secret_from_id(secrets_manager: secrets_manager, secret_id: ConstPointer<u8>, secret_id_len: size, secret_version: version) -> (crypto_errno, array_output)`
 Get a copy of an external secret given an identifier and version.
 
 `secret_version` can be set to a version number, or to [`version.latest`](#version.latest) to retrieve the most recent version of a secret.
@@ -878,21 +781,14 @@ The function returns `$unsupported_feature` if this operation is not supported b
 - <a href="#external_secret_from_id.secret_version" name="external_secret_from_id.secret_version"></a> `secret_version`: [`version`](#version)
 
 ##### Results
-- <a href="#external_secret_from_id.error" name="external_secret_from_id.error"></a> `error`: `Result<array_output, crypto_errno>`
+- <a href="#external_secret_from_id.error" name="external_secret_from_id.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#external_secret_from_id.error.ok" name="external_secret_from_id.error.ok"></a> `ok`: [`array_output`](#array_output)
-
-- <a href="#external_secret_from_id.error.err" name="external_secret_from_id.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#external_secret_from_id.secret" name="external_secret_from_id.secret"></a> `secret`: [`array_output`](#array_output)
 
 
 ---
 
-#### <a href="#external_secret_invalidate" name="external_secret_invalidate"></a> `external_secret_invalidate(secrets_manager: secrets_manager, secret_id: ConstPointer<u8>, secret_id_len: size, secret_version: version) -> Result<(), crypto_errno>`
+#### <a href="#external_secret_invalidate" name="external_secret_invalidate"></a> `external_secret_invalidate(secrets_manager: secrets_manager, secret_id: ConstPointer<u8>, secret_id_len: size, secret_version: version) -> crypto_errno`
 Invalidate an external secret given an identifier and a version.
 
 This asks the secrets manager to delete or revoke a stored secret, a specific version of a secret.
@@ -911,21 +807,12 @@ The function returns `$unsupported_feature` if this operation is not supported b
 - <a href="#external_secret_invalidate.secret_version" name="external_secret_invalidate.secret_version"></a> `secret_version`: [`version`](#version)
 
 ##### Results
-- <a href="#external_secret_invalidate.error" name="external_secret_invalidate.error"></a> `error`: `Result<(), crypto_errno>`
-
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#external_secret_invalidate.error.ok" name="external_secret_invalidate.error.ok"></a> `ok`
-
-- <a href="#external_secret_invalidate.error.err" name="external_secret_invalidate.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#external_secret_invalidate.error" name="external_secret_invalidate.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
 
 ---
 
-#### <a href="#external_secret_encapsulate" name="external_secret_encapsulate"></a> `external_secret_encapsulate(secrets_manager: secrets_manager, secret: ConstPointer<u8>, secret_len: size, expiration: timestamp) -> Result<array_output, crypto_errno>`
+#### <a href="#external_secret_encapsulate" name="external_secret_encapsulate"></a> `external_secret_encapsulate(secrets_manager: secrets_manager, secret: ConstPointer<u8>, secret_len: size, expiration: timestamp) -> (crypto_errno, array_output)`
 Encrypt an external secret.
 
 Applications don't have access to the encryption key, and the secrets manager is free to choose any suitable algorithm.
@@ -944,21 +831,14 @@ On success, the ciphertext is returned.
 - <a href="#external_secret_encapsulate.expiration" name="external_secret_encapsulate.expiration"></a> `expiration`: [`timestamp`](#timestamp)
 
 ##### Results
-- <a href="#external_secret_encapsulate.error" name="external_secret_encapsulate.error"></a> `error`: `Result<array_output, crypto_errno>`
+- <a href="#external_secret_encapsulate.error" name="external_secret_encapsulate.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#external_secret_encapsulate.error.ok" name="external_secret_encapsulate.error.ok"></a> `ok`: [`array_output`](#array_output)
-
-- <a href="#external_secret_encapsulate.error.err" name="external_secret_encapsulate.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
+- <a href="#external_secret_encapsulate.encrypted_secret" name="external_secret_encapsulate.encrypted_secret"></a> `encrypted_secret`: [`array_output`](#array_output)
 
 
 ---
 
-#### <a href="#external_secret_decapsulate" name="external_secret_decapsulate"></a> `external_secret_decapsulate(secrets_manager: secrets_manager, encrypted_secret: ConstPointer<u8>, encrypted_secret_len: size) -> Result<array_output, crypto_errno>`
+#### <a href="#external_secret_decapsulate" name="external_secret_decapsulate"></a> `external_secret_decapsulate(secrets_manager: secrets_manager, encrypted_secret: ConstPointer<u8>, encrypted_secret_len: size) -> (crypto_errno, array_output)`
 Decrypt an external secret previously encrypted by the secrets manager.
 
 Returns the original secret if the ciphertext is valid.
@@ -973,15 +853,7 @@ Returns `$verification_failed` if the ciphertext format is invalid or if its aut
 - <a href="#external_secret_decapsulate.encrypted_secret_len" name="external_secret_decapsulate.encrypted_secret_len"></a> `encrypted_secret_len`: [`size`](#size)
 
 ##### Results
-- <a href="#external_secret_decapsulate.error" name="external_secret_decapsulate.error"></a> `error`: `Result<array_output, crypto_errno>`
+- <a href="#external_secret_decapsulate.error" name="external_secret_decapsulate.error"></a> `error`: [`crypto_errno`](#crypto_errno)
 
-###### Variant Layout
-- size: 8
-- align: 4
-- tag_size: 4
-###### Variant cases
-- <a href="#external_secret_decapsulate.error.ok" name="external_secret_decapsulate.error.ok"></a> `ok`: [`array_output`](#array_output)
-
-- <a href="#external_secret_decapsulate.error.err" name="external_secret_decapsulate.error.err"></a> `err`: [`crypto_errno`](#crypto_errno)
-
+- <a href="#external_secret_decapsulate.secret" name="external_secret_decapsulate.secret"></a> `secret`: [`array_output`](#array_output)
 

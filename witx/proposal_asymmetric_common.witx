@@ -25,8 +25,7 @@
     (param $algorithm_type $algorithm_type)
     (param $algorithm string)
     (param $options $opt_options)
-    (result $error $crypto_errno)
-    (result $handle $keypair)
+    (result $error (expected $keypair (error $crypto_errno)))
   )
 
   ;;; Import a key pair.
@@ -48,8 +47,7 @@
     (param $encoded (@witx const_pointer u8))
     (param $encoded_len $size)
     (param $encoding $keypair_encoding)
-    (result $error $crypto_errno)
-    (result $handle $keypair)
+    (result $error (expected $keypair (error $crypto_errno)))
   )
 
   ;;; __(optional)__
@@ -70,8 +68,7 @@
     (param $algorithm_type $algorithm_type)
     (param $algorithm string)
     (param $options $opt_options)
-    (result $error $crypto_errno)
-    (result $handle $keypair)
+    (result $error (expected $keypair (error $crypto_errno)))
   )
 
   ;;; __(optional)__
@@ -86,7 +83,7 @@
     (param $kp $keypair)
     (param $kp_id (@witx pointer u8))
     (param $kp_id_max_len $size)
-    (result $error $crypto_errno)
+    (result $error (expected (error $crypto_errno)))
   )
 
   ;;; __(optional)__
@@ -114,8 +111,7 @@
     (param $secrets_manager $secrets_manager)
     (param $kp_old $keypair)
     (param $kp_new $keypair)
-    (result $error $crypto_errno)
-    (result $version $version)
+    (result $error (expected $version (error $crypto_errno)))
   )
 
   ;;; __(optional)__
@@ -128,9 +124,7 @@
     (param $kp $keypair)
     (param $kp_id (@witx pointer u8))
     (param $kp_id_max_len $size)
-    (result $error $crypto_errno)
-    (result $kp_id_len $size)
-    (result $version $version)
+    (result $error (expected (tuple $size $version) (error $crypto_errno)))
   )
 
   ;;; __(optional)__
@@ -147,16 +141,14 @@
     (param $kp_id (@witx const_pointer u8))
     (param $kp_id_len $size)
     (param $kp_version $version)
-    (result $error $crypto_errno)
-    (result $handle $keypair)
+    (result $error (expected $keypair (error $crypto_errno)))
   )
 
   ;;; Create a key pair from a public key and a secret key.
   (@interface func (export "keypair_from_pk_and_sk")
     (param $publickey $publickey)
     (param $secretkey $secretkey)
-    (result $error $crypto_errno)
-    (result $handle $keypair)
+    (result $error (expected $keypair (error $crypto_errno)))
   )
 
   ;;; Export a key pair as the given encoding format.
@@ -165,22 +157,19 @@
   (@interface func (export "keypair_export")
     (param $kp $keypair)
     (param $encoding $keypair_encoding)
-    (result $error $crypto_errno)
-    (result $encoded $array_output)
+    (result $error (expected $array_output (error $crypto_errno)))
   )
 
   ;;; Get the public key of a key pair.
   (@interface func (export "keypair_publickey")
     (param $kp $keypair)
-    (result $error $crypto_errno)
-    (result $pk $publickey)
+    (result $error (expected $publickey (error $crypto_errno)))
   )
 
   ;;; Get the secret key of a key pair.
   (@interface func (export "keypair_secretkey")
     (param $kp $keypair)
-    (result $error $crypto_errno)
-    (result $sk $secretkey)
+    (result $error (expected $secretkey (error $crypto_errno)))
   )
 
   ;;; Destroy a key pair.
@@ -190,7 +179,7 @@
   ;;; If this is a managed key, the key will not be removed from persistent storage, and can be reconstructed later using the key identifier.
   (@interface func (export "keypair_close")
     (param $kp $keypair)
-    (result $error $crypto_errno)
+    (result $error (expected (error $crypto_errno)))
   )
 
   ;;; Import a public key.
@@ -212,8 +201,7 @@
     (param $encoded (@witx const_pointer u8))
     (param $encoded_len $size)
     (param $encoding $publickey_encoding)
-    (result $error $crypto_errno)
-    (result $pk $publickey)
+    (result $error (expected $publickey (error $crypto_errno)))
   )
 
   ;;; Export a public key as the given encoding format.
@@ -222,8 +210,7 @@
   (@interface func (export "publickey_export")
     (param $pk $publickey)
     (param $encoding $publickey_encoding)
-    (result $error $crypto_errno)
-    (result $encoded $array_output)
+    (result $error (expected $array_output (error $crypto_errno)))
   )
 
   ;;; Check that a public key is valid and in canonical form.
@@ -233,14 +220,13 @@
   ;;; The function returns `invalid_key` if the public key didn't pass the checks.
   (@interface func (export "publickey_verify")
     (param $pk $publickey)
-    (result $error $crypto_errno)
+    (result $error (expected (error $crypto_errno)))
   )
 
   ;;; Compute the public key for a secret key.
   (@interface func (export "publickey_from_secretkey")
     (param $sk $secretkey)
-    (result $error $crypto_errno)
-    (result $pk $publickey)
+    (result $error (expected $publickey (error $crypto_errno)))
   )
 
   ;;; Destroy a public key.
@@ -248,7 +234,7 @@
   ;;; Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
   (@interface func (export "publickey_close")
     (param $pk $publickey)
-    (result $error $crypto_errno)
+    (result $error (expected (error $crypto_errno)))
   )
 
   ;;; Import a secret key.
@@ -270,8 +256,7 @@
     (param $encoded (@witx const_pointer u8))
     (param $encoded_len $size)
     (param $encoding $secretkey_encoding)
-    (result $error $crypto_errno)
-    (result $sk $secretkey)
+    (result $error (expected $secretkey (error $crypto_errno)))
   )
 
   ;;; Export a secret key as the given encoding format.
@@ -280,8 +265,7 @@
   (@interface func (export "secretkey_export")
     (param $sk $secretkey)
     (param $encoding $secretkey_encoding)
-    (result $error $crypto_errno)
-    (result $encoded $array_output)
+    (result $error (expected $array_output (error $crypto_errno)))
   )
 
   ;;; Destroy a secret key.
@@ -289,6 +273,6 @@
   ;;; Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
   (@interface func (export "secretkey_close")
     (param $sk $secretkey)
-    (result $error $crypto_errno)
+    (result $error (expected (error $crypto_errno)))
   )
 )

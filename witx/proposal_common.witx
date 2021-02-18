@@ -1,6 +1,6 @@
 ;;; Error codes.
 (typename $crypto_errno
-  (enum u16
+  (enum (@witx tag u16)
     ;;; Operation succeeded.
     $success
 
@@ -149,7 +149,7 @@
 
 ;;; Encoding to use for importing or exporting a key pair.
 (typename $keypair_encoding
-  (enum u16
+  (enum (@witx tag u16)
     ;;; Raw bytes.
     $raw
 
@@ -166,7 +166,7 @@
 
 ;;; Encoding to use for importing or exporting a public key.
 (typename $publickey_encoding
-  (enum u16
+  (enum (@witx tag u16)
     ;;; Raw bytes.
     $raw
 
@@ -189,7 +189,7 @@
 
 ;;; Encoding to use for importing or exporting a secret key.
 (typename $secretkey_encoding
-  (enum u16
+  (enum (@witx tag u16)
     ;;; Raw bytes.
     $raw
 
@@ -212,7 +212,7 @@
 
 ;;; Encoding to use for importing or exporting a signature.
 (typename $signature_encoding
-  (enum u16
+  (enum (@witx tag u16)
     ;;; Raw bytes.
     $raw
 
@@ -223,7 +223,7 @@
 
 ;;; An algorithm category.
 (typename $algorithm_type
-  (enum u16
+  (enum (@witx tag u16)
     $signatures
     $symmetric
     $key_exchange
@@ -233,19 +233,15 @@
 ;;; Version of a managed key.
 ;;;
 ;;; A version can be an arbitrary `u64` integer, with the expection of some reserved values.
-(typename $version
-  (int u64
-    ;;; Key doesn't support versioning.
+(typename $version u64)
+;;; Key doesn't support versioning.
+(@witx const $version $unspecified 0xff00000000000000)
 
-    (const $unspecified 0xff00000000000000)
-    ;;; Use the latest version of a key.
+;;; Use the latest version of a key.
+(@witx const $version $latest 0xff00000000000001)
 
-    (const $latest 0xff00000000000001)
-
-    ;;; Perform an operation over all versions of a key.
-    (const $all 0xff00000000000002)
-  )
-)
+;;; Perform an operation over all versions of a key.
+(@witx const $version $all 0xff00000000000002)
 
 ;;; Size of a value.
 (typename $size (@witx usize))
@@ -322,20 +318,20 @@
 (typename $symmetric_tag (handle))
 
 ;;; Options index, only required by the Interface Types translation layer.
-(typename $opt_options_u (enum u8 $some $none))
+(typename $opt_options_u (enum (@witx tag u8) $some $none))
 
 ;;; An optional options set.
 ;;;
 ;;; This union simulates an `Option<Options>` type to make the `options` parameter of some functions optional.
-(typename $opt_options (union $opt_options_u (field $some $options) (empty $none)))
+(typename $opt_options (variant (@witx tag $opt_options_u) (case $some $options) (case $none)))
 
 ;;; Symmetric key index, only required by the Interface Types translation layer.
-(typename $opt_symmetric_key_u (enum u8 $some $none))
+(typename $opt_symmetric_key_u (enum (@witx tag u8) $some $none))
 
 ;;; An optional symmetric key.
 ;;;
 ;;; This union simulates an `Option<SymmetricKey>` type to make the `symmetric_key` parameter of some functions optional.
-(typename $opt_symmetric_key (union $opt_symmetric_key_u (field $some $symmetric_key) (empty $none)))
+(typename $opt_symmetric_key (variant (@witx tag $opt_symmetric_key_u) (case $some $symmetric_key) (case $none)))
 
 (module $wasi_ephemeral_crypto_common
   (import "memory" (memory))
@@ -353,8 +349,7 @@
   ;;; ```
   (@interface func (export "options_open")
     (param $algorithm_type $algorithm_type)
-    (result $error $crypto_errno)
-    (result $handle $options)
+    (result $error (expected $options (error $crypto_errno)))
   )
 
   ;;; Destroy an options object.
@@ -362,7 +357,7 @@
   ;;; Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
   (@interface func (export "options_close")
     (param $handle $options)
-    (result $error $crypto_errno)
+    (result $error (expected (error $crypto_errno)))
   )
 
   ;;; Set or update an option.
@@ -375,7 +370,7 @@
     (param $name string)
     (param $value (@witx const_pointer u8))
     (param $value_len $size)
-    (result $error $crypto_errno)
+    (result $error (expected (error $crypto_errno)))
   )
 
   ;;; Set or update an integer option.
@@ -387,7 +382,7 @@
     (param $handle $options)
     (param $name string)
     (param $value u64)
-    (result $error $crypto_errno)
+    (result $error (expected (error $crypto_errno)))
   )
 
   ;;; Set or update a guest-allocated memory that the host can use or return data into.
@@ -400,7 +395,7 @@
     (param $name string)
     (param $buffer (@witx pointer u8))
     (param $buffer_len $size)
-    (result $error $crypto_errno)
+    (result $error (expected (error $crypto_errno)))
   )
 
   ;;; Return the length of an `array_output` object.
@@ -408,8 +403,7 @@
   ;;; This allows a guest to allocate a buffer of the correct size in order to copy the output of a function returning this object type.
   (@interface func (export "array_output_len")
     (param $array_output $array_output)
-    (result $error $crypto_errno)
-    (result $len $size)
+    (result $error (expected $size (error $crypto_errno)))
   )
 
   ;;; Copy the content of an `array_output` object into an application-allocated buffer.
@@ -431,8 +425,7 @@
     (param $array_output $array_output)
     (param $buf (@witx pointer u8))
     (param $buf_len $size)
-    (result $error $crypto_errno)
-    (result $len $size)
+    (result $error (expected $size (error $crypto_errno)))
   )
 
   ;;; __(optional)__
@@ -444,8 +437,7 @@
   ;;; This is also an optional import, meaning that the function may not even exist.
   (@interface func (export "secrets_manager_open")
     (param $options $opt_options)
-    (result $error $crypto_errno)
-    (result $handle $secrets_manager)
+    (result $error (expected $secrets_manager (error $crypto_errno)))
   )
 
   ;;; __(optional)__
@@ -455,7 +447,7 @@
   ;;; This is also an optional import, meaning that the function may not even exist.
   (@interface func (export "secrets_manager_close")
     (param $secrets_manager $secrets_manager)
-    (result $error $crypto_errno)
+    (result $error (expected (error $crypto_errno)))
   )
 
   ;;; __(optional)__
@@ -473,6 +465,8 @@
     (param $key_id (@witx const_pointer u8))
     (param $key_id_len $size)
     (param $key_version $version)
-    (result $error $crypto_errno)
+    (result $error (expected (error $crypto_errno)))
   )
 )
+
+(typename $u64 u64)

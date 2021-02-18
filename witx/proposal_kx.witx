@@ -30,8 +30,7 @@
   (@interface func (export "kx_dh")
     (param $pk $publickey)
     (param $sk $secretkey)
-    (result $error $crypto_errno)
-    (result $shared_secret $array_output)
+    (result $error (expected $array_output (error $crypto_errno)))
   )
 
   ;;; Create a shared secret and encrypt it for the given public key.
@@ -42,9 +41,7 @@
   ;;; On success, both the shared secret and its encrypted version are returned.
   (@interface func (export "kx_encapsulate")
     (param $pk $publickey)
-    (result $error $crypto_errno)
-    (result $secret $array_output)
-    (result $encapsulated_secret $array_output)
+    (result $error (expected (tuple $array_output $array_output) (error $crypto_errno)))
   )
 
   ;;; Decapsulate an encapsulated secret crated with `kx_encapsulate`
@@ -54,7 +51,6 @@
     (param $sk $secretkey)
     (param $encapsulated_secret (@witx const_pointer u8))
     (param $encapsulated_secret_len $size)
-    (result $error $crypto_errno)
-    (result $secret $array_output)
+    (result $error (expected $array_output (error $crypto_errno)))
   )
 )

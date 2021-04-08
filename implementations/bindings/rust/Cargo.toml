@@ -7,6 +7,5 @@ publish = false
 
 [dependencies]
 num_enum = "0.5"
-wiggle = "0.22"
 
 [workspace]

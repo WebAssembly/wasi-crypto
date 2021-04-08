@@ -61,7 +61,7 @@ pub struct Hkdf {
 
 impl Hkdf {
     pub fn new(exp_alg: &'static str, key: &HkdfKey, salt: Option<&[u8]>) -> Result<Self, Error> {
-        let salt = salt.as_ref().map(|x| x.as_ref());
+        let salt = salt.as_ref();
         let mut state = SymmetricState::new(key.alg, Some(&key), None)?;
         if let Some(salt) = salt {
             state.absorb(salt)?;

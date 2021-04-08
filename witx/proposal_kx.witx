@@ -1,4 +1,4 @@
-(use "proposal_common.witx")
+(use * from $proposal_common)
 
 ;;; `$kx_keypair` is just an alias for `$keypair`
 ;;;
@@ -18,8 +18,6 @@
 ;;; Key exchange operations.
 
 (module $wasi_ephemeral_crypto_kx
-  (import "memory" (memory))
-
   ;;; Perform a simple Diffie-Hellman key exchange.
   ;;;
   ;;; Both keys must be of the same type, or else the `$crypto_errno.incompatible_keys` error is returned.

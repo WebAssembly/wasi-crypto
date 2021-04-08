@@ -1,4 +1,4 @@
-(use "proposal_asymmetric_common.witx")
+(use * from $proposal_common)
 
 ;;; `$signature_keypair` is just an alias for `$keypair`
 ;;;
@@ -18,8 +18,6 @@
 ;;; Digital signatures.
 
 (module $wasi_ephemeral_crypto_signatures
-  (import "memory" (memory))
-
   ;;; Export a signature.
   ;;;
   ;;; This function exports a signature object using the specified encoding.

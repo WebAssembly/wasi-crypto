@@ -14,7 +14,7 @@ processes, goals, scope, and deliverables.
 * [Specification](docs/wasi-crypto.md)
 * Interface definitions:
   * common types and functions ([witx](witx/proposal_common.witx), [doc](witx/proposal_common.md))
-  * symmetric operations ([witx](witx/proposal_siymmetric.witx), [doc](witx/proposal_symmetric.md))
+  * symmetric operations ([witx](witx/proposal_symmetric.witx), [doc](witx/proposal_symmetric.md))
   * common types and functions for asymmetric operations ([witx](witx/proposal_asymmetric_common.witx), [doc](witx/proposal_asymmetric_common.md))
   * signatures ([witx](witx/proposal_signatures.witx), [doc](witx/proposal_signatures.md))
   * key exchange ([witx](witx/proposal_kx.witx), [doc](witx/proposal_kx.md))

@@ -1,10 +1,8 @@
-(use "proposal_common.witx")
+(use * from $proposal_common)
 
 ;;; Symmetric operations.
 
 (module $wasi_ephemeral_crypto_symmetric
-  (import "memory" (memory))
-
   ;;; Generate a new symmetric key for a given algorithm.
   ;;;
   ;;; `options` can be `None` to use the default parameters, or an algoritm-specific set of parameters to override.

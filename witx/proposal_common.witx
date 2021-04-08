@@ -249,6 +249,11 @@
 ;;; A UNIX timestamp, in seconds since 01/01/1970.
 (typename $timestamp u64)
 
+;;; A 64-bit value
+(typename $u64 u64)
+
+(resource $handle)
+
 ;;; Handle for functions returning output whose size may be large or not known in advance.
 ;;;
 ;;; An `array_output` object contains a host-allocated byte array.
@@ -257,54 +262,54 @@
 ;;; In addition, the content of such an object can be consumed by a guest in a streaming fashion.
 ;;;
 ;;; An `array_output` handle is automatically closed after its full content has been consumed.
-(typename $array_output (handle))
+(typename $array_output (handle $handle))
 
 ;;; A set of options.
 ;;;
 ;;; This type is used to set non-default parameters.
 ;;;
 ;;; The exact set of allowed options depends on the algorithm being used.
-(typename $options (handle))
+(typename $options (handle $handle))
 
 ;;; A handle to the optional secrets management facilities offered by a host.
 ;;;
 ;;; This is used to generate, retrieve and invalidate managed keys.
-(typename $secrets_manager (handle))
+(typename $secrets_manager (handle $handle))
 
 ;;; A key pair.
-(typename $keypair (handle))
+(typename $keypair (handle $handle))
 
 ;;; A state to absorb data to be signed.
 ;;;
 ;;; After a signature has been computed or verified, the state remains valid for further operations.
 ;;;
 ;;; A subsequent signature would sign all the data accumulated since the creation of the state object.
-(typename $signature_state (handle))
+(typename $signature_state (handle $handle))
 
 ;;; A signature.
-(typename $signature (handle))
+(typename $signature (handle $handle))
 
 ;;; A public key, for key exchange and signature verification.
-(typename $publickey (handle))
+(typename $publickey (handle $handle))
 
 ;;; A secret key, for key exchange mechanisms.
-(typename $secretkey (handle))
+(typename $secretkey (handle $handle))
 
 ;;; A state to absorb signed data to be verified.
-(typename $signature_verification_state (handle))
+(typename $signature_verification_state (handle $handle))
 
 ;;; A state to perform symmetric operations.
 ;;;
 ;;; The state is not reset nor invalidated after an option has been performed.
 ;;; Incremental updates and sessions are thus supported.
-(typename $symmetric_state (handle))
+(typename $symmetric_state (handle $handle))
 
 ;;; A symmetric key.
 ;;;
 ;;; The key can be imported from raw bytes, or can be a reference to a managed key.
 ;;;
 ;;; If it was imported, the host will wipe it from memory as soon as the handle is closed.
-(typename $symmetric_key (handle))
+(typename $symmetric_key (handle $handle))
 
 ;;; An authentication tag.
 ;;;
@@ -315,7 +320,7 @@
 ;;; This object type can't be directly created from raw bytes. They are only returned by functions computing MACs.
 ;;;
 ;;; The host is reponsible for securely wiping them from memory on close.
-(typename $symmetric_tag (handle))
+(typename $symmetric_tag (handle $handle))
 
 ;;; Options index, only required by the Interface Types translation layer.
 (typename $opt_options_u (enum (@witx tag u8) $some $none))
@@ -334,8 +339,6 @@
 (typename $opt_symmetric_key (variant (@witx tag $opt_symmetric_key_u) (case $some $symmetric_key) (case $none)))
 
 (module $wasi_ephemeral_crypto_common
-  (import "memory" (memory))
-
   ;;; Create a new object to set non-default options.
   ;;;
   ;;; Example usage:
@@ -468,5 +471,3 @@
     (result $error (expected (error $crypto_errno)))
   )
 )
-
-(typename $u64 u64)

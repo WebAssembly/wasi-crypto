@@ -47,16 +47,16 @@ impl KxSecretKey {
     }
 
     pub(crate) fn publickey(&self) -> Result<KxPublicKey, CryptoError> {
-        Ok(self.inner().publickey()?)
+        self.inner().publickey()
     }
 
     pub fn dh(&self, pk: &KxPublicKey) -> Result<Vec<u8>, CryptoError> {
         ensure!(pk.alg() == self.alg(), CryptoError::IncompatibleKeys);
-        Ok(self.inner().dh(pk)?)
+        self.inner().dh(pk)
     }
 
     fn decapsulate(&self, encapsulated_secret: &[u8]) -> Result<Vec<u8>, CryptoError> {
-        Ok(self.inner().decapsulate(encapsulated_secret)?)
+        self.inner().decapsulate(encapsulated_secret)
     }
 }
 

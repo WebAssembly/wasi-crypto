@@ -1,15 +1,15 @@
 
-# Module: proposal_signatures
+# Module: wasi_ephemeral_crypto_common
 
 ## Table of contents
 
 ### Types list:
 
-\[**[All](#types)**\] - \[_[`crypto_errno`](#crypto_errno)_\] - \[_[`keypair_encoding`](#keypair_encoding)_\] - \[_[`publickey_encoding`](#publickey_encoding)_\] - \[_[`secretkey_encoding`](#secretkey_encoding)_\] - \[_[`signature_encoding`](#signature_encoding)_\] - \[_[`algorithm_type`](#algorithm_type)_\] - \[_[`version`](#version)_\] - \[_[`size`](#size)_\] - \[_[`timestamp`](#timestamp)_\] - \[_[`u64`](#u64)_\] - \[_[`array_output`](#array_output)_\] - \[_[`options`](#options)_\] - \[_[`secrets_manager`](#secrets_manager)_\] - \[_[`keypair`](#keypair)_\] - \[_[`signature_state`](#signature_state)_\] - \[_[`signature`](#signature)_\] - \[_[`publickey`](#publickey)_\] - \[_[`secretkey`](#secretkey)_\] - \[_[`signature_verification_state`](#signature_verification_state)_\] - \[_[`symmetric_state`](#symmetric_state)_\] - \[_[`symmetric_key`](#symmetric_key)_\] - \[_[`symmetric_tag`](#symmetric_tag)_\] - \[_[`opt_options_u`](#opt_options_u)_\] - \[_[`opt_options`](#opt_options)_\] - \[_[`opt_symmetric_key_u`](#opt_symmetric_key_u)_\] - \[_[`opt_symmetric_key`](#opt_symmetric_key)_\] - \[_[`signature_keypair`](#signature_keypair)_\] - \[_[`signature_publickey`](#signature_publickey)_\] - \[_[`signature_secretkey`](#signature_secretkey)_\]
+[**[All](#types)**] - [_[`crypto_errno`](#crypto_errno)_] - [_[`keypair_encoding`](#keypair_encoding)_] - [_[`publickey_encoding`](#publickey_encoding)_] - [_[`secretkey_encoding`](#secretkey_encoding)_] - [_[`signature_encoding`](#signature_encoding)_] - [_[`algorithm_type`](#algorithm_type)_] - [_[`version`](#version)_] - [_[`size`](#size)_] - [_[`timestamp`](#timestamp)_] - [_[`u64`](#u64)_] - [_[`array_output`](#array_output)_] - [_[`options`](#options)_] - [_[`secrets_manager`](#secrets_manager)_] - [_[`keypair`](#keypair)_] - [_[`signature_state`](#signature_state)_] - [_[`signature`](#signature)_] - [_[`publickey`](#publickey)_] - [_[`secretkey`](#secretkey)_] - [_[`signature_verification_state`](#signature_verification_state)_] - [_[`symmetric_state`](#symmetric_state)_] - [_[`symmetric_key`](#symmetric_key)_] - [_[`symmetric_tag`](#symmetric_tag)_] - [_[`opt_options_u`](#opt_options_u)_] - [_[`opt_options`](#opt_options)_] - [_[`opt_symmetric_key_u`](#opt_symmetric_key_u)_] - [_[`opt_symmetric_key`](#opt_symmetric_key)_]
 
 ### Functions list:
 
-\[**[All](#functions)**\] - \[[`signature_export()`](#signature_export)\] - \[[`signature_import()`](#signature_import)\] - \[[`signature_state_open()`](#signature_state_open)\] - \[[`signature_state_update()`](#signature_state_update)\] - \[[`signature_state_sign()`](#signature_state_sign)\] - \[[`signature_state_close()`](#signature_state_close)\] - \[[`signature_verification_state_open()`](#signature_verification_state_open)\] - \[[`signature_verification_state_update()`](#signature_verification_state_update)\] - \[[`signature_verification_state_verify()`](#signature_verification_state_verify)\] - \[[`signature_verification_state_close()`](#signature_verification_state_close)\] - \[[`signature_close()`](#signature_close)\]
+[**[All](#functions)**] - [[`options_open()`](#options_open)] - [[`options_close()`](#options_close)] - [[`options_set()`](#options_set)] - [[`options_set_u64()`](#options_set_u64)] - [[`options_set_guest_buffer()`](#options_set_guest_buffer)] - [[`array_output_len()`](#array_output_len)] - [[`array_output_pull()`](#array_output_pull)] - [[`secrets_manager_open()`](#secrets_manager_open)] - [[`secrets_manager_close()`](#secrets_manager_close)] - [[`secrets_manager_invalidate()`](#secrets_manager_invalidate)]
 
 ## Types
 
@@ -128,6 +128,11 @@ Enumeration with tag type: `u16`, and the following members:
 ### _[`version`](#version)_
 Alias for `u64`.
 
+Predefined constants for _[`version`](#version)_:
+
+* **`unspecified`** = `0xff00000000000000`
+* **`latest`** = `0xff00000000000001`
+* **`all`** = `0xff00000000000002`
 
 > Version of a managed key.
 > 
@@ -353,278 +358,224 @@ Tagged union with tag type: `u8` and the following possibilities:
 
 ---
 
-### _[`signature_keypair`](#signature_keypair)_
-
-Alias for `handle`.
-
-
-> `$signature_keypair` is just an alias for `$keypair`
-> 
-> However, bindings may want to define a specialized type `signature_keypair` as a super class of `keypair`, with additional methods such as `sign`.
-
-
----
-
-### _[`signature_publickey`](#signature_publickey)_
-
-Alias for `handle`.
-
-
-> `$signature_publickey` is just an alias for `$publickey`
-> 
-> However, bindings may want to define a specialized type `signature_publickey` as a super class of `publickey`, with additional methods such as `verify`.
-
-
----
-
-### _[`signature_secretkey`](#signature_secretkey)_
-
-Alias for `handle`.
-
-
-> `$signature_secretkey` is just an alias for `$secretkey`
-> 
-> However, bindings may want to define a specialized type `signature_secretkey` as a super class of `secretkey`.
-
-
----
-
 ## Functions
 
-### [`signature_export()`](#signature_export)
+### [`options_open()`](#options_open)
 Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 #### Input:
 
-* **`signature`**: _[`signature`](#signature)_
-* **`encoding`**: _[`signature_encoding`](#signature_encoding)_
+* **`algorithm_type`**: _[`algorithm_type`](#algorithm_type)_
 
 #### Output:
 
-* _[`array_output`](#array_output)_ mutable pointer
+* _[`options`](#options)_ mutable pointer
 
-> Export a signature.
-> 
-> This function exports a signature object using the specified encoding.
-> 
-> May return `unsupported_encoding` if the signature cannot be encoded into the given format.
-
-
----
-
-### [`signature_import()`](#signature_import)
-Returned error type: _[`crypto_errno`](#crypto_errno)_
-
-#### Input:
-
-* **`algorithm`**: `string`
-* **`encoded`**: `u8` pointer
-* **`encoded_len`**: _[`size`](#size)_
-* **`encoding`**: _[`signature_encoding`](#signature_encoding)_
-
-#### Output:
-
-* _[`signature`](#signature)_ mutable pointer
-
-> Create a signature object.
-> 
-> This object can be used along with a public key to verify an existing signature.
-> 
-> It may return `invalid_signature` if the signature is invalid or incompatible with the specified algorithm, as well as `unsupported_encoding` if the encoding is not compatible with the signature type.
-> 
-> The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+> Create a new object to set non-default options.
 > 
 > Example usage:
 > 
 > ```rust
-> let signature_handle = ctx.signature_import("ECDSA_P256_SHA256", SignatureEncoding::DER, encoded)?;
+> let options_handle = options_open(AlgorithmType::Symmetric)?;
+> options_set(options_handle, "context", context)?;
+> options_set_u64(options_handle, "threads", 4)?;
+> let state = symmetric_state_open("BLAKE3", None, Some(options_handle))?;
+> options_close(options_handle)?;
 > ```
 
 
 ---
 
-### [`signature_state_open()`](#signature_state_open)
+### [`options_close()`](#options_close)
 Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 #### Input:
 
-* **`kp`**: _[`signature_keypair`](#signature_keypair)_
+* **`handle`**: _[`options`](#options)_
+
+This function has no output.
+
+> Destroy an options object.
+> 
+> Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+
+
+---
+
+### [`options_set()`](#options_set)
+Returned error type: _[`crypto_errno`](#crypto_errno)_
+
+#### Input:
+
+* **`handle`**: _[`options`](#options)_
+* **`name`**: `string`
+* **`value`**: `u8` pointer
+* **`value_len`**: _[`size`](#size)_
+
+This function has no output.
+
+> Set or update an option.
+> 
+> This is used to set algorithm-specific parameters, but also to provide credentials for the secrets management facilities, if required.
+> 
+> This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
+
+
+---
+
+### [`options_set_u64()`](#options_set_u64)
+Returned error type: _[`crypto_errno`](#crypto_errno)_
+
+#### Input:
+
+* **`handle`**: _[`options`](#options)_
+* **`name`**: `string`
+* **`value`**: `u64`
+
+This function has no output.
+
+> Set or update an integer option.
+> 
+> This is used to set algorithm-specific parameters.
+> 
+> This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
+
+
+---
+
+### [`options_set_guest_buffer()`](#options_set_guest_buffer)
+Returned error type: _[`crypto_errno`](#crypto_errno)_
+
+#### Input:
+
+* **`handle`**: _[`options`](#options)_
+* **`name`**: `string`
+* **`buffer`**: `u8` mutable pointer
+* **`buffer_len`**: _[`size`](#size)_
+
+This function has no output.
+
+> Set or update a guest-allocated memory that the host can use or return data into.
+> 
+> This is for example used to set the scratch buffer required by memory-hard functions.
+> 
+> This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
+
+
+---
+
+### [`array_output_len()`](#array_output_len)
+Returned error type: _[`crypto_errno`](#crypto_errno)_
+
+#### Input:
+
+* **`array_output`**: _[`array_output`](#array_output)_
 
 #### Output:
 
-* _[`signature_state`](#signature_state)_ mutable pointer
+* _[`size`](#size)_ mutable pointer
 
-> Create a new state to collect data to compute a signature on.
+> Return the length of an `array_output` object.
 > 
-> This function allows data to be signed to be supplied in a streaming fashion.
+> This allows a guest to allocate a buffer of the correct size in order to copy the output of a function returning this object type.
+
+
+---
+
+### [`array_output_pull()`](#array_output_pull)
+Returned error type: _[`crypto_errno`](#crypto_errno)_
+
+#### Input:
+
+* **`array_output`**: _[`array_output`](#array_output)_
+* **`buf`**: `u8` mutable pointer
+* **`buf_len`**: _[`size`](#size)_
+
+#### Output:
+
+* _[`size`](#size)_ mutable pointer
+
+> Copy the content of an `array_output` object into an application-allocated buffer.
 > 
-> The state is not closed and can be used after a signature has been computed, allowing incremental updates by calling `signature_state_update()` again afterwards.
+> Multiple calls to that function can be made in order to consume the data in a streaming fashion, if necessary.
 > 
-> Example usage - signature creation
+> The function returns the number of bytes that were actually copied. `0` means that the end of the stream has been reached. The total size always matches the output of `array_output_len()`.
+> 
+> The handle is automatically closed after all the data has been consumed.
+> 
+> Example usage:
 > 
 > ```rust
-> let kp_handle = ctx.keypair_import(AlgorithmType::Signatures, "Ed25519ph", keypair, KeypairEncoding::Raw)?;
-> let state_handle = ctx.signature_state_open(kp_handle)?;
-> ctx.signature_state_update(state_handle, b"message part 1")?;
-> ctx.signature_state_update(state_handle, b"message part 2")?;
-> let sig_handle = ctx.signature_state_sign(state_handle)?;
-> let raw_sig = ctx.signature_export(sig_handle, SignatureEncoding::Raw)?;
+> let len = array_output_len(output_handle)?;
+> let mut out = vec![0u8; len];
+> array_output_pull(output_handle, &mut out)?;
 > ```
 
 
 ---
 
-### [`signature_state_update()`](#signature_state_update)
+### [`secrets_manager_open()`](#secrets_manager_open)
 Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 #### Input:
 
-* **`state`**: _[`signature_state`](#signature_state)_
-* **`input`**: `u8` pointer
-* **`input_len`**: _[`size`](#size)_
-
-This function has no output.
-
-> Absorb data into the signature state.
-> 
-> This function may return `unsupported_feature` is the selected algorithm doesn't support incremental updates.
-
-
----
-
-### [`signature_state_sign()`](#signature_state_sign)
-Returned error type: _[`crypto_errno`](#crypto_errno)_
-
-#### Input:
-
-* **`state`**: _[`signature_state`](#signature_state)_
+* **`options`**: _[`opt_options`](#opt_options)_
 
 #### Output:
 
-* _[`array_output`](#array_output)_ mutable pointer
+* _[`secrets_manager`](#secrets_manager)_ mutable pointer
 
-> Compute a signature for all the data collected up to that point.
+> __(optional)__
+> Create a context to use a secrets manager.
 > 
-> The function can be called multiple times for incremental signing.
+> The set of required and supported options is defined by the host.
+> 
+> The function returns the `unsupported_feature` error code if secrets management facilities are not supported by the host.
+> This is also an optional import, meaning that the function may not even exist.
 
 
 ---
 
-### [`signature_state_close()`](#signature_state_close)
+### [`secrets_manager_close()`](#secrets_manager_close)
 Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 #### Input:
 
-* **`state`**: _[`signature_state`](#signature_state)_
+* **`secrets_manager`**: _[`secrets_manager`](#secrets_manager)_
 
 This function has no output.
 
-> Destroy a signature state.
+> __(optional)__
+> Destroy a secrets manager context.
 > 
-> Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
-> 
-> Note that closing a signature state doesn't close or invalidate the key pair object, that be reused for further signatures.
+> The function returns the `unsupported_feature` error code if secrets management facilities are not supported by the host.
+> This is also an optional import, meaning that the function may not even exist.
 
 
 ---
 
-### [`signature_verification_state_open()`](#signature_verification_state_open)
+### [`secrets_manager_invalidate()`](#secrets_manager_invalidate)
 Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 #### Input:
 
-* **`kp`**: _[`signature_publickey`](#signature_publickey)_
-
-#### Output:
-
-* _[`signature_verification_state`](#signature_verification_state)_ mutable pointer
-
-> Create a new state to collect data to verify a signature on.
-> 
-> This is the verification counterpart of `signature_state`.
-> 
-> Data can be injected using `signature_verification_state_update()`, and the state is not closed after a verification, allowing incremental verification.
-> 
-> Example usage - signature verification:
-> 
-> ```rust
-> let pk_handle = ctx.publickey_import(AlgorithmType::Signatures, "ECDSA_P256_SHA256", encoded_pk, PublicKeyEncoding::CompressedSec)?;
-> let signature_handle = ctx.signature_import(AlgorithmType::Signatures, "ECDSA_P256_SHA256", encoded_sig, SignatureEncoding::Der)?;
-> let state_handle = ctx.signature_verification_state_open(pk_handle)?;
-> ctx.signature_verification_state_update(state_handle, "message")?;
-> ctx.signature_verification_state_verify(signature_handle)?;
-> ```
-
-
----
-
-### [`signature_verification_state_update()`](#signature_verification_state_update)
-Returned error type: _[`crypto_errno`](#crypto_errno)_
-
-#### Input:
-
-* **`state`**: _[`signature_verification_state`](#signature_verification_state)_
-* **`input`**: `u8` pointer
-* **`input_len`**: _[`size`](#size)_
+* **`secrets_manager`**: _[`secrets_manager`](#secrets_manager)_
+* **`key_id`**: `u8` pointer
+* **`key_id_len`**: _[`size`](#size)_
+* **`key_version`**: _[`version`](#version)_
 
 This function has no output.
 
-> Absorb data into the signature verification state.
+> __(optional)__
+> Invalidate a managed key or key pair given an identifier and a version.
 > 
-> This function may return `unsupported_feature` is the selected algorithm doesn't support incremental updates.
-
-
----
-
-### [`signature_verification_state_verify()`](#signature_verification_state_verify)
-Returned error type: _[`crypto_errno`](#crypto_errno)_
-
-#### Input:
-
-* **`state`**: _[`signature_verification_state`](#signature_verification_state)_
-* **`signature`**: _[`signature`](#signature)_
-
-This function has no output.
-
-> Check that the given signature is verifies for the data collected up to that point point.
+> This asks the secrets manager to delete or revoke a stored key, a specific version of a key.
 > 
-> The state is not closed and can absorb more data to allow for incremental verification.
+> `key_version` can be set to a version number, to `version.latest` to invalidate the current version, or to `version.all` to invalidate all versions of a key.
 > 
-> The function returns `invalid_signature` if the signature doesn't appear to be valid.
-
-
----
-
-### [`signature_verification_state_close()`](#signature_verification_state_close)
-Returned error type: _[`crypto_errno`](#crypto_errno)_
-
-#### Input:
-
-* **`state`**: _[`signature_verification_state`](#signature_verification_state)_
-
-This function has no output.
-
-> Destroy a signature verification state.
+> The function returns `unsupported_feature` if this operation is not supported by the host, and `not_found` if the identifier and version don't match any existing key.
 > 
-> Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
-> 
-> Note that closing a signature state doesn't close or invalidate the public key object, that be reused for further verifications.
-
-
----
-
-### [`signature_close()`](#signature_close)
-Returned error type: _[`crypto_errno`](#crypto_errno)_
-
-#### Input:
-
-* **`signature`**: _[`signature`](#signature)_
-
-This function has no output.
-
-> Destroy a signature.
-> 
-> Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+> This is an optional import, meaning that the function may not even exist.
 
 
 ---

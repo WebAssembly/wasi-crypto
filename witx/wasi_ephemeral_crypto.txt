@@ -1,7 +1,7 @@
 * API overview *
 
 
----------------------- Module: [proposal_common] ----------------------
+---------------------- Module: [wasi_ephemeral_crypto_common] ----------------------
 
 enum crypto_errno: (tag: u16)
     - `success`: crypto_errno
@@ -187,7 +187,7 @@ function secrets_manager_invalidate(): crypto_errno
     - No output
 
 
----------------------- Module: [proposal_asymmetric_common] ----------------------
+---------------------- Module: [wasi_ephemeral_crypto_asymmetric_common] ----------------------
 
 function keypair_generate(): crypto_errno
     - Input:
@@ -337,7 +337,7 @@ function secretkey_close(): crypto_errno
     - No output
 
 
----------------------- Module: [proposal_symmetric] ----------------------
+---------------------- Module: [wasi_ephemeral_crypto_symmetric] ----------------------
 
 function symmetric_key_generate(): crypto_errno
     - Input:
@@ -543,7 +543,7 @@ function symmetric_tag_close(): crypto_errno
     - No output
 
 
----------------------- Module: [proposal_signatures] ----------------------
+---------------------- Module: [wasi_ephemeral_crypto_signatures] ----------------------
 
 alias signature_keypair = handle
 
@@ -621,7 +621,7 @@ function signature_close(): crypto_errno
     - No output
 
 
----------------------- Module: [proposal_kx] ----------------------
+---------------------- Module: [wasi_ephemeral_crypto_kx] ----------------------
 
 alias kx_keypair = handle
 
@@ -652,7 +652,7 @@ function kx_decapsulate(): crypto_errno
         - mut_ptr<array_output>
 
 
----------------------- Module: [proposal_external_secrets] ----------------------
+---------------------- Module: [wasi_ephemeral_crypto_external_secrets] ----------------------
 
 function external_secret_store(): crypto_errno
     - Input:

@@ -1,5 +1,5 @@
 
-# Module: proposal_common
+# Module: wasi_ephemeral_crypto_common
 
 ## Table of contents
 
@@ -581,7 +581,7 @@ This function has no output.
 ---
 
 
-# Module: proposal_asymmetric_common
+# Module: wasi_ephemeral_crypto_asymmetric_common
 
 ## Table of contents
 
@@ -1062,7 +1062,7 @@ This function has no output.
 ---
 
 
-# Module: proposal_symmetric
+# Module: wasi_ephemeral_crypto_symmetric
 
 ## Table of contents
 
@@ -1922,7 +1922,7 @@ This function has no output.
 ---
 
 
-# Module: proposal_signatures
+# Module: wasi_ephemeral_crypto_signatures
 
 ## Table of contents
 
@@ -2213,7 +2213,7 @@ This function has no output.
 ---
 
 
-# Module: proposal_kx
+# Module: wasi_ephemeral_crypto_kx
 
 ## Table of contents
 
@@ -2331,7 +2331,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 ---
 
 
-# Module: proposal_external_secrets
+# Module: wasi_ephemeral_crypto_external_secrets
 
 ## Table of contents
 

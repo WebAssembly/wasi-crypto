@@ -1,15 +1,15 @@
 
-# Module: proposal_external_secrets
+# Module: wasi_ephemeral_crypto_kx
 
 ## Table of contents
 
 ### Types list:
 
-\[**[All](#types)**\] - \[_[`crypto_errno`](#crypto_errno)_\] - \[_[`keypair_encoding`](#keypair_encoding)_\] - \[_[`publickey_encoding`](#publickey_encoding)_\] - \[_[`secretkey_encoding`](#secretkey_encoding)_\] - \[_[`signature_encoding`](#signature_encoding)_\] - \[_[`algorithm_type`](#algorithm_type)_\] - \[_[`version`](#version)_\] - \[_[`size`](#size)_\] - \[_[`timestamp`](#timestamp)_\] - \[_[`u64`](#u64)_\] - \[_[`array_output`](#array_output)_\] - \[_[`options`](#options)_\] - \[_[`secrets_manager`](#secrets_manager)_\] - \[_[`keypair`](#keypair)_\] - \[_[`signature_state`](#signature_state)_\] - \[_[`signature`](#signature)_\] - \[_[`publickey`](#publickey)_\] - \[_[`secretkey`](#secretkey)_\] - \[_[`signature_verification_state`](#signature_verification_state)_\] - \[_[`symmetric_state`](#symmetric_state)_\] - \[_[`symmetric_key`](#symmetric_key)_\] - \[_[`symmetric_tag`](#symmetric_tag)_\] - \[_[`opt_options_u`](#opt_options_u)_\] - \[_[`opt_options`](#opt_options)_\] - \[_[`opt_symmetric_key_u`](#opt_symmetric_key_u)_\] - \[_[`opt_symmetric_key`](#opt_symmetric_key)_\]
+[**[All](#types)**] - [_[`crypto_errno`](#crypto_errno)_] - [_[`keypair_encoding`](#keypair_encoding)_] - [_[`publickey_encoding`](#publickey_encoding)_] - [_[`secretkey_encoding`](#secretkey_encoding)_] - [_[`signature_encoding`](#signature_encoding)_] - [_[`algorithm_type`](#algorithm_type)_] - [_[`version`](#version)_] - [_[`size`](#size)_] - [_[`timestamp`](#timestamp)_] - [_[`u64`](#u64)_] - [_[`array_output`](#array_output)_] - [_[`options`](#options)_] - [_[`secrets_manager`](#secrets_manager)_] - [_[`keypair`](#keypair)_] - [_[`signature_state`](#signature_state)_] - [_[`signature`](#signature)_] - [_[`publickey`](#publickey)_] - [_[`secretkey`](#secretkey)_] - [_[`signature_verification_state`](#signature_verification_state)_] - [_[`symmetric_state`](#symmetric_state)_] - [_[`symmetric_key`](#symmetric_key)_] - [_[`symmetric_tag`](#symmetric_tag)_] - [_[`opt_options_u`](#opt_options_u)_] - [_[`opt_options`](#opt_options)_] - [_[`opt_symmetric_key_u`](#opt_symmetric_key_u)_] - [_[`opt_symmetric_key`](#opt_symmetric_key)_] - [_[`kx_keypair`](#kx_keypair)_] - [_[`kx_publickey`](#kx_publickey)_] - [_[`kx_secretkey`](#kx_secretkey)_]
 
 ### Functions list:
 
-\[**[All](#functions)**\] - \[[`external_secret_store()`](#external_secret_store)\] - \[[`external_secret_replace()`](#external_secret_replace)\] - \[[`external_secret_from_id()`](#external_secret_from_id)\] - \[[`external_secret_invalidate()`](#external_secret_invalidate)\] - \[[`external_secret_encapsulate()`](#external_secret_encapsulate)\] - \[[`external_secret_decapsulate()`](#external_secret_decapsulate)\]
+[**[All](#functions)**] - [[`kx_dh()`](#kx_dh)] - [[`kx_encapsulate()`](#kx_encapsulate)] - [[`kx_decapsulate()`](#kx_decapsulate)]
 
 ## Types
 
@@ -353,154 +353,105 @@ Tagged union with tag type: `u8` and the following possibilities:
 
 ---
 
+### _[`kx_keypair`](#kx_keypair)_
+
+Alias for `handle`.
+
+
+> `$kx_keypair` is just an alias for `$keypair`
+> 
+> However, bindings may want to define a specialized type `kx_keypair` as a super class of `keypair`.
+
+
+---
+
+### _[`kx_publickey`](#kx_publickey)_
+
+Alias for `handle`.
+
+
+> `$kx_publickey` is just an alias for `$publickey`
+> 
+> However, bindings may want to define a specialized type `kx_publickey` as a super class of `publickey`, with additional methods such as `dh`.
+
+
+---
+
+### _[`kx_secretkey`](#kx_secretkey)_
+
+Alias for `handle`.
+
+
+> `$kx_secretkey` is just an alias for `$secretkey`
+> 
+> However, bindings may want to define a specialized type `kx_secretkey` as a super class of `secretkeykey`, with additional methods such as `dh`.
+
+
+---
+
 ## Functions
 
-### [`external_secret_store()`](#external_secret_store)
+### [`kx_dh()`](#kx_dh)
 Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 #### Input:
 
-* **`secrets_manager`**: _[`secrets_manager`](#secrets_manager)_
-* **`secret`**: `u8` pointer
-* **`secret_len`**: _[`size`](#size)_
-* **`expiration`**: _[`timestamp`](#timestamp)_
-* **`secret_id`**: `u8` mutable pointer
-* **`secret_id_max_len`**: _[`size`](#size)_
-
-This function has no output.
-
-> Store an external secret into the secrets manager.
-> 
-> `$expiration` is the expiration date of the secret as a UNIX timestamp, in seconds.
-> An expiration date is mandatory.
-> 
-> On success, the secret identifier is put into `$secret_id` if it fits into `$secret_id_max_len` bytes.
-> If the supplied ouptut buffer is too small, `$overflow` is returned.
-> 
-> If this function is not supported by the host the `$unsupported_feature` error is returned.
-
-
----
-
-### [`external_secret_replace()`](#external_secret_replace)
-Returned error type: _[`crypto_errno`](#crypto_errno)_
-
-#### Input:
-
-* **`secrets_manager`**: _[`secrets_manager`](#secrets_manager)_
-* **`secret`**: `u8` pointer
-* **`secret_len`**: _[`size`](#size)_
-* **`expiration`**: _[`timestamp`](#timestamp)_
-* **`secret_id`**: `u8` pointer
-* **`secret_id_len`**: _[`size`](#size)_
-
-#### Output:
-
-* _[`version`](#version)_ mutable pointer
-
-> Replace a managed external with a new version.
-> 
-> `$expiration` is the expiration date of the secret as a UNIX timestamp, in seconds.
-> An expiration date is mandatory.
-> 
-> On success, a new version is created and returned.
-> 
-> If this function is not supported by the host the `$unsupported_feature` error is returned.
-
-
----
-
-### [`external_secret_from_id()`](#external_secret_from_id)
-Returned error type: _[`crypto_errno`](#crypto_errno)_
-
-#### Input:
-
-* **`secrets_manager`**: _[`secrets_manager`](#secrets_manager)_
-* **`secret_id`**: `u8` pointer
-* **`secret_id_len`**: _[`size`](#size)_
-* **`secret_version`**: _[`version`](#version)_
+* **`pk`**: _[`publickey`](#publickey)_
+* **`sk`**: _[`secretkey`](#secretkey)_
 
 #### Output:
 
 * _[`array_output`](#array_output)_ mutable pointer
 
-> Get a copy of an external secret given an identifier and version.
+> Perform a simple Diffie-Hellman key exchange.
 > 
-> `secret_version` can be set to a version number, or to `version.latest` to retrieve the most recent version of a secret.
+> Both keys must be of the same type, or else the `$crypto_errno.incompatible_keys` error is returned.
+> The algorithm also has to support this kind of key exchange. If this is not the case, the `$crypto_errno.invalid_operation` error is returned.
 > 
-> On success, a copy of the secret is returned.
-> 
-> The function returns `$unsupported_feature` if this operation is not supported by the host, and `not_found` if the identifier and version don't match any existing secret.
+> Otherwide, a raw shared key is returned, and can be imported as a symmetric key.
+> ```
 
 
 ---
 
-### [`external_secret_invalidate()`](#external_secret_invalidate)
+### [`kx_encapsulate()`](#kx_encapsulate)
 Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 #### Input:
 
-* **`secrets_manager`**: _[`secrets_manager`](#secrets_manager)_
-* **`secret_id`**: `u8` pointer
-* **`secret_id_len`**: _[`size`](#size)_
-* **`secret_version`**: _[`version`](#version)_
+* **`pk`**: _[`publickey`](#publickey)_
 
-This function has no output.
+#### Output:
 
-> Invalidate an external secret given an identifier and a version.
+* _[`array_output`](#array_output)_ mutable pointer
+* _[`array_output`](#array_output)_ mutable pointer
+
+> Create a shared secret and encrypt it for the given public key.
 > 
-> This asks the secrets manager to delete or revoke a stored secret, a specific version of a secret.
+> This operation is only compatible with specific algorithms.
+> If a selected algorithm doesn't support it, `$crypto_errno.invalid_operation` is returned.
 > 
-> `secret_version` can be set to a version number, or to `version.latest` to invalidate the current version, or to `version.all` to invalidate all versions of a secret.
-> 
-> The function returns `$unsupported_feature` if this operation is not supported by the host, and `not_found` if the identifier and version don't match any existing secret.
+> On success, both the shared secret and its encrypted version are returned.
 
 
 ---
 
-### [`external_secret_encapsulate()`](#external_secret_encapsulate)
+### [`kx_decapsulate()`](#kx_decapsulate)
 Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 #### Input:
 
-* **`secrets_manager`**: _[`secrets_manager`](#secrets_manager)_
-* **`secret`**: `u8` pointer
-* **`secret_len`**: _[`size`](#size)_
-* **`expiration`**: _[`timestamp`](#timestamp)_
+* **`sk`**: _[`secretkey`](#secretkey)_
+* **`encapsulated_secret`**: `u8` pointer
+* **`encapsulated_secret_len`**: _[`size`](#size)_
 
 #### Output:
 
 * _[`array_output`](#array_output)_ mutable pointer
 
-> Encrypt an external secret.
+> Decapsulate an encapsulated secret crated with `kx_encapsulate`
 > 
-> Applications don't have access to the encryption key, and the secrets manager is free to choose any suitable algorithm.
-> 
-> However, the returned ciphertext must include and authenticate both the secret and the expiration date.
-> 
-> On success, the ciphertext is returned.
-
-
----
-
-### [`external_secret_decapsulate()`](#external_secret_decapsulate)
-Returned error type: _[`crypto_errno`](#crypto_errno)_
-
-#### Input:
-
-* **`secrets_manager`**: _[`secrets_manager`](#secrets_manager)_
-* **`encrypted_secret`**: `u8` pointer
-* **`encrypted_secret_len`**: _[`size`](#size)_
-
-#### Output:
-
-* _[`array_output`](#array_output)_ mutable pointer
-
-> Decrypt an external secret previously encrypted by the secrets manager.
-> 
-> Returns the original secret if the ciphertext is valid.
-> Returns `$expired` if the current date is past the stored expiration date.
-> Returns `$verification_failed` if the ciphertext format is invalid or if its authentication tag couldn't be verified.
+> Return the secret, or `$crypto_errno.verification_failed` on error.
 
 
 ---

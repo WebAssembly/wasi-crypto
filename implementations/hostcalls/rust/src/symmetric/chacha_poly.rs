@@ -195,10 +195,10 @@ impl SymmetricStateLike for ChaChaPolySymmetricState {
 
         let raw_tag = match &self.ctx {
             ChaChaPolyVariant::ChaCha(x) => {
-                x.encrypt_in_place_detached(GenericArray::from_slice(&nonce), &self.ad, out)
+                x.encrypt_in_place_detached(GenericArray::from_slice(nonce), &self.ad, out)
             }
             ChaChaPolyVariant::XChaCha(x) => {
-                x.encrypt_in_place_detached(GenericArray::from_slice(&nonce), &self.ad, out)
+                x.encrypt_in_place_detached(GenericArray::from_slice(nonce), &self.ad, out)
             }
         }
         .map_err(|_| CryptoError::InternalError)?
@@ -210,7 +210,7 @@ impl SymmetricStateLike for ChaChaPolySymmetricState {
 
     fn decrypt_unchecked(&mut self, out: &mut [u8], data: &[u8]) -> Result<usize, CryptoError> {
         let raw_tag = &data[out.len()..].to_vec();
-        self.decrypt_detached_unchecked(out, &data[..out.len()], &raw_tag)
+        self.decrypt_detached_unchecked(out, &data[..out.len()], raw_tag)
     }
 
     fn decrypt_detached_unchecked(
@@ -225,13 +225,13 @@ impl SymmetricStateLike for ChaChaPolySymmetricState {
         }
         match &self.ctx {
             ChaChaPolyVariant::ChaCha(x) => x.decrypt_in_place_detached(
-                GenericArray::from_slice(&nonce),
+                GenericArray::from_slice(nonce),
                 &self.ad,
                 out,
                 GenericArray::from_slice(raw_tag),
             ),
             ChaChaPolyVariant::XChaCha(x) => x.decrypt_in_place_detached(
-                GenericArray::from_slice(&nonce),
+                GenericArray::from_slice(nonce),
                 &self.ad,
                 out,
                 GenericArray::from_slice(raw_tag),

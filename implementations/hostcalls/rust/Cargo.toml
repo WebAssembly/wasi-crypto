@@ -21,11 +21,11 @@ derivative = "2.2"
 ed25519-dalek = "1"
 hkdf = "0.11"
 hmac = "0.11"
-k256 = { version = "0.8", features = ["ecdsa", "std", "zeroize", "pkcs8", "pem"] }
-p256 = { version = "0.8", features = ["ecdsa", "std", "zeroize", "pkcs8", "pem"] }
+k256 = { version = "0.9", features = ["ecdsa", "std", "zeroize", "pkcs8", "pem"] }
+p256 = { version = "0.9", features = ["ecdsa", "std", "zeroize", "pkcs8", "pem"] }
 parking_lot = "0.11"
-pqcrypto = { version = "0.13", default-features = false, features = ["pqcrypto-kyber"], optional = true }
-rand_core = { version = "0.6.2", default-features = false }
+pqcrypto = { version = "0.14.0", default-features = false, features = ["pqcrypto-kyber"], optional = true }
+rand_core = { version = "0.6.3", default-features = false }
 rand_core_05 = { package = "rand_core", version = "0.5", default-features = false }
 rsa = { version = "0.4", features = ["serde", "expose-internals"] }
 serde = { version = "1", features = ["derive"] }

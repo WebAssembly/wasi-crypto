@@ -17,7 +17,7 @@ impl Kyber768PublicKey {
             CryptoError::InvalidKey
         );
         let mut raw_ = [0u8; kyber768::public_key_bytes()];
-        raw_.copy_from_slice(&raw);
+        raw_.copy_from_slice(raw);
         let pq_pk = kyber768::PublicKey::from_bytes(raw).map_err(|_| CryptoError::InvalidKey)?;
         Ok(Kyber768PublicKey { alg, pq_pk })
     }
@@ -193,7 +193,7 @@ impl KxSecretKeyLike for Kyber768SecretKey {
     }
 
     fn as_raw(&self) -> Result<&[u8], CryptoError> {
-        Ok(&self.pq_sk.as_bytes())
+        Ok(self.pq_sk.as_bytes())
     }
 
     fn publickey(&self) -> Result<KxPublicKey, CryptoError> {

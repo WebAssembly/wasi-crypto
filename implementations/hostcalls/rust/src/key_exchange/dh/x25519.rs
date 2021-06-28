@@ -29,7 +29,7 @@ impl X25519PublicKey {
     fn new(alg: KxAlgorithm, raw: &[u8]) -> Result<Self, CryptoError> {
         ensure!(raw.len() == PK_LEN, CryptoError::InvalidKey);
         let mut raw_ = [0u8; PK_LEN];
-        raw_.copy_from_slice(&raw);
+        raw_.copy_from_slice(raw);
         let group_element = MontgomeryPoint(raw_);
         X25519PublicKey::from_group_element(alg, group_element)
     }

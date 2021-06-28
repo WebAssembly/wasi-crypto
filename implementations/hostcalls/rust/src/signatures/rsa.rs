@@ -59,7 +59,7 @@ fn modulus_bits(alg: SignatureAlgorithm) -> Result<usize, CryptoError> {
 impl RsaSignatureKeyPair {
     fn from_pkcs8(alg: SignatureAlgorithm, pkcs8: &[u8]) -> Result<Self, CryptoError> {
         ensure!(pkcs8.len() < 4096, CryptoError::InvalidKey);
-        let ctx = ::rsa::RSAPrivateKey::from_pkcs8(&pkcs8).map_err(|_| CryptoError::InvalidKey)?;
+        let ctx = ::rsa::RSAPrivateKey::from_pkcs8(pkcs8).map_err(|_| CryptoError::InvalidKey)?;
         Ok(RsaSignatureKeyPair { alg, ctx })
     }
 
@@ -344,7 +344,7 @@ pub struct RsaSignaturePublicKey {
 impl RsaSignaturePublicKey {
     fn from_pkcs8(alg: SignatureAlgorithm, pkcs8: &[u8]) -> Result<Self, CryptoError> {
         ensure!(pkcs8.len() < 4096, CryptoError::InvalidKey);
-        let ctx = ::rsa::RSAPublicKey::from_pkcs8(&pkcs8).map_err(|_| CryptoError::InvalidKey)?;
+        let ctx = ::rsa::RSAPublicKey::from_pkcs8(pkcs8).map_err(|_| CryptoError::InvalidKey)?;
         Ok(RsaSignaturePublicKey { alg, ctx })
     }
 

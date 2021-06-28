@@ -144,7 +144,7 @@ impl EcdsaSignatureKeyPair {
     pub fn public_key(&self) -> Result<EcdsaSignaturePublicKey, CryptoError> {
         let ctx = match self.ctx.as_ref() {
             EcdsaSigningKeyVariant::P256(x) => EcdsaVerifyingKeyVariant::P256(x.verifying_key()),
-            EcdsaSigningKeyVariant::K256(x) => EcdsaVerifyingKeyVariant::K256(x.verify_key()),
+            EcdsaSigningKeyVariant::K256(x) => EcdsaVerifyingKeyVariant::K256(x.verifying_key()),
         };
         Ok(EcdsaSignaturePublicKey {
             alg: self.alg,

@@ -118,7 +118,7 @@ impl AesGcmSymmetricState {
         let nonce_vec = inner.nonce.as_ref().ok_or(CryptoError::NonceRequired)?;
         ensure!(nonce_vec.len() == NONCE_LEN, CryptoError::InvalidNonce);
         let mut nonce = [0u8; NONCE_LEN];
-        nonce.copy_from_slice(&nonce_vec);
+        nonce.copy_from_slice(nonce_vec);
         let aes_gcm_impl = match alg {
             SymmetricAlgorithm::Aes128Gcm => {
                 AesGcmVariant::Aes128(Aes128Gcm::new(GenericArray::from_slice(key.as_raw()?)))
@@ -194,7 +194,7 @@ impl SymmetricStateLike for AesGcmSymmetricState {
 
     fn decrypt_unchecked(&mut self, out: &mut [u8], data: &[u8]) -> Result<usize, CryptoError> {
         let raw_tag = &data[out.len()..].to_vec();
-        self.decrypt_detached_unchecked(out, &data[..out.len()], &raw_tag)
+        self.decrypt_detached_unchecked(out, &data[..out.len()], raw_tag)
     }
 
     fn decrypt_detached_unchecked(

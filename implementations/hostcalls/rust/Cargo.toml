@@ -11,7 +11,7 @@ keywords = ["webassembly", "wasm", "crypto"]
 repository = "https://github.com/webassembly/wasi-crypto"
 
 [dependencies]
-aes-gcm = "0.9"
+aes-gcm = "0.9.4"
 anyhow = "1.0"
 bincode = "1.3"
 byteorder = "1.4"

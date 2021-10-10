@@ -1,7 +1,6 @@
-use ::rsa::{
-    BigUint, PrivateKeyEncoding as _, PrivateKeyPemEncoding as _, PublicKey as _,
-    PublicKeyEncoding as _, PublicKeyParts as _, PublicKeyPemEncoding as _,
-};
+use ::rsa::pkcs1::{FromRsaPrivateKey as _, FromRsaPublicKey as _};
+use ::rsa::pkcs8::{FromPrivateKey as _, FromPublicKey as _, ToPrivateKey as _, ToPublicKey as _};
+use ::rsa::{BigUint, PublicKey as _, PublicKeyParts as _};
 use ::sha2::{Digest, Sha256, Sha384, Sha512};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -35,7 +34,7 @@ struct RsaSignatureKeyPairParts {
 #[derive(Clone, Debug)]
 pub struct RsaSignatureKeyPair {
     pub alg: SignatureAlgorithm,
-    ctx: ::rsa::RSAPrivateKey,
+    ctx: ::rsa::RsaPrivateKey,
 }
 
 fn modulus_bits(alg: SignatureAlgorithm) -> Result<usize, CryptoError> {
@@ -57,17 +56,22 @@ fn modulus_bits(alg: SignatureAlgorithm) -> Result<usize, CryptoError> {
 }
 
 impl RsaSignatureKeyPair {
-    fn from_pkcs8(alg: SignatureAlgorithm, pkcs8: &[u8]) -> Result<Self, CryptoError> {
-        ensure!(pkcs8.len() < 4096, CryptoError::InvalidKey);
-        let ctx = ::rsa::RSAPrivateKey::from_pkcs8(pkcs8).map_err(|_| CryptoError::InvalidKey)?;
+    fn from_pkcs8(alg: SignatureAlgorithm, der: &[u8]) -> Result<Self, CryptoError> {
+        ensure!(der.len() < 4096, CryptoError::InvalidKey);
+        let ctx = ::rsa::RsaPrivateKey::from_pkcs8_der(der)
+            .or_else(|_| ::rsa::RsaPrivateKey::from_pkcs1_der(der))
+            .map_err(|_| CryptoError::InvalidKey)?;
         Ok(RsaSignatureKeyPair { alg, ctx })
     }
 
     fn from_pem(alg: SignatureAlgorithm, pem: &[u8]) -> Result<Self, CryptoError> {
         ensure!(pem.len() < 4096, CryptoError::InvalidKey);
-        let parsed_pem = ::rsa::pem::parse(pem).map_err(|_| CryptoError::InvalidKey)?;
-        let ctx =
-            ::rsa::RSAPrivateKey::try_from(parsed_pem).map_err(|_| CryptoError::InvalidKey)?;
+        let pem = std::str::from_utf8(pem)
+            .map_err(|_| CryptoError::InvalidKey)?
+            .trim();
+        let ctx = ::rsa::RsaPrivateKey::from_pkcs8_pem(pem)
+            .or_else(|_| ::rsa::RsaPrivateKey::from_pkcs1_pem(pem))
+            .map_err(|_| CryptoError::InvalidKey)?;
         Ok(RsaSignatureKeyPair { alg, ctx })
     }
 
@@ -79,17 +83,20 @@ impl RsaSignatureKeyPair {
             parts.version == RAW_ENCODING_VERSION && parts.alg_id == RAW_ENCODING_ALG_ID,
             CryptoError::InvalidKey
         );
-        let ctx = ::rsa::RSAPrivateKey::from_components(parts.n, parts.e, parts.d, parts.primes);
+        let ctx = ::rsa::RsaPrivateKey::from_components(parts.n, parts.e, parts.d, parts.primes);
         Ok(RsaSignatureKeyPair { alg, ctx })
     }
 
     fn to_pkcs8(&self) -> Result<Vec<u8>, CryptoError> {
-        self.ctx.to_pkcs8().map_err(|_| CryptoError::InternalError)
+        self.ctx
+            .to_pkcs8_der()
+            .map_err(|_| CryptoError::InternalError)
+            .map(|x| x.as_ref().to_vec())
     }
 
     fn to_pem(&self) -> Result<Vec<u8>, CryptoError> {
         self.ctx
-            .to_pem_pkcs8()
+            .to_pkcs8_pem()
             .map(|s| s.as_bytes().to_vec())
             .map_err(|_| CryptoError::InternalError)
     }
@@ -113,7 +120,7 @@ impl RsaSignatureKeyPair {
     ) -> Result<Self, CryptoError> {
         let modulus_bits = modulus_bits(alg)?;
         let mut rng = SecureRandom::new();
-        let ctx = ::rsa::RSAPrivateKey::new(&mut rng, modulus_bits)
+        let ctx = ::rsa::RsaPrivateKey::new(&mut rng, modulus_bits)
             .map_err(|_| CryptoError::UnsupportedAlgorithm)?;
         Ok(RsaSignatureKeyPair { alg, ctx })
     }
@@ -338,20 +345,27 @@ struct RsaSignaturePublicKeyParts {
 #[derive(Clone, Debug)]
 pub struct RsaSignaturePublicKey {
     pub alg: SignatureAlgorithm,
-    ctx: ::rsa::RSAPublicKey,
+    ctx: ::rsa::RsaPublicKey,
 }
 
 impl RsaSignaturePublicKey {
-    fn from_pkcs8(alg: SignatureAlgorithm, pkcs8: &[u8]) -> Result<Self, CryptoError> {
-        ensure!(pkcs8.len() < 4096, CryptoError::InvalidKey);
-        let ctx = ::rsa::RSAPublicKey::from_pkcs8(pkcs8).map_err(|_| CryptoError::InvalidKey)?;
+    fn from_pkcs8(alg: SignatureAlgorithm, der: &[u8]) -> Result<Self, CryptoError> {
+        ensure!(der.len() < 4096, CryptoError::InvalidKey);
+        let ctx = ::rsa::RsaPublicKey::from_public_key_der(der)
+            .or_else(|_| ::rsa::RsaPublicKey::from_pkcs1_der(der))
+            .map_err(|_| CryptoError::InvalidKey)?;
         Ok(RsaSignaturePublicKey { alg, ctx })
     }
 
     fn from_pem(alg: SignatureAlgorithm, pem: &[u8]) -> Result<Self, CryptoError> {
         ensure!(pem.len() < 4096, CryptoError::InvalidKey);
-        let parsed_pem = ::rsa::pem::parse(pem).map_err(|_| CryptoError::InvalidKey)?;
-        let ctx = ::rsa::RSAPublicKey::try_from(parsed_pem).map_err(|_| CryptoError::InvalidKey)?;
+        let pem = std::str::from_utf8(pem)
+            .map_err(|_| CryptoError::InvalidKey)?
+            .trim();
+        let parsed_pem = ::rsa::RsaPublicKey::from_public_key_pem(pem)
+            .or_else(|_| ::rsa::RsaPublicKey::from_pkcs1_pem(pem))
+            .map_err(|_| CryptoError::InvalidKey)?;
+        let ctx = ::rsa::RsaPublicKey::try_from(parsed_pem).map_err(|_| CryptoError::InvalidKey)?;
         Ok(RsaSignaturePublicKey { alg, ctx })
     }
 
@@ -364,17 +378,20 @@ impl RsaSignaturePublicKey {
             CryptoError::InvalidKey
         );
         let ctx =
-            ::rsa::RSAPublicKey::new(parts.n, parts.e).map_err(|_| CryptoError::InvalidKey)?;
+            ::rsa::RsaPublicKey::new(parts.n, parts.e).map_err(|_| CryptoError::InvalidKey)?;
         Ok(RsaSignaturePublicKey { alg, ctx })
     }
 
     fn to_pkcs8(&self) -> Result<Vec<u8>, CryptoError> {
-        self.ctx.to_pkcs8().map_err(|_| CryptoError::InternalError)
+        self.ctx
+            .to_public_key_der()
+            .map_err(|_| CryptoError::InternalError)
+            .map(|x| x.as_ref().to_vec())
     }
 
     fn to_pem(&self) -> Result<Vec<u8>, CryptoError> {
         self.ctx
-            .to_pem_pkcs8()
+            .to_public_key_pem()
             .map(|s| s.as_bytes().to_vec())
             .map_err(|_| CryptoError::InternalError)
     }

@@ -88,10 +88,10 @@ macro_rules! ensure {
 #[macro_export]
 macro_rules! bail {
     ($err:expr $(,)?) => {
-        return Err($err);
+        return Err($err)
     };
     ($fmt:expr, $($arg:tt)*) => {
-        return Err($fmt, $($arg)*);
+        return Err($fmt, $($arg)*)
     };
 }
 

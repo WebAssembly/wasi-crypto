@@ -159,7 +159,8 @@ impl SignatureVerificationStateLike for EddsaSignatureVerificationState {
             CryptoError::InvalidSignature
         );
         signature_u8.copy_from_slice(signature.as_ref());
-        let dalek_signature = ed25519_dalek::Signature::new(signature_u8);
+        let dalek_signature = ed25519_dalek::Signature::from_bytes(&signature_u8)
+            .map_err(|_| CryptoError::VerificationFailed)?;
         self.pk
             .ctx
             .verify_strict(self.input.as_ref(), &dalek_signature)

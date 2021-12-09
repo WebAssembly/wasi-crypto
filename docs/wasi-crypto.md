@@ -433,7 +433,7 @@ This operation MUST succeed if the secret key is valid. However, for some algori
 Given a handle, a public key can be serialized:
 
 ```rust
-let serialized_pk_handle = secretkey_export(pk_handle, PublickeyEncoding::PKCS8)?;
+let serialized_pk_handle = publickey_export(pk_handle, PublickeyEncoding::PKCS8)?;
 ```
 
 ## Key pairs

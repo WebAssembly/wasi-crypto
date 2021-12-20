@@ -445,7 +445,7 @@ Key pairs can be imported from a serialized representation. If a serialization f
 Example usage:
 
 ```rust
-let kp_handle = keypair_import(AlgorithmType::Signatures, "RSA_PKCS1_2048_SHA256", KeypairEncoding::PKCS8)?;
+let kp_handle = keypair_import(AlgorithmType::Signatures, "RSA_PKCS1_2048_SHA256", encoded, KeypairEncoding::PKCS8)?;
 ```
 
 A key pair can also be created from handles to a valid secret key and a valid public key. Both keys must have matching algorithms. If this is not the case, the function MUST return the `incompatible_keys` error code.
@@ -578,7 +578,7 @@ Additional `signature_state_update()`+`signature_state_sign()` sequences can be 
 Example usage:
 
 ```rust
-let kp_handle = keypair_import(AlgorithmType::Signatures, "Ed25519", keypair, KeypairEncoding::Raw)?;
+let kp_handle = keypair_import(AlgorithmType::Signatures, "Ed25519", encoded, KeypairEncoding::Raw)?;
 let state_handle = signature_state_open(kp_handle)?;
 signature_state_update(state_handle, b"message part 1")?;
 signature_state_update(state_handle, b"message part 2")?;

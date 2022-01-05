@@ -152,7 +152,7 @@ Applications never access these representations directly. Keys, group elements a
 * `pkcs8`: `PKCS#8`/`DER` encoding. Implementations MAY support encryption.
 * `pem`: `PEM`-encoded `PKCS#8`/`DER` format. Implementations MAY support encryption.
 * `sec`: Affine coordinates [`SEC-1`](https://www.secg.org/sec1-v2.pdf) elliptic curve point encoding.
-* `compressec_sec`: Single-coordinate [`SEC-1`](https://www.secg.org/sec1-v2.pdf) elliptic curve point encoding.
+* `compressed_sec`: Single-coordinate [`SEC-1`](https://www.secg.org/sec1-v2.pdf) elliptic curve point encoding.
 * `local`: implemented-defined encoding. Such a representation can be more efficient than standard serialization formats, but is not defined not required by the `wasi-crypto` specification, and is thus not meant to be portable across implementations.
 
 Encodings are specified as constants, which are defined for individual key types:
@@ -951,7 +951,7 @@ symmetric_state_absorb(state_handle, b"value 3")?;
 symmetric_state_squeeze(state_handle, &mut out)?;
 ```
 
-Individual inputs to the `absorb()` function MUST be domain separated and MUST NOT be concatenateed.
+Individual inputs to the `absorb()` function MUST be domain separated and MUST NOT be concatenated.
 
 ### Key derivation using extract-and-expand
 

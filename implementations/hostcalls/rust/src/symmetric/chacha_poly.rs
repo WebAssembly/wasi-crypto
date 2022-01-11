@@ -93,8 +93,7 @@ impl SymmetricKeyBuilder for ChaChaPolySymmetricKeyBuilder {
 
     fn key_len(&self) -> Result<usize, CryptoError> {
         match self.alg {
-            SymmetricAlgorithm::ChaCha20Poly1305 => Ok(16),
-            SymmetricAlgorithm::XChaCha20Poly1305 => Ok(32),
+            SymmetricAlgorithm::ChaCha20Poly1305 | SymmetricAlgorithm::XChaCha20Poly1305 => Ok(32),
             _ => bail!(CryptoError::UnsupportedAlgorithm),
         }
     }

@@ -44,6 +44,7 @@ impl PublicKey {
                 encoded,
                 encoding,
             )?)),
+            AlgorithmType::KeyExchange => bail!(CryptoError::NotImplemented),
             _ => bail!(CryptoError::InvalidOperation),
         }
     }

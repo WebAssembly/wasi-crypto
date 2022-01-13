@@ -368,7 +368,7 @@ Implementations are also encouraged to include the following algorithms in order
 | `XCHACHA20-POLY1305` | ChaCha20-Poly1305 AEAD with ean xtended nonce, as specified in the most recent `draft-irtf-cfrg-xchacha` CFRG draft                              |
 | `KYBER768`           | KYBER-768 post-quantum key encapsulation mechanism, as specified in the most recent submission to NIST competition for post-quantum cryptography |
 
-Implementations are not limited to these algorithms. An implementation can clude additional algorithms, and the set of required algorithms will be revisited in every revision of the specification.
+Implementations are not limited to these algorithms. An implementation can include additional algorithms, and the set of required algorithms will be revisited in every revision of the specification.
 
 # Asymmetric operations
 

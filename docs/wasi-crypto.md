@@ -151,7 +151,9 @@ Applications never access these representations directly. Keys, group elements a
 * `raw`: raw byte strings, as defined by individual primitives.
 * `pkcs8`: `PKCS#8`/`DER` encoding. Implementations MAY support encryption.
 * `pem`: `PEM`-encoded `PKCS#8`/`DER` format. Implementations MAY support encryption.
-* `sec`: Affine coordinates [`SEC-1`](https://www.secg.org/sec1-v2.pdf) elliptic curve point encoding.
+* `sec`: Affine coordinates [`SEC-1`](https://www.secg.org/sec1-v2.pdf) scalar and elliptic curve point encoding.
+* `compressed_pkcs8`: `PKCS#8`/`DER` encoding with coordinates in compressed form. Implementations MAY support encryption.
+* `compressed_pem`: `PEM`-encoded `PKCS#8`/`DER` format with coordinates in compressed form. Implementations MAY support encryption.
 * `compressed_sec`: Single-coordinate [`SEC-1`](https://www.secg.org/sec1-v2.pdf) elliptic curve point encoding.
 * `local`: implemented-defined encoding. Such a representation can be more efficient than standard serialization formats, but is not defined not required by the `wasi-crypto` specification, and is thus not meant to be portable across implementations.
 
@@ -230,13 +232,13 @@ In addition, an implementation MAY allow these signatures to be serialized using
 
 ## Required encodings and key types
 
-|           | Signature key pair                                                                                                   | Secret key                                                                  | Public key                                                                  |
-| --------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| Ed25519   | raw (private key + secret key encoded as in RFC8032)                                                                 | raw (cf. RFC8032)                                                           | raw (cf. RFC8032)                                                           |
-| X25519    | N/A                                                                                                                  | raw (cf. RFC7748)                                                           | raw (cf. RFC7748)                                                           |
-| p256      | raw secret scalar encoded as big endian, SEC-1, compressed SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, compressed SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, compressed SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |
-| secp256k1 | raw secret scalar encoded as big endian, SEC-1, compressed SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, compressed SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, compressed SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |
-| RSA       | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8                                                                   | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8                          | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8                          |
+|           | Signature key pair                                                                                                   | Secret key                                                                  | Public key                                                                                                                                          |
+| --------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ed25519   | raw (private key + secret key encoded as in RFC8032)                                                                 | raw (cf. RFC8032)                                                           | raw (cf. RFC8032)                                                                                                                                   |
+| X25519    | N/A                                                                                                                  | raw (cf. RFC7748)                                                           | raw (cf. RFC7748)                                                                                                                                   |
+| p256      | raw secret scalar encoded as big endian, SEC-1, compressed SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, compressed SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, compressed SEC-1, unencrypted PKCS#8 (compressed and uncompressed forms), PEM-encoded unencrypted PKCS#8 (compressed and uncompressed forms) |
+| secp256k1 | raw secret scalar encoded as big endian, SEC-1, compressed SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, compressed SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, compressed SEC-1, unencrypted PKCS#8 (compressed and uncompressed forms), PEM-encoded unencrypted PKCS#8 (compressed and uncompressed forms) |
+| RSA       | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8                                                                   | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8                          | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8                                                                                                  |
 
 ## Array outputs
 
@@ -1385,23 +1387,26 @@ keypair_encoding: enum(u16)
     - raw = 0
     - pkcs8 = 1
     - pem = 2
-    - local = 3
+    - compressed_pkcs8 = 3
+    - compressed_pem = 4
+    - local = 5
 
 publickey_encoding: enum(u16)
     - raw = 0
     - pkcs8 = 1
     - pem = 2
     - sec = 3
-    - compressed_sec = 4
-    - local = 5
+    - compressed_pkcs8 = 4
+    - compressed_pem = 5
+    - compressed_sec = 6
+    - local = 7
 
 secretkey_encoding: enum(u16)
     - raw = 0
     - pkcs8 = 1
     - pem = 2
     - sec = 3
-    - compressed_sec = 4
-    - local = 5
+    - local = 4
 
 signature_encoding: enum(u16)
     - raw = 0

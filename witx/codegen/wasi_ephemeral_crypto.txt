@@ -40,7 +40,9 @@ enum keypair_encoding: (tag: u16)
     - raw: 0
     - pkcs8: 1
     - pem: 2
-    - local: 3
+    - compressed_pkcs8: 3
+    - compressed_pem: 4
+    - local: 5
 
 enum publickey_encoding: (tag: u16)
     - raw: 0
@@ -48,15 +50,16 @@ enum publickey_encoding: (tag: u16)
     - pem: 2
     - sec: 3
     - compressed_sec: 4
-    - local: 5
+    - compressed_pkcs8: 5
+    - compressed_pem: 6
+    - local: 7
 
 enum secretkey_encoding: (tag: u16)
     - raw: 0
     - pkcs8: 1
     - pem: 2
     - sec: 3
-    - compressed_sec: 4
-    - local: 5
+    - local: 4
 
 enum signature_encoding: (tag: u16)
     - raw: 0

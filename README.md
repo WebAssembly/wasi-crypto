@@ -20,5 +20,6 @@ processes, goals, scope, and deliverables.
   * key exchange ([witx](witx/codegen/wasi_ephemeral_crypto_kx.witx), [doc](witx/codegen/wasi_ephemeral_crypto_kx.md))
   * external secrets ([witx](witx/codegen/wasi_ephemeral_crypto_external_secrets.witx), [doc](witx/codegen/wasi_ephemeral_crypto_external_secrets.md))
 * [Concise API overview](witx/codegen/wasi_ephemeral_crypto.txt)
+* [WIP implementation for the WasmEdge runtime](https://github.com/WasmEdge/WasmEdge/issues/410)
 * [Example AssemblyScript bindings](implementations/bindings/assemblyscript)
 * [Example Rust bindings](implementations/bindings/rust)

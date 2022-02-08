@@ -741,8 +741,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > 
 > let state_handle = ctx.symmetric_state_open("AES-256-GCM-SIV", Some(key_handle), None)?;
 > 
-> let nonce_handle = ctx.symmetric_state_options_get(state_handle, "nonce")?;
-> ctx.array_output_pull(nonce_handle, &mut nonce)?;
+> let nonce = ctx.symmetric_state_options_get(state_handle, "nonce")?;
 > 
 > let mut ciphertext = vec![0u8; message.len() + ctx.symmetric_state_max_tag_len(state_handle)?];
 > ctx.symmetric_state_absorb(state_handle, "additional data")?;
@@ -809,8 +808,6 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 * _[`u64`](#u64)_ mutable pointer
 
 > Retrieve an integer parameter from the current state.
-> 
-> In particular, `symmetric_state_options_get("nonce")` can be used to get a nonce that as automatically generated.
 > 
 > The function may return `options_not_set` if an option was not set.
 > 

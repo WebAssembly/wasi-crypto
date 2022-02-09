@@ -297,7 +297,7 @@ Example usage (reading an option set by the runtime):
 ```rust
 let options_handle = options_open(AlgorithmType::Symmetric)?;
 let state_handle = symmetric_state_open("XChaCha20-Poly1305", None, Some(options_handle));
-let nonce_handle = symmetric_state_options_get(state_handle, "nonce")?; // array_output handle
+let nonce = symmetric_state_options_get(state_handle, "nonce")?;
 ```
 
 Three option types are supported and can be mixed and matched in an option set:
@@ -1082,8 +1082,7 @@ let mut nonce = [0u8; 24];
 
 let state_handle = symmetric_state_open("AES-256-GCM-SIV", Some(key_handle), None)?;
 
-let nonce_handle = symmetric_state_options_get(state_handle, "nonce")?;
-array_output_pull(nonce_handle, &mut nonce)?;
+let nonce = symmetric_state_options_get(state_handle, "nonce")?;
 
 let mut ciphertext = vec![0u8; message.len() + symmetric_state_max_tag_len(state_handle)?];
 symmetric_state_absorb(state_handle, "additional data")?;

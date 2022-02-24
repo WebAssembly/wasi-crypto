@@ -48,6 +48,16 @@ mod test {
     }
 
     #[test]
+    fn test_rsa_signatures() -> Result<(), WasiCryptoError> {
+        let kp = SignatureKeyPair::generate("RSA_PKCS1_2048_SHA256")?;
+        let signature = kp.sign("hello")?;
+
+        kp.publickey()?.signature_verify("hello", &signature)?;
+
+        Ok(())
+    }
+
+    #[test]
     fn test_symmetric_hash() -> Result<(), WasiCryptoError> {
         let hash = Hash::hash("SHA-256", b"test", 32, None)?;
         assert_eq!(hash.len(), 32);

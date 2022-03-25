@@ -148,6 +148,7 @@ impl SignatureVerificationStateLike for EddsaSignatureVerificationState {
     }
 
     fn verify(&self, signature: &Signature) -> Result<(), CryptoError> {
+        use k256::ecdsa::signature::Signature;
         let signature = signature.inner();
         let signature = signature
             .as_any()

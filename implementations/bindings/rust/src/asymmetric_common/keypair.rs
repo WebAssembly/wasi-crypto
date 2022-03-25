@@ -17,7 +17,7 @@ impl Drop for KeyPair {
 
 impl KeyPair {
     pub fn generate(alg_type: raw::AlgorithmType, alg: &'static str) -> Result<Self, Error> {
-        let handle = unsafe { raw::keypair_generate(alg_type, alg, &OptOptions::none()) }?;
+        let handle = unsafe { raw::keypair_generate(alg_type, alg, OptOptions::none()) }?;
         Ok(KeyPair { handle, alg })
     }
 
@@ -65,6 +65,14 @@ impl KeyPair {
         encoded: impl AsRef<[u8]>,
     ) -> Result<Self, Error> {
         Self::decode_from(alg_type, alg, encoded, raw::KEYPAIR_ENCODING_PEM)
+    }
+
+    pub fn from_compressed_pem(
+        alg_type: raw::AlgorithmType,
+        alg: &'static str,
+        encoded: impl AsRef<[u8]>,
+    ) -> Result<Self, Error> {
+        Self::decode_from(alg_type, alg, encoded, raw::KEYPAIR_ENCODING_COMPRESSED_PEM)
     }
 
     pub fn from_local(

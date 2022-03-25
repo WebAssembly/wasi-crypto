@@ -25,7 +25,7 @@ impl Signature {
     fn decode_from(
         alg: &'static str,
         encoded: impl AsRef<[u8]>,
-        encoding: raw::PublickeyEncoding,
+        encoding: raw::SignatureEncoding,
     ) -> Result<Self, Error> {
         let encoded = encoded.as_ref();
         let handle =

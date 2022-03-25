@@ -37,7 +37,7 @@ pub struct Auth {
 
 impl Auth {
     pub fn new(key: &AuthKey) -> Result<Self, Error> {
-        let state = SymmetricState::new(key.alg, Some(&key), None)?;
+        let state = SymmetricState::new(key.alg, Some(key), None)?;
         Ok(Auth { state })
     }
 

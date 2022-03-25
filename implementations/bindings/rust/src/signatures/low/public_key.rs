@@ -32,6 +32,17 @@ impl SignaturePublicKey {
         )?))
     }
 
+    pub fn from_compressed_pem(
+        alg: &'static str,
+        encoded: impl AsRef<[u8]>,
+    ) -> Result<Self, Error> {
+        Ok(SignaturePublicKey(PublicKey::from_compressed_pem(
+            raw::ALGORITHM_TYPE_SIGNATURES,
+            alg,
+            encoded,
+        )?))
+    }
+
     pub fn from_sec(alg: &'static str, encoded: impl AsRef<[u8]>) -> Result<Self, Error> {
         Ok(SignaturePublicKey(PublicKey::from_sec(
             raw::ALGORITHM_TYPE_SIGNATURES,

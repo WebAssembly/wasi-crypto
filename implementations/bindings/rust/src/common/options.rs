@@ -30,14 +30,14 @@ pub(crate) struct OptOptions;
 impl OptOptions {
     pub fn none() -> raw::OptOptions {
         raw::OptOptions {
-            tag: raw::OPT_OPTIONS_U_NONE,
-            u: raw::OptOptionsUnion { none: false },
+            tag: raw::OPT_OPTIONS_U_NONE.raw(),
+            u: raw::OptOptionsUnion { none: () },
         }
     }
 
     pub fn some<T: algorithm_type::AlgorithmType>(options: &Options<T>) -> raw::OptOptions {
         raw::OptOptions {
-            tag: raw::OPT_OPTIONS_U_SOME,
+            tag: raw::OPT_OPTIONS_U_SOME.raw(),
             u: raw::OptOptionsUnion {
                 some: options.handle,
             },

@@ -18,6 +18,7 @@ impl SignatureState {
     pub fn update(&mut self, data: impl AsRef<[u8]>) -> Result<(), Error> {
         let data = data.as_ref();
         unsafe { raw::signature_state_update(self.handle, data.as_ptr(), data.len()) }
+            .map_err(|e| e.into())
     }
 
     pub fn sign(&self) -> Result<Signature, Error> {
@@ -45,9 +46,11 @@ impl SignatureVerificationState {
     pub fn update(&mut self, data: impl AsRef<[u8]>) -> Result<(), Error> {
         let data = data.as_ref();
         unsafe { raw::signature_verification_state_update(self.handle, data.as_ptr(), data.len()) }
+            .map_err(|e| e.into())
     }
 
     pub fn verify(&self, signature: &Signature) -> Result<(), Error> {
         unsafe { raw::signature_verification_state_verify(self.handle, signature.handle) }
+            .map_err(|e| e.into())
     }
 }

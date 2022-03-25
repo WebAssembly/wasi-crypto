@@ -28,7 +28,7 @@ impl SymmetricState {
             OptOptions::none()
         };
         let symmetric_state_handle =
-            unsafe { raw::symmetric_state_open(alg, &opt_symmetric_key, &opt_options) }?;
+            unsafe { raw::symmetric_state_open(alg, opt_symmetric_key, opt_options) }?;
         Ok(SymmetricState {
             handle: symmetric_state_handle,
         })
@@ -37,11 +37,13 @@ impl SymmetricState {
     pub fn absorb(&mut self, data: impl AsRef<[u8]>) -> Result<(), Error> {
         let data = data.as_ref();
         unsafe { raw::symmetric_state_absorb(self.handle, data.as_ptr(), data.len()) }
+            .map_err(|e| e.into())
     }
 
     pub fn squeeze_into(&mut self, mut out: impl AsMut<[u8]>) -> Result<(), Error> {
         let out = out.as_mut();
         unsafe { raw::symmetric_state_squeeze(self.handle, out.as_mut_ptr(), out.len()) }
+            .map_err(|e| e.into())
     }
 
     pub fn squeeze(&mut self, len: usize) -> Result<Vec<u8>, Error> {
@@ -51,7 +53,7 @@ impl SymmetricState {
     }
 
     pub fn max_tag_len(&mut self) -> Result<usize, Error> {
-        unsafe { raw::symmetric_state_max_tag_len(self.handle) }
+        unsafe { raw::symmetric_state_max_tag_len(self.handle) }.map_err(|e| e.into())
     }
 
     pub fn encrypt(&mut self, data: impl AsRef<[u8]>) -> Result<Vec<u8>, Error> {
@@ -134,7 +136,7 @@ impl SymmetricState {
     }
 
     pub fn ratchet(&mut self) -> Result<(), Error> {
-        unsafe { raw::symmetric_state_ratchet(self.handle) }
+        unsafe { raw::symmetric_state_ratchet(self.handle) }.map_err(|e| e.into())
     }
 
     pub fn squeeze_key(&mut self, target_alg: &'static str) -> Result<SymmetricKey, Error> {
@@ -156,6 +158,7 @@ impl SymmetricState {
         let raw_tag = raw_tag.as_ref();
         let tag_handle = unsafe { raw::symmetric_state_squeeze_tag(self.handle) }?;
         unsafe { raw::symmetric_tag_verify(tag_handle, raw_tag.as_ptr(), raw_tag.len()) }
+            .map_err(|e| e.into())
     }
 }
 

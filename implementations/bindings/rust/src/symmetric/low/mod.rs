@@ -16,10 +16,11 @@ impl SymmetricOptions {
     pub fn set(&mut self, name: &'static str, value: impl AsRef<[u8]>) -> Result<(), Error> {
         let value = value.as_ref();
         unsafe { raw::options_set(self.0.handle, name, value.as_ptr(), value.len()) }
+            .map_err(|e| e.into())
     }
 
     pub fn set_u64(&mut self, name: &'static str, value: u64) -> Result<(), Error> {
-        unsafe { raw::options_set_u64(self.0.handle, name, value) }
+        unsafe { raw::options_set_u64(self.0.handle, name, value) }.map_err(|e| e.into())
     }
 }
 
@@ -34,14 +35,14 @@ struct OptSymmetricKey;
 impl OptSymmetricKey {
     fn none() -> raw::OptSymmetricKey {
         raw::OptSymmetricKey {
-            tag: raw::OPT_SYMMETRIC_KEY_U_NONE,
-            u: raw::OptSymmetricKeyUnion { none: false },
+            tag: raw::OPT_SYMMETRIC_KEY_U_NONE.raw(),
+            u: raw::OptSymmetricKeyUnion { none: () },
         }
     }
 
     fn some(symmetric_key: &SymmetricKey) -> raw::OptSymmetricKey {
         raw::OptSymmetricKey {
-            tag: raw::OPT_SYMMETRIC_KEY_U_SOME,
+            tag: raw::OPT_SYMMETRIC_KEY_U_SOME.raw(),
             u: raw::OptSymmetricKeyUnion {
                 some: symmetric_key.handle,
             },
@@ -65,7 +66,7 @@ impl SymmetricKey {
         } else {
             OptOptions::none()
         };
-        let handle = unsafe { raw::symmetric_key_generate(alg, &opt_options) }?;
+        let handle = unsafe { raw::symmetric_key_generate(alg, opt_options) }?;
         Ok(SymmetricKey { handle, alg })
     }
 

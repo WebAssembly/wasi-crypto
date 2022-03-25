@@ -428,7 +428,7 @@ pub unsafe fn secrets_manager_invalidate(
 
 pub mod wasi_ephemeral_crypto_common {
     use super::*;
-    #[link(wasm_import_module = "wasi_ephemeral_crypto_common")]
+    #[link(wasm_import_module = "wasi_ephemeral_crypto")]
     extern "C" {
         /// Create a new object to set non-default options.
         ///
@@ -1001,7 +1001,7 @@ pub unsafe fn secretkey_close(sk: Secretkey) -> Result<()> {
 
 pub mod wasi_ephemeral_crypto_asymmetric_common {
     use super::*;
-    #[link(wasm_import_module = "wasi_ephemeral_crypto_asymmetric_common")]
+    #[link(wasm_import_module = "wasi_ephemeral_crypto")]
     extern "C" {
         /// Generate a new key pair.
         ///
@@ -1460,7 +1460,7 @@ pub unsafe fn signature_close(signature: Signature) -> Result<()> {
 
 pub mod wasi_ephemeral_crypto_signatures {
     use super::*;
-    #[link(wasm_import_module = "wasi_ephemeral_crypto_signatures")]
+    #[link(wasm_import_module = "wasi_ephemeral_crypto")]
     extern "C" {
         /// Export a signature.
         ///
@@ -2439,7 +2439,7 @@ pub unsafe fn symmetric_tag_close(symmetric_tag: SymmetricTag) -> Result<()> {
 
 pub mod wasi_ephemeral_crypto_symmetric {
     use super::*;
-    #[link(wasm_import_module = "wasi_ephemeral_crypto_symmetric")]
+    #[link(wasm_import_module = "wasi_ephemeral_crypto")]
     extern "C" {
         /// Generate a new symmetric key for a given algorithm.
         ///
@@ -3050,7 +3050,7 @@ pub unsafe fn kx_decapsulate(
 
 pub mod wasi_ephemeral_crypto_kx {
     use super::*;
-    #[link(wasm_import_module = "wasi_ephemeral_crypto_kx")]
+    #[link(wasm_import_module = "wasi_ephemeral_crypto")]
     extern "C" {
         /// Perform a simple Diffie-Hellman key exchange.
         ///

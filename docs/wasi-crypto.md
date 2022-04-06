@@ -308,6 +308,8 @@ Three option types are supported and can be mixed and matched in an option set:
 
 Some primitives may require a large scratch buffer, that should be accounted as guest memory. This is the case for memory-hard password hashing functions such as Scrypt or Argon2. The last option type (memory buffers) handles this use case.
 
+Calling the above functions on an option that was already set MUST overwrite the previous value.
+
 Here is an example of an option set for a password hashing function:
 
 ```rust

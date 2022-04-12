@@ -1,4 +1,5 @@
 use std::io::{Cursor, Read};
+use zeroize::Zeroize;
 
 use crate::error::*;
 use crate::handles::*;
@@ -35,6 +36,12 @@ impl ArrayOutput {
 impl Read for ArrayOutput {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize, std::io::Error> {
         self.0.read(buf)
+    }
+}
+
+impl Drop for ArrayOutput {
+    fn drop(&mut self) {
+        self.0.get_mut().zeroize()
     }
 }
 

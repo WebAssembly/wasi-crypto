@@ -349,7 +349,7 @@
 
   ;;; Clone a symmetric state.
   ;;;
-  ;;; The function clone the state and assigns a new handle to it and returns the new handle.
+  ;;; The function clones the internal state, assigns a new handle to it and returns the new handle.
   (@interface func (export "symmetric_state_clone")
     (param $handle $symmetric_state)
     (result $error (expected $symmetric_state (error $crypto_errno)))

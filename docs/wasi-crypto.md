@@ -729,7 +729,7 @@ However, if a nonce is required but was not supplied:
 
 A nonce that was automatically generated can be obtained by the guest application by reading the value of the `nonce` option using the `symmetric_state_options_get()` function.
 
-A call to `symmetric_state_clone()` will internal clone state and return handle to the new state.
+A call to `symmetric_state_clone()` clones the internal state and returns a handle to the new state.
 
 A call to `symmetric_state_close()` indicates that the state will not be used any more. The host SHOULD overwrite internal sensitive data associated with the state before returning from that function.
 

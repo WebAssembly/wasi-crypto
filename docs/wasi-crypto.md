@@ -700,6 +700,7 @@ Symmetric operations must be done using the following pattern:
 
 - `symmetric_state_open()`
 - one or more `symmetric_state_*()` function calls
+- `symmetric_state_clone()`
 - `symmetric_state_close()`
 
 In order to support incremental updates, multiple function calls can be done using the same state.
@@ -727,6 +728,8 @@ However, if a nonce is required but was not supplied:
 - If not, the function will fail and return the dedicated `nonce_required` error code.
 
 A nonce that was automatically generated can be obtained by the guest application by reading the value of the `nonce` option using the `symmetric_state_options_get()` function.
+
+A call to `symmetric_state_clone()` will internal clone state and return handle to the new state.
 
 A call to `symmetric_state_close()` indicates that the state will not be used any more. The host SHOULD overwrite internal sensitive data associated with the state before returning from that function.
 
@@ -1865,6 +1868,12 @@ function symmetric_state_options_get_u64(): crypto_errno
         - name_len: usize
     - Output:
         - value: mut_ptr<u64>
+
+function symmetric_state_clone(): crypto_errno
+    - Input:
+        - handle: symmetric_state
+    - Output:
+        - symmetric_state: mut_ptr<symmetric_state>
 
 function symmetric_state_close(): crypto_errno
     - Input:

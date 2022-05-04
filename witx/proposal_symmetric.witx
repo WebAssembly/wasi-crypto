@@ -347,6 +347,14 @@
     (result $error (expected $u64 (error $crypto_errno)))
   )
 
+  ;;; Clone a symmetric state.
+  ;;;
+  ;;; The function clone the state and assigns a new handle to it and returns the new handle.
+  (@interface func (export "symmetric_state_clone")
+    (param $handle $symmetric_state)
+    (result $error (expected $symmetric_state (error $crypto_errno)))
+  )
+
   ;;; Destroy a symmetric state.
   ;;;
   ;;; Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.

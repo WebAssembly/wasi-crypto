@@ -726,7 +726,7 @@ However, if a nonce is required but was not supplied:
 - If it is safe to do so, the host MUST generate a nonce. This is true for nonces that are large enough to be randomly generated, or if the host is able to maintain a global counter.
 - If not, the function will fail and return the dedicated `nonce_required` error code.
 
-A nonce that was automatically generated can be obtained by the guest application by reading the value of the `nonce` option using the `symmetric_state_get()` function.
+A nonce that was automatically generated can be obtained by the guest application by reading the value of the `nonce` option using the `symmetric_state_options_get()` function.
 
 A call to `symmetric_state_close()` indicates that the state will not be used any more. The host SHOULD overwrite internal sensitive data associated with the state before returning from that function.
 

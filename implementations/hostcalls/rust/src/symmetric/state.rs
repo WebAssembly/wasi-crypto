@@ -1,9 +1,8 @@
 use super::*;
 use crate::CryptoCtx;
 
-use parking_lot::{Mutex, MutexGuard};
 use std::convert::TryFrom;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex, MutexGuard};
 
 #[derive(Clone)]
 pub struct SymmetricState {
@@ -18,7 +17,7 @@ impl SymmetricState {
     }
 
     fn inner(&self) -> MutexGuard<'_, Box<dyn SymmetricStateLike>> {
-        self.inner.lock()
+        self.inner.lock().unwrap()
     }
 
     fn locked<T, U>(&self, mut f: T) -> U

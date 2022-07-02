@@ -1,8 +1,7 @@
 use super::*;
 
 use crate::asymmetric_common::*;
-use parking_lot::{Mutex, MutexGuard};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex, MutexGuard};
 
 #[derive(Clone)]
 pub struct KxKeyPair {
@@ -21,7 +20,7 @@ impl KxKeyPair {
     }
 
     pub fn inner(&self) -> MutexGuard<'_, Box<dyn KxKeyPairLike>> {
-        self.inner.lock()
+        self.inner.lock().unwrap()
     }
 
     pub fn locked<T, U>(&self, mut f: T) -> U

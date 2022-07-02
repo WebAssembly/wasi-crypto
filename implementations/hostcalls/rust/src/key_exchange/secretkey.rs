@@ -1,8 +1,7 @@
 use super::*;
 use crate::asymmetric_common::*;
 use crate::CryptoCtx;
-use parking_lot::{Mutex, MutexGuard};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex, MutexGuard};
 
 pub trait KxSecretKeyBuilder {
     fn from_raw(&self, raw: &[u8]) -> Result<KxSecretKey, CryptoError>;
@@ -21,7 +20,7 @@ impl KxSecretKey {
     }
 
     pub fn inner(&self) -> MutexGuard<'_, Box<dyn KxSecretKeyLike>> {
-        self.inner.lock()
+        self.inner.lock().unwrap()
     }
 
     pub fn locked<T, U>(&self, mut f: T) -> U

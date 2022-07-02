@@ -1,5 +1,5 @@
-use parking_lot::Mutex;
 use std::collections::HashMap;
+use std::sync::Mutex;
 
 use crate::error::*;
 
@@ -23,15 +23,15 @@ impl<HandleType: Clone + Send + Sync> HandlesManager<HandleType> {
     }
 
     pub fn close(&self, handle: Handle) -> Result<(), CryptoError> {
-        self.inner.lock().close(handle)
+        self.inner.lock().unwrap().close(handle)
     }
 
     pub fn register(&self, op: HandleType) -> Result<Handle, CryptoError> {
-        self.inner.lock().register(op)
+        self.inner.lock().unwrap().register(op)
     }
 
     pub fn get(&self, handle: Handle) -> Result<HandleType, CryptoError> {
-        self.inner.lock().get(handle).map(|x| x.clone())
+        self.inner.lock().unwrap().get(handle).map(|x| x.clone())
     }
 }
 

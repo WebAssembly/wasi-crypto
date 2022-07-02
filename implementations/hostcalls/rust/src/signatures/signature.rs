@@ -1,6 +1,5 @@
-use parking_lot::{Mutex, MutexGuard};
 use std::convert::TryFrom;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex, MutexGuard};
 use subtle::ConstantTimeEq;
 
 use super::ecdsa::*;
@@ -54,7 +53,7 @@ impl Signature {
     }
 
     pub fn inner(&self) -> MutexGuard<'_, Box<dyn SignatureLike>> {
-        self.inner.lock()
+        self.inner.lock().unwrap()
     }
 
     pub fn locked<T, U>(&self, mut f: T) -> U
@@ -83,7 +82,7 @@ impl SignatureState {
     }
 
     fn inner(&self) -> MutexGuard<'_, Box<dyn SignatureStateLike>> {
-        self.inner.lock()
+        self.inner.lock().unwrap()
     }
 
     fn locked<T, U>(&self, mut f: T) -> U
@@ -133,7 +132,7 @@ impl SignatureVerificationState {
     }
 
     fn inner(&self) -> MutexGuard<'_, Box<dyn SignatureVerificationStateLike>> {
-        self.inner.lock()
+        self.inner.lock().unwrap()
     }
 
     fn locked<T, U>(&self, mut f: T) -> U

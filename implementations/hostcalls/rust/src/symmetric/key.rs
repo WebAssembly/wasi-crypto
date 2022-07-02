@@ -3,8 +3,7 @@ use crate::array_output::*;
 use crate::version::*;
 use crate::CryptoCtx;
 
-use parking_lot::{Mutex, MutexGuard};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex, MutexGuard};
 
 #[derive(Clone)]
 pub struct SymmetricKey {
@@ -27,7 +26,7 @@ impl SymmetricKey {
     }
 
     pub fn inner(&self) -> MutexGuard<'_, Box<dyn SymmetricKeyLike>> {
-        self.inner.lock()
+        self.inner.lock().unwrap()
     }
 
     pub fn locked<T, U>(&self, mut f: T) -> U

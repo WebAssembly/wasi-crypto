@@ -114,7 +114,7 @@ impl AesGcmSymmetricState {
             .downcast_ref::<AesGcmSymmetricKey>()
             .ok_or(CryptoError::InvalidKey)?;
         let options = options.as_ref().ok_or(CryptoError::NonceRequired)?;
-        let inner = options.inner.lock();
+        let inner = options.inner.lock().unwrap();
         let nonce_vec = inner.nonce.as_ref().ok_or(CryptoError::NonceRequired)?;
         ensure!(nonce_vec.len() == NONCE_LEN, CryptoError::InvalidNonce);
         let mut nonce = [0u8; NONCE_LEN];

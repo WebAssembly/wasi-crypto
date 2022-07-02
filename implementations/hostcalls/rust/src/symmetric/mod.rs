@@ -19,10 +19,9 @@ use self::xoodyak::*;
 use crate::error::*;
 use crate::handles::*;
 use crate::options::*;
-use parking_lot::{Mutex, MutexGuard};
 use std::any::Any;
 use std::convert::TryFrom;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex, MutexGuard};
 
 pub use self::key::SymmetricKey;
 pub use self::state::SymmetricState;
@@ -54,7 +53,7 @@ impl Default for SymmetricOptions {
 
 impl SymmetricOptions {
     fn inner(&self) -> MutexGuard<'_, SymmetricOptionsInner> {
-        self.inner.lock()
+        self.inner.lock().unwrap()
     }
 
     fn locked<T, U>(&self, mut f: T) -> U
@@ -75,7 +74,7 @@ impl OptionsLike for SymmetricOptions {
         name: &str,
         guest_buffer: &'static mut [u8],
     ) -> Result<(), CryptoError> {
-        let mut inner = self.inner.lock();
+        let mut inner = self.inner.lock().unwrap();
         let option = match name.to_lowercase().as_str() {
             "buffer" => &mut inner.guest_buffer,
             _ => bail!(CryptoError::UnsupportedOption),
@@ -85,7 +84,7 @@ impl OptionsLike for SymmetricOptions {
     }
 
     fn set(&mut self, name: &str, value: &[u8]) -> Result<(), CryptoError> {
-        let mut inner = self.inner.lock();
+        let mut inner = self.inner.lock().unwrap();
         let option = match name.to_lowercase().as_str() {
             "context" => &mut inner.context,
             "salt" => &mut inner.salt,
@@ -97,7 +96,7 @@ impl OptionsLike for SymmetricOptions {
     }
 
     fn get(&self, name: &str) -> Result<Vec<u8>, CryptoError> {
-        let inner = self.inner.lock();
+        let inner = self.inner.lock().unwrap();
         let value = match name.to_lowercase().as_str() {
             "context" => &inner.context,
             "salt" => &inner.salt,
@@ -108,7 +107,7 @@ impl OptionsLike for SymmetricOptions {
     }
 
     fn set_u64(&mut self, name: &str, value: u64) -> Result<(), CryptoError> {
-        let mut inner = self.inner.lock();
+        let mut inner = self.inner.lock().unwrap();
         let option = match name.to_lowercase().as_str() {
             "memory_limit" => &mut inner.memory_limit,
             "ops_limit" => &mut inner.ops_limit,
@@ -120,7 +119,7 @@ impl OptionsLike for SymmetricOptions {
     }
 
     fn get_u64(&self, name: &str) -> Result<u64, CryptoError> {
-        let inner = self.inner.lock();
+        let inner = self.inner.lock().unwrap();
         let value = match name.to_lowercase().as_str() {
             "memory_limit" => &inner.memory_limit,
             "ops_limit" => &inner.ops_limit,

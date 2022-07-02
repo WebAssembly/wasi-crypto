@@ -106,7 +106,7 @@ impl XoodyakSymmetricState {
         };
         let nonce = options
             .as_ref()
-            .and_then(|options| options.inner.lock().nonce.as_ref().cloned());
+            .and_then(|options| options.inner.lock().unwrap().nonce.as_ref().cloned());
         let nonce = nonce.as_deref();
         let xoodyak_state = match key {
             None => XoodyakAny::Hash(XoodyakHash::new()),

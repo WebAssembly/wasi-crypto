@@ -35,7 +35,6 @@ p256 = { version = "0.9", features = [
     "pkcs8",
     "pem",
 ] }
-parking_lot = "0.12"
 pqcrypto = { version = "0.14.0", default-features = false, features = [
     "pqcrypto-kyber",
 ], optional = true }

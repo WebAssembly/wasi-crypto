@@ -13,8 +13,7 @@ use crate::array_output::*;
 use crate::error::*;
 use crate::handles::*;
 use crate::options::*;
-use parking_lot::Mutex;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 pub use keypair::*;
 pub use publickey::*;

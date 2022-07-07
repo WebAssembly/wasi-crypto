@@ -3,7 +3,8 @@ use super::*;
 use crate::rand::SecureRandom;
 
 use ::sha2::{Sha256, Sha512};
-use hmac::{Hmac, Mac, NewMac};
+use hmac::{Hmac, Mac};
+//use hmac::digest::BlockInput;
 use subtle::ConstantTimeEq;
 use zeroize::Zeroize;
 
@@ -157,3 +158,7 @@ impl SymmetricStateLike for HmacSha2SymmetricState {
         Ok(SymmetricTag::new(self.alg, raw))
     }
 }
+/*
+impl BlockInput for HmacSha2SymmetricState {
+    type BlockSize = u64; // TODO: Is this correct?
+}*/

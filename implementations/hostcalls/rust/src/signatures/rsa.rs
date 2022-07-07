@@ -1,5 +1,5 @@
-use ::rsa::pkcs1::{FromRsaPrivateKey as _, FromRsaPublicKey as _};
-use ::rsa::pkcs8::{FromPrivateKey as _, FromPublicKey as _, ToPrivateKey as _, ToPublicKey as _};
+use ::rsa::pkcs1::{LineEnding, RsaPrivateKey as _, RsaPublicKey as _, DecodeRsaPublicKey as _, DecodeRsaPrivateKey as _};
+use ::rsa::pkcs8::{EncodePublicKey as _, EncodePrivateKey as _, DecodePublicKey as _, DecodePrivateKey as _};
 use ::rsa::{BigUint, PublicKey as _, PublicKeyParts as _};
 use ::sha2::{Digest, Sha256, Sha384, Sha512};
 use serde::{Deserialize, Serialize};
@@ -96,7 +96,7 @@ impl RsaSignatureKeyPair {
 
     fn to_pem(&self) -> Result<Vec<u8>, CryptoError> {
         self.ctx
-            .to_pkcs8_pem()
+            .to_pkcs8_pem(LineEnding::LF)
             .map(|s| s.as_bytes().to_vec())
             .map_err(|_| CryptoError::InternalError)
     }
@@ -391,7 +391,7 @@ impl RsaSignaturePublicKey {
 
     fn to_pem(&self) -> Result<Vec<u8>, CryptoError> {
         self.ctx
-            .to_public_key_pem()
+            .to_public_key_pem(LineEnding::LF)
             .map(|s| s.as_bytes().to_vec())
             .map_err(|_| CryptoError::InternalError)
     }

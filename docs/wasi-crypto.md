@@ -330,6 +330,7 @@ A `wasi-crypto` implementation MUST implement the following algorithms, and MUST
 | ----------------------- | ----------------------------------------------------------------------------------- |
 | `ECDSA_P256_SHA256`     | ECDSA over the NIST p256 curve with the SHA-256 hash function                       |
 | `ECDSA_K256_SHA256`     | ECDSA over the secp256k1 curve with the SHA-256 hash function                       |
+| `ECDSA_P384_SHA384`     | ECDSA over the NIST p384 curve with the SHA-384 hash function                       |
 | `Ed25519`               | Edwards Curve signatures over Edwards25519 (pure EdDSA) as specified in RFC8032     |
 | `RSA_PKCS1_2048_SHA256` | RSA signatures with a 2048 bit modulus, PKCS1 padding and the SHA-256 hash function |
 | `RSA_PKCS1_2048_SHA384` | RSA signatures with a 2048 bit modulus, PKCS1 padding and the SHA-384 hash function |

@@ -1,8 +1,8 @@
-use ::rsa::pkcs1::{FromRsaPrivateKey as _, FromRsaPublicKey as _};
-use ::rsa::pkcs8::{FromPrivateKey as _, FromPublicKey as _, ToPrivateKey as _, ToPublicKey as _};
-use ::rsa::{BigUint, PublicKey as _, PublicKeyParts as _};
 use ::sha2::{Digest, Sha256, Sha384, Sha512};
+use boring::{bn, pkey, rsa};
 use serde::{Deserialize, Serialize};
+use std::borrow::Borrow;
+use std::ops::Deref;
 use std::sync::Arc;
 use zeroize::Zeroize;
 
@@ -11,10 +11,10 @@ use crate::asymmetric_common::*;
 use crate::error::*;
 use crate::rand::SecureRandom;
 
-const RAW_ENCODING_VERSION: u16 = 1;
+const RAW_ENCODING_VERSION: u16 = 2;
 const RAW_ENCODING_ALG_ID: u16 = 1;
-const MIN_MODULUS_SIZE: usize = 2048;
-const MAX_MODULUS_SIZE: usize = 4096;
+const MIN_MODULUS_SIZE: u32 = 2048;
+const MAX_MODULUS_SIZE: u32 = 4096;
 
 #[derive(Debug, Clone)]
 pub struct RsaSignatureSecretKey {
@@ -25,19 +25,23 @@ pub struct RsaSignatureSecretKey {
 struct RsaSignatureKeyPairParts {
     version: u16,
     alg_id: u16,
-    n: ::rsa::BigUint,
-    e: ::rsa::BigUint,
-    d: ::rsa::BigUint,
-    primes: Vec<::rsa::BigUint>,
+    n: Vec<u8>,
+    e: Vec<u8>,
+    d: Vec<u8>,
+    p: Vec<u8>,
+    q: Vec<u8>,
+    dmp1: Vec<u8>,
+    dmq1: Vec<u8>,
+    iqmp: Vec<u8>,
 }
 
 #[derive(Clone, Debug)]
 pub struct RsaSignatureKeyPair {
     pub alg: SignatureAlgorithm,
-    ctx: ::rsa::RsaPrivateKey,
+    ctx: rsa::Rsa<pkey::Private>,
 }
 
-fn modulus_bits(alg: SignatureAlgorithm) -> Result<usize, CryptoError> {
+fn modulus_bits(alg: SignatureAlgorithm) -> Result<u32, CryptoError> {
     let modulus_bits = match alg {
         SignatureAlgorithm::RSA_PKCS1_2048_SHA256
         | SignatureAlgorithm::RSA_PKCS1_2048_SHA384
@@ -58,20 +62,15 @@ fn modulus_bits(alg: SignatureAlgorithm) -> Result<usize, CryptoError> {
 impl RsaSignatureKeyPair {
     fn from_pkcs8(alg: SignatureAlgorithm, der: &[u8]) -> Result<Self, CryptoError> {
         ensure!(der.len() < 4096, CryptoError::InvalidKey);
-        let ctx = ::rsa::RsaPrivateKey::from_pkcs8_der(der)
-            .or_else(|_| ::rsa::RsaPrivateKey::from_pkcs1_der(der))
-            .map_err(|_| CryptoError::InvalidKey)?;
+        let ctx: rsa::Rsa<pkey::Private> =
+            rsa::Rsa::private_key_from_der(der).map_err(|_| CryptoError::InvalidKey)?;
         Ok(RsaSignatureKeyPair { alg, ctx })
     }
 
     fn from_pem(alg: SignatureAlgorithm, pem: &[u8]) -> Result<Self, CryptoError> {
         ensure!(pem.len() < 4096, CryptoError::InvalidKey);
-        let pem = std::str::from_utf8(pem)
-            .map_err(|_| CryptoError::InvalidKey)?
-            .trim();
-        let ctx = ::rsa::RsaPrivateKey::from_pkcs8_pem(pem)
-            .or_else(|_| ::rsa::RsaPrivateKey::from_pkcs1_pem(pem))
-            .map_err(|_| CryptoError::InvalidKey)?;
+        let ctx: rsa::Rsa<pkey::Private> =
+            rsa::Rsa::private_key_from_pem(pem).map_err(|_| CryptoError::InvalidKey)?;
         Ok(RsaSignatureKeyPair { alg, ctx })
     }
 
@@ -83,21 +82,29 @@ impl RsaSignatureKeyPair {
             parts.version == RAW_ENCODING_VERSION && parts.alg_id == RAW_ENCODING_ALG_ID,
             CryptoError::InvalidKey
         );
-        let ctx = ::rsa::RsaPrivateKey::from_components(parts.n, parts.e, parts.d, parts.primes);
+        let n = bn::BigNum::from_slice(&parts.n).map_err(|_| CryptoError::InvalidKey)?;
+        let e = bn::BigNum::from_slice(&parts.e).map_err(|_| CryptoError::InvalidKey)?;
+        let d = bn::BigNum::from_slice(&parts.d).map_err(|_| CryptoError::InvalidKey)?;
+        let p = bn::BigNum::from_slice(&parts.p).map_err(|_| CryptoError::InvalidKey)?;
+        let q = bn::BigNum::from_slice(&parts.q).map_err(|_| CryptoError::InvalidKey)?;
+        let dmp1 = bn::BigNum::from_slice(&parts.dmp1).map_err(|_| CryptoError::InvalidKey)?;
+        let dmq1 = bn::BigNum::from_slice(&parts.dmq1).map_err(|_| CryptoError::InvalidKey)?;
+        let iqmp = bn::BigNum::from_slice(&parts.iqmp).map_err(|_| CryptoError::InvalidKey)?;
+        let ctx: rsa::Rsa<pkey::Private> =
+            rsa::Rsa::from_private_components(n, e, d, p, q, dmp1, dmq1, iqmp)
+                .map_err(|_| CryptoError::InvalidKey)?;
         Ok(RsaSignatureKeyPair { alg, ctx })
     }
 
     fn to_pkcs8(&self) -> Result<Vec<u8>, CryptoError> {
         self.ctx
-            .to_pkcs8_der()
+            .private_key_to_der()
             .map_err(|_| CryptoError::InternalError)
-            .map(|x| x.as_ref().to_vec())
     }
 
     fn to_pem(&self) -> Result<Vec<u8>, CryptoError> {
         self.ctx
-            .to_pkcs8_pem()
-            .map(|s| s.as_bytes().to_vec())
+            .private_key_to_pem()
             .map_err(|_| CryptoError::InternalError)
     }
 
@@ -105,10 +112,14 @@ impl RsaSignatureKeyPair {
         let parts = RsaSignatureKeyPairParts {
             version: RAW_ENCODING_VERSION,
             alg_id: RAW_ENCODING_ALG_ID,
-            n: self.ctx.n().clone(),
-            e: self.ctx.e().clone(),
-            d: self.ctx.d().clone(),
-            primes: self.ctx.primes().to_vec(),
+            n: self.ctx.n().to_vec(),
+            e: self.ctx.e().to_vec(),
+            d: self.ctx.d().to_vec(),
+            p: self.ctx.p().ok_or(CryptoError::InternalError)?.to_vec(),
+            q: self.ctx.q().ok_or(CryptoError::InternalError)?.to_vec(),
+            dmp1: self.ctx.dmp1().ok_or(CryptoError::InternalError)?.to_vec(),
+            dmq1: self.ctx.dmq1().ok_or(CryptoError::InternalError)?.to_vec(),
+            iqmp: self.ctx.iqmp().ok_or(CryptoError::InternalError)?.to_vec(),
         };
         let local = bincode::serialize(&parts).map_err(|_| CryptoError::InternalError)?;
         Ok(local)
@@ -119,9 +130,8 @@ impl RsaSignatureKeyPair {
         _options: Option<SignatureOptions>,
     ) -> Result<Self, CryptoError> {
         let modulus_bits = modulus_bits(alg)?;
-        let mut rng = SecureRandom::new();
-        let ctx = ::rsa::RsaPrivateKey::new(&mut rng, modulus_bits)
-            .map_err(|_| CryptoError::UnsupportedAlgorithm)?;
+        let ctx: rsa::Rsa<pkey::Private> =
+            rsa::Rsa::generate(modulus_bits).map_err(|_| CryptoError::UnsupportedAlgorithm)?;
         Ok(RsaSignatureKeyPair { alg, ctx })
     }
 
@@ -134,7 +144,7 @@ impl RsaSignatureKeyPair {
             SignatureAlgorithmFamily::RSA => {}
             _ => bail!(CryptoError::UnsupportedAlgorithm),
         };
-        let mut kp = match encoding {
+        let kp = match encoding {
             KeyPairEncoding::Pkcs8 => Self::from_pkcs8(alg, encoded)?,
             KeyPairEncoding::Pem => Self::from_pem(alg, encoded)?,
             KeyPairEncoding::Local => Self::from_local(alg, encoded)?,
@@ -146,8 +156,7 @@ impl RsaSignatureKeyPair {
             (min_modulus_bits / 8..=MAX_MODULUS_SIZE / 8).contains(&modulus_size),
             CryptoError::InvalidKey
         );
-        kp.ctx.validate().map_err(|_| CryptoError::InvalidKey)?;
-        kp.ctx.precompute().map_err(|_| CryptoError::InvalidKey)?;
+        kp.ctx.check_key().map_err(|_| CryptoError::InvalidKey)?;
         Ok(kp)
     }
 
@@ -161,7 +170,17 @@ impl RsaSignatureKeyPair {
     }
 
     pub fn public_key(&self) -> Result<RsaSignaturePublicKey, CryptoError> {
-        let ctx = self.ctx.to_public_key();
+        let ctx = rsa::Rsa::from_public_components(
+            self.ctx
+                .n()
+                .to_owned()
+                .map_err(|_| CryptoError::InternalError)?,
+            self.ctx
+                .e()
+                .to_owned()
+                .map_err(|_| CryptoError::InternalError)?,
+        )
+        .map_err(|_| CryptoError::InvalidKey)?;
         Ok(RsaSignaturePublicKey { alg: self.alg, ctx })
     }
 }
@@ -177,7 +196,7 @@ impl RsaSignature {
     }
 
     pub fn from_raw(alg: SignatureAlgorithm, raw: &[u8]) -> Result<Self, CryptoError> {
-        let expected_len = modulus_bits(alg)? / 8;
+        let expected_len = (modulus_bits(alg)? / 8) as _;
         ensure!(raw.len() == expected_len, CryptoError::InvalidSignature);
         Ok(Self::new(raw.to_vec()))
     }
@@ -193,31 +212,33 @@ impl SignatureLike for RsaSignature {
     }
 }
 
-fn padding_scheme(alg: SignatureAlgorithm) -> ::rsa::PaddingScheme {
+fn padding_scheme(alg: SignatureAlgorithm) -> (rsa::Padding, boring::hash::MessageDigest) {
     match alg {
         SignatureAlgorithm::RSA_PKCS1_2048_SHA256 => {
-            ::rsa::PaddingScheme::new_pkcs1v15_sign(Some(::rsa::Hash::SHA2_256))
+            (rsa::Padding::PKCS1, boring::hash::MessageDigest::sha256())
         }
         SignatureAlgorithm::RSA_PKCS1_2048_SHA384 | SignatureAlgorithm::RSA_PKCS1_3072_SHA384 => {
-            ::rsa::PaddingScheme::new_pkcs1v15_sign(Some(::rsa::Hash::SHA2_384))
+            (rsa::Padding::PKCS1, boring::hash::MessageDigest::sha384())
         }
         SignatureAlgorithm::RSA_PKCS1_2048_SHA512
         | SignatureAlgorithm::RSA_PKCS1_3072_SHA512
         | SignatureAlgorithm::RSA_PKCS1_4096_SHA512 => {
-            ::rsa::PaddingScheme::new_pkcs1v15_sign(Some(::rsa::Hash::SHA2_512))
+            (rsa::Padding::PKCS1, boring::hash::MessageDigest::sha512())
         }
 
         SignatureAlgorithm::RSA_PSS_2048_SHA256 => {
-            ::rsa::PaddingScheme::new_pss::<Sha256, _>(SecureRandom::new())
+            (rsa::Padding::PKCS1, boring::hash::MessageDigest::sha256())
         }
-        SignatureAlgorithm::RSA_PSS_2048_SHA384 | SignatureAlgorithm::RSA_PSS_3072_SHA384 => {
-            ::rsa::PaddingScheme::new_pss::<Sha384, _>(SecureRandom::new())
-        }
+        SignatureAlgorithm::RSA_PSS_2048_SHA384 | SignatureAlgorithm::RSA_PSS_3072_SHA384 => (
+            rsa::Padding::PKCS1_PSS,
+            boring::hash::MessageDigest::sha384(),
+        ),
         SignatureAlgorithm::RSA_PSS_2048_SHA512
         | SignatureAlgorithm::RSA_PSS_3072_SHA512
-        | SignatureAlgorithm::RSA_PSS_4096_SHA512 => {
-            ::rsa::PaddingScheme::new_pss::<Sha512, _>(SecureRandom::new())
-        }
+        | SignatureAlgorithm::RSA_PSS_4096_SHA512 => (
+            rsa::Padding::PKCS1_PSS,
+            boring::hash::MessageDigest::sha512(),
+        ),
         _ => unreachable!(),
     }
 }
@@ -252,66 +273,66 @@ impl HashVariant {
     }
 }
 
-#[derive(Debug)]
-pub struct RsaSignatureState {
-    pub kp: RsaSignatureKeyPair,
-    h: HashVariant,
+pub struct RsaSignatureState<'z> {
+    ctx: Box<pkey::PKey<pkey::Private>>,
+    signer: boring::sign::Signer<'z>,
 }
 
-impl RsaSignatureState {
+impl<'z> RsaSignatureState<'z> {
     pub fn new(kp: RsaSignatureKeyPair) -> Self {
-        let h = HashVariant::for_alg(kp.alg).unwrap();
-        RsaSignatureState { kp, h }
+        let ctx = Box::new(pkey::PKey::from_rsa(kp.ctx).unwrap());
+        let (padding_alg, padding_hash) = padding_scheme(kp.alg);
+        let pkr: *const pkey::PKeyRef<pkey::Private> = ctx.as_ref().borrow();
+        let mut signer = boring::sign::Signer::new(padding_hash, unsafe { &*pkr }).unwrap();
+        signer
+            .set_rsa_padding(padding_alg)
+            .expect("Unexpected padding");
+        RsaSignatureState { ctx, signer }
     }
 }
 
-impl SignatureStateLike for RsaSignatureState {
+impl<'z> SignatureStateLike for RsaSignatureState<'z> {
     fn update(&mut self, input: &[u8]) -> Result<(), CryptoError> {
-        match &mut self.h {
-            HashVariant::Sha256(x) => x.update(input),
-            HashVariant::Sha384(x) => x.update(input),
-            HashVariant::Sha512(x) => x.update(input),
-        };
+        self.signer
+            .update(input)
+            .map_err(|_| CryptoError::InternalError)?;
         Ok(())
     }
 
     fn sign(&mut self) -> Result<Signature, CryptoError> {
-        let mut rng = SecureRandom::new();
-        let digest = match &self.h {
-            HashVariant::Sha256(x) => x.clone().finalize().as_slice().to_vec(),
-            HashVariant::Sha384(x) => x.clone().finalize().as_slice().to_vec(),
-            HashVariant::Sha512(x) => x.clone().finalize().as_slice().to_vec(),
-        };
-        let encoded_signature = self
-            .kp
-            .ctx
-            .sign_blinded(&mut rng, padding_scheme(self.kp.alg), &digest)
-            .map_err(|_| CryptoError::InvalidKey)?;
-        let signature = RsaSignature::new(encoded_signature);
+        let signature = self
+            .signer
+            .sign_to_vec()
+            .map_err(|_| CryptoError::InternalError)?;
+        let signature = RsaSignature::new(signature);
         Ok(Signature::new(Box::new(signature)))
     }
 }
 
-#[derive(Debug)]
-pub struct RsaSignatureVerificationState {
-    pub pk: RsaSignaturePublicKey,
-    h: HashVariant,
+pub struct RsaSignatureVerificationState<'z> {
+    ctx: Box<pkey::PKey<pkey::Public>>,
+    verifier: boring::sign::Verifier<'z>,
 }
 
-impl RsaSignatureVerificationState {
+impl<'z> RsaSignatureVerificationState<'z> {
     pub fn new(pk: RsaSignaturePublicKey) -> Self {
-        let h = HashVariant::for_alg(pk.alg).unwrap();
-        RsaSignatureVerificationState { pk, h }
+        let ctx = Box::new(pkey::PKey::from_rsa(pk.ctx).unwrap());
+        let (padding_alg, padding_hash) = padding_scheme(pk.alg);
+        let pkr: *const pkey::PKeyRef<pkey::Public> = ctx.as_ref().borrow();
+        let mut verifier = boring::sign::Verifier::new(padding_hash, unsafe { &*pkr }).unwrap();
+        verifier
+            .set_rsa_padding(padding_alg)
+            .expect("Unexpected padding");
+
+        RsaSignatureVerificationState { ctx, verifier }
     }
 }
 
-impl SignatureVerificationStateLike for RsaSignatureVerificationState {
+impl<'t> SignatureVerificationStateLike for RsaSignatureVerificationState<'t> {
     fn update(&mut self, input: &[u8]) -> Result<(), CryptoError> {
-        match &mut self.h {
-            HashVariant::Sha256(x) => x.update(input),
-            HashVariant::Sha384(x) => x.update(input),
-            HashVariant::Sha512(x) => x.update(input),
-        };
+        self.verifier
+            .update(input)
+            .map_err(|_| CryptoError::InternalError)?;
         Ok(())
     }
 
@@ -321,15 +342,13 @@ impl SignatureVerificationStateLike for RsaSignatureVerificationState {
             .as_any()
             .downcast_ref::<RsaSignature>()
             .ok_or(CryptoError::InvalidSignature)?;
-        let digest = match &self.h {
-            HashVariant::Sha256(x) => x.clone().finalize().as_slice().to_vec(),
-            HashVariant::Sha384(x) => x.clone().finalize().as_slice().to_vec(),
-            HashVariant::Sha512(x) => x.clone().finalize().as_slice().to_vec(),
-        };
-        self.pk
-            .ctx
-            .verify(padding_scheme(self.pk.alg), &digest, signature.as_ref())
-            .map_err(|_| CryptoError::InvalidSignature)?;
+        if !self
+            .verifier
+            .verify(signature.as_ref())
+            .map_err(|_| CryptoError::InvalidSignature)?
+        {
+            return Err(CryptoError::InvalidSignature);
+        }
         Ok(())
     }
 }
@@ -338,34 +357,28 @@ impl SignatureVerificationStateLike for RsaSignatureVerificationState {
 struct RsaSignaturePublicKeyParts {
     version: u16,
     alg_id: u16,
-    n: ::rsa::BigUint,
-    e: ::rsa::BigUint,
+    n: Vec<u8>,
+    e: Vec<u8>,
 }
 
 #[derive(Clone, Debug)]
 pub struct RsaSignaturePublicKey {
     pub alg: SignatureAlgorithm,
-    ctx: ::rsa::RsaPublicKey,
+    ctx: rsa::Rsa<pkey::Public>,
 }
 
 impl RsaSignaturePublicKey {
     fn from_pkcs8(alg: SignatureAlgorithm, der: &[u8]) -> Result<Self, CryptoError> {
         ensure!(der.len() < 4096, CryptoError::InvalidKey);
-        let ctx = ::rsa::RsaPublicKey::from_public_key_der(der)
-            .or_else(|_| ::rsa::RsaPublicKey::from_pkcs1_der(der))
-            .map_err(|_| CryptoError::InvalidKey)?;
+        let ctx = rsa::Rsa::public_key_from_der(der).map_err(|_| CryptoError::InvalidKey)?;
         Ok(RsaSignaturePublicKey { alg, ctx })
     }
 
     fn from_pem(alg: SignatureAlgorithm, pem: &[u8]) -> Result<Self, CryptoError> {
         ensure!(pem.len() < 4096, CryptoError::InvalidKey);
-        let pem = std::str::from_utf8(pem)
-            .map_err(|_| CryptoError::InvalidKey)?
-            .trim();
-        let parsed_pem = ::rsa::RsaPublicKey::from_public_key_pem(pem)
-            .or_else(|_| ::rsa::RsaPublicKey::from_pkcs1_pem(pem))
+        let ctx = rsa::Rsa::public_key_from_pem(pem)
+            .or_else(|_| rsa::Rsa::public_key_from_pem_pkcs1(pem))
             .map_err(|_| CryptoError::InvalidKey)?;
-        let ctx = ::rsa::RsaPublicKey::try_from(parsed_pem).map_err(|_| CryptoError::InvalidKey)?;
         Ok(RsaSignaturePublicKey { alg, ctx })
     }
 
@@ -377,22 +390,22 @@ impl RsaSignaturePublicKey {
             parts.version == RAW_ENCODING_VERSION && parts.alg_id == RAW_ENCODING_ALG_ID,
             CryptoError::InvalidKey
         );
-        let ctx =
-            ::rsa::RsaPublicKey::new(parts.n, parts.e).map_err(|_| CryptoError::InvalidKey)?;
+        let n = bn::BigNum::from_slice(&parts.n).map_err(|_| CryptoError::InvalidKey)?;
+        let e = bn::BigNum::from_slice(&parts.e).map_err(|_| CryptoError::InvalidKey)?;
+        let ctx: rsa::Rsa<pkey::Public> =
+            rsa::Rsa::from_public_components(n, e).map_err(|_| CryptoError::InvalidKey)?;
         Ok(RsaSignaturePublicKey { alg, ctx })
     }
 
     fn to_pkcs8(&self) -> Result<Vec<u8>, CryptoError> {
         self.ctx
-            .to_public_key_der()
+            .public_key_to_der()
             .map_err(|_| CryptoError::InternalError)
-            .map(|x| x.as_ref().to_vec())
     }
 
     fn to_pem(&self) -> Result<Vec<u8>, CryptoError> {
         self.ctx
-            .to_public_key_pem()
-            .map(|s| s.as_bytes().to_vec())
+            .public_key_to_pem()
             .map_err(|_| CryptoError::InternalError)
     }
 
@@ -400,8 +413,8 @@ impl RsaSignaturePublicKey {
         let parts = RsaSignaturePublicKeyParts {
             version: RAW_ENCODING_VERSION,
             alg_id: RAW_ENCODING_ALG_ID,
-            n: self.ctx.n().clone(),
-            e: self.ctx.e().clone(),
+            n: self.ctx.n().to_vec(),
+            e: self.ctx.e().to_vec(),
         };
         let local = bincode::serialize(&parts).map_err(|_| CryptoError::InternalError)?;
         Ok(local)

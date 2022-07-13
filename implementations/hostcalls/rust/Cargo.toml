@@ -14,6 +14,7 @@ repository = "https://github.com/webassembly/wasi-crypto"
 aes-gcm = "0.9.4"
 anyhow = "1.0"
 bincode = "1.3"
+boring = "2.0"
 byteorder = "1.4"
 chacha20poly1305 = "0.9"
 curve25519-dalek = "3"
@@ -40,7 +41,7 @@ pqcrypto = { version = "0.14.0", default-features = false, features = [
 ], optional = true }
 rand_core = { version = "0.6.3", default-features = false }
 rand_core_05 = { package = "rand_core", version = "0.5", default-features = false }
-rsa = { version = "0.5", features = ["serde", "expose-internals"] }
+#rsa = { version = "0.5", features = ["serde", "expose-internals"] }
 serde = { version = "1", features = ["derive"] }
 sha2 = "0.9"
 subtle = "2.4"

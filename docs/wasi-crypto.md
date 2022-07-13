@@ -237,6 +237,7 @@ In addition, an implementation MAY allow these signatures to be serialized using
 | Ed25519   | raw (private key + secret key encoded as in RFC8032)                                                                 | raw (cf. RFC8032)                                                           | raw (cf. RFC8032)                                                                                                                                   |
 | X25519    | N/A                                                                                                                  | raw (cf. RFC7748)                                                           | raw (cf. RFC7748)                                                                                                                                   |
 | p256      | raw secret scalar encoded as big endian, SEC-1, compressed SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, compressed SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, compressed SEC-1, unencrypted PKCS#8 (compressed and uncompressed forms), PEM-encoded unencrypted PKCS#8 (compressed and uncompressed forms) |
+| p384      | raw secret scalar encoded as big endian, SEC-1, compressed SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, compressed SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, compressed SEC-1, unencrypted PKCS#8 (compressed and uncompressed forms), PEM-encoded unencrypted PKCS#8 (compressed and uncompressed forms) |
 | secp256k1 | raw secret scalar encoded as big endian, SEC-1, compressed SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, compressed SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, compressed SEC-1, unencrypted PKCS#8 (compressed and uncompressed forms), PEM-encoded unencrypted PKCS#8 (compressed and uncompressed forms) |
 | RSA       | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8                                                                   | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8                          | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8                                                                                                  |
 
@@ -329,6 +330,7 @@ A `wasi-crypto` implementation MUST implement the following algorithms, and MUST
 | Identifier              | Algorithm                                                                           |
 | ----------------------- | ----------------------------------------------------------------------------------- |
 | `ECDSA_P256_SHA256`     | ECDSA over the NIST p256 curve with the SHA-256 hash function                       |
+| `ECDSA_P384_SHA384`     | ECDSA over the NIST p384 curve with the SHA-384 hash function                       |
 | `ECDSA_K256_SHA256`     | ECDSA over the secp256k1 curve with the SHA-256 hash function                       |
 | `Ed25519`               | Edwards Curve signatures over Edwards25519 (pure EdDSA) as specified in RFC8032     |
 | `RSA_PKCS1_2048_SHA256` | RSA signatures with a 2048 bit modulus, PKCS1 padding and the SHA-256 hash function |
@@ -356,6 +358,7 @@ A `wasi-crypto` implementation MUST implement the following algorithms, and MUST
 | `AES-256-GCM`           | AES-256-GCM AEAD cipher                                                             |
 | `CHACHA20-POLY1305`     | ChaCha20-Poly1305 AEAD cipher as specified in RFC8439                               |
 | `P256-SHA256`           | NIST p256 ECDH with the SHA-256 hash function                                       |
+| `P384-SHA384`           | NIST p384 ECDH with the SHA-384 hash function                                       |
 | `X25519`                | X25519 ECDH as specified in RFC7748                                                 |
 
 Each algorithm belongs to one of these categories, represented by the `algorithm_type` type:

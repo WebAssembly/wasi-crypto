@@ -1,14 +1,14 @@
 use super::state::*;
 use super::*;
 
-use ::sha2::{Digest, Sha256, Sha512, Sha512Trunc256};
+use ::sha2::{Digest, Sha256, Sha512, Sha512_256};
 
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
 enum HashVariant {
     Sha256(Sha256),
     Sha512(Sha512),
-    Sha512_256(Sha512Trunc256),
+    Sha512_256(Sha512_256),
 }
 
 #[derive(Derivative)]
@@ -31,7 +31,7 @@ impl Sha2SymmetricState {
         let ctx = match alg {
             SymmetricAlgorithm::Sha256 => HashVariant::Sha256(Sha256::new()),
             SymmetricAlgorithm::Sha512 => HashVariant::Sha512(Sha512::new()),
-            SymmetricAlgorithm::Sha512_256 => HashVariant::Sha512_256(Sha512Trunc256::new()),
+            SymmetricAlgorithm::Sha512_256 => HashVariant::Sha512_256(Sha512_256::new()),
             _ => bail!(CryptoError::UnsupportedAlgorithm),
         };
         Ok(Sha2SymmetricState { alg, options, ctx })

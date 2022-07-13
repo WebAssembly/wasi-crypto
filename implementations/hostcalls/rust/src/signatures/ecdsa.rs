@@ -3,12 +3,16 @@ use k256::ecdsa::{
     self as ecdsa_k256, signature::DigestVerifier as _, signature::RandomizedDigestSigner as _,
 };
 use k256::elliptic_curve::sec1::ToEncodedPoint as _;
-use k256::pkcs8::{FromPrivateKey as _, FromPublicKey as _};
+use k256::pkcs8::{
+    DecodePrivateKey as _, DecodePublicKey as _, EncodePrivateKey as _, EncodePublicKey as _,
+};
 use p256::ecdsa::{
     self as ecdsa_p256, signature::DigestVerifier as _, signature::RandomizedDigestSigner as _,
 };
 use p256::elliptic_curve::sec1::ToEncodedPoint as _;
-use p256::pkcs8::{FromPrivateKey as _, FromPublicKey as _};
+use p256::pkcs8::{
+    DecodePrivateKey as _, DecodePublicKey as _, EncodePrivateKey as _, EncodePublicKey as _,
+};
 use std::convert::TryFrom;
 use std::sync::Arc;
 

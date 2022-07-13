@@ -3,7 +3,7 @@ use super::*;
 use crate::rand::SecureRandom;
 
 use ::sha2::{Sha256, Sha512};
-use hmac::{Hmac, Mac, NewMac};
+use hmac::{Hmac, Mac};
 use subtle::ConstantTimeEq;
 use zeroize::Zeroize;
 

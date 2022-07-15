@@ -303,7 +303,10 @@ impl EcdsaSignatureVerificationState {
     pub fn new(pk: EcdsaSignaturePublicKey) -> Self {
         let h = match pk.alg {
             SignatureAlgorithm::ECDSA_P384_SHA384 => HashVariant::Sha384(Sha384::new()),
-            _ => HashVariant::Sha256(Sha256::new()),
+            SignatureAlgorithm::ECDSA_P256_SHA256 | SignatureAlgorithm::ECDSA_K256_SHA256 => {
+                HashVariant::Sha256(Sha256::new())
+            }
+            _ => unreachable!(),
         };
         EcdsaSignatureVerificationState { pk, h }
     }

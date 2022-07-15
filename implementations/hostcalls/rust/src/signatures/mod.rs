@@ -22,6 +22,7 @@ use std::convert::TryFrom;
 pub enum SignatureAlgorithm {
     ECDSA_P256_SHA256,
     ECDSA_K256_SHA256,
+    ECDSA_P384_SHA384,
     Ed25519,
     RSA_PKCS1_2048_SHA256,
     RSA_PKCS1_2048_SHA384,
@@ -46,7 +47,7 @@ pub enum SignatureAlgorithmFamily {
 impl SignatureAlgorithm {
     pub fn family(&self) -> SignatureAlgorithmFamily {
         match self {
-            SignatureAlgorithm::ECDSA_P256_SHA256 | SignatureAlgorithm::ECDSA_K256_SHA256 => {
+            SignatureAlgorithm::ECDSA_P256_SHA256 | SignatureAlgorithm::ECDSA_K256_SHA256 | SignatureAlgorithm::ECDSA_P384_SHA384 => {
                 SignatureAlgorithmFamily::ECDSA
             }
             SignatureAlgorithm::Ed25519 => SignatureAlgorithmFamily::EdDSA,
@@ -73,6 +74,7 @@ impl TryFrom<&str> for SignatureAlgorithm {
         match alg_str.to_uppercase().as_str() {
             "ECDSA_P256_SHA256" => Ok(SignatureAlgorithm::ECDSA_P256_SHA256),
             "ECDSA_K256_SHA256" => Ok(SignatureAlgorithm::ECDSA_K256_SHA256),
+            "ECDSA_P384_SHA384" => Ok(SignatureAlgorithm::ECDSA_P384_SHA384),
 
             "ED25519" => Ok(SignatureAlgorithm::Ed25519),
 

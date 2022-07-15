@@ -34,6 +34,12 @@ p256 = { version = "0.11.1", features = [
     "pkcs8",
     "pem",
 ] }
+p384 = { version = "0.11.1", features = [
+    "ecdsa",
+    "std",
+    "pkcs8",
+    "pem",
+] }
 pqcrypto = { version = "0.15.0", default-features = false, features = [
     "pqcrypto-kyber",
 ], optional = true }

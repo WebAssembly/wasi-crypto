@@ -17,7 +17,9 @@ use p384::ecdsa::{
     self as ecdsa_p384, signature::DigestVerifier as _, signature::RandomizedDigestSigner as _,
 };
 use p384::elliptic_curve::sec1::ToEncodedPoint as _;
-use p384::pkcs8::{DecodePrivateKey as _, EncodePrivateKey as _, EncodePublicKey as _, DecodePublicKey as _};
+use p384::pkcs8::{
+    DecodePrivateKey as _, DecodePublicKey as _, EncodePrivateKey as _, EncodePublicKey as _,
+};
 use std::convert::TryFrom;
 use std::sync::Arc;
 
@@ -105,7 +107,7 @@ impl EcdsaSignatureKeyPair {
                 let ecdsa_sk = ecdsa_p384::SigningKey::from_pkcs8_pem(
                     std::str::from_utf8(pem).map_err(|_| CryptoError::InvalidKey)?,
                 )
-                    .map_err(|_| CryptoError::InvalidKey)?;
+                .map_err(|_| CryptoError::InvalidKey)?;
                 EcdsaSigningKeyVariant::P384(ecdsa_sk)
             }
             _ => bail!(CryptoError::UnsupportedAlgorithm),
@@ -233,12 +235,8 @@ impl SignatureLike for EcdsaSignature {
 impl EcdsaSignatureState {
     pub fn new(kp: EcdsaSignatureKeyPair) -> Self {
         let h = match kp.alg {
-            SignatureAlgorithm::ECDSA_P384_SHA384 => {
-                HashVariant::Sha384(Sha384::new())
-            }
-            _ => {
-                HashVariant::Sha256(Sha256::new())
-            }
+            SignatureAlgorithm::ECDSA_P384_SHA384 => HashVariant::Sha384(Sha384::new()),
+            _ => HashVariant::Sha256(Sha256::new()),
         };
         EcdsaSignatureState { kp, h }
     }
@@ -261,7 +259,7 @@ impl SignatureStateLike for EcdsaSignatureState {
                     HashVariant::Sha256(x) => x.clone(),
                     _ => {
                         bail!(CryptoError::UnsupportedAlgorithm)
-                    },
+                    }
                 };
                 let encoded_signature: ecdsa_p256::Signature =
                     x.sign_digest_with_rng(&mut rng, digest);
@@ -272,7 +270,7 @@ impl SignatureStateLike for EcdsaSignatureState {
                     HashVariant::Sha256(x) => x.clone(),
                     _ => {
                         bail!(CryptoError::UnsupportedAlgorithm)
-                    },
+                    }
                 };
                 let encoded_signature: ecdsa_k256::Signature =
                     x.sign_digest_with_rng(&mut rng, digest);
@@ -283,7 +281,7 @@ impl SignatureStateLike for EcdsaSignatureState {
                     HashVariant::Sha384(x) => x.clone(),
                     _ => {
                         bail!(CryptoError::UnsupportedAlgorithm)
-                    },
+                    }
                 };
                 let encoded_signature: ecdsa_p384::Signature =
                     x.sign_digest_with_rng(&mut rng, digest);
@@ -304,12 +302,8 @@ pub struct EcdsaSignatureVerificationState {
 impl EcdsaSignatureVerificationState {
     pub fn new(pk: EcdsaSignaturePublicKey) -> Self {
         let h = match pk.alg {
-            SignatureAlgorithm::ECDSA_P384_SHA384 => {
-                HashVariant::Sha384(Sha384::new())
-            }
-            _ => {
-                HashVariant::Sha256(Sha256::new())
-            }
+            SignatureAlgorithm::ECDSA_P384_SHA384 => HashVariant::Sha384(Sha384::new()),
+            _ => HashVariant::Sha256(Sha256::new()),
         };
         EcdsaSignatureVerificationState { pk, h }
     }
@@ -339,7 +333,7 @@ impl SignatureVerificationStateLike for EcdsaSignatureVerificationState {
                     HashVariant::Sha256(x) => x.clone(),
                     _ => {
                         bail!(CryptoError::UnsupportedAlgorithm)
-                    },
+                    }
                 };
                 x.verify_digest(digest, &ecdsa_signature)
             }
@@ -350,7 +344,7 @@ impl SignatureVerificationStateLike for EcdsaSignatureVerificationState {
                     HashVariant::Sha256(x) => x.clone(),
                     _ => {
                         bail!(CryptoError::UnsupportedAlgorithm)
-                    },
+                    }
                 };
                 x.verify_digest(digest, &ecdsa_signature)
             }
@@ -361,7 +355,7 @@ impl SignatureVerificationStateLike for EcdsaSignatureVerificationState {
                     HashVariant::Sha384(x) => x.clone(),
                     _ => {
                         bail!(CryptoError::UnsupportedAlgorithm)
-                    },
+                    }
                 };
                 x.verify_digest(digest, &ecdsa_signature)
             }
@@ -446,7 +440,7 @@ impl EcdsaSignaturePublicKey {
                 let ecdsa_sk = ecdsa_p384::VerifyingKey::from_public_key_pem(
                     std::str::from_utf8(pem).map_err(|_| CryptoError::InvalidKey)?,
                 )
-                    .map_err(|_| CryptoError::InvalidKey)?;
+                .map_err(|_| CryptoError::InvalidKey)?;
                 EcdsaVerifyingKeyVariant::P384(ecdsa_sk)
             }
             _ => bail!(CryptoError::UnsupportedAlgorithm),

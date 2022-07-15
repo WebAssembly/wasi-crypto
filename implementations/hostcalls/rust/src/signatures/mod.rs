@@ -47,9 +47,9 @@ pub enum SignatureAlgorithmFamily {
 impl SignatureAlgorithm {
     pub fn family(&self) -> SignatureAlgorithmFamily {
         match self {
-            SignatureAlgorithm::ECDSA_P256_SHA256 | SignatureAlgorithm::ECDSA_K256_SHA256 | SignatureAlgorithm::ECDSA_P384_SHA384 => {
-                SignatureAlgorithmFamily::ECDSA
-            }
+            SignatureAlgorithm::ECDSA_P256_SHA256
+            | SignatureAlgorithm::ECDSA_K256_SHA256
+            | SignatureAlgorithm::ECDSA_P384_SHA384 => SignatureAlgorithmFamily::ECDSA,
             SignatureAlgorithm::Ed25519 => SignatureAlgorithmFamily::EdDSA,
             SignatureAlgorithm::RSA_PKCS1_2048_SHA256
             | SignatureAlgorithm::RSA_PKCS1_2048_SHA384

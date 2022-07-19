@@ -1,7 +1,7 @@
+use ::sha2::{Digest, Sha256, Sha512, Sha512_256};
+
 use super::state::*;
 use super::*;
-
-use ::sha2::{Digest, Sha256, Sha512, Sha512_256};
 
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug)]

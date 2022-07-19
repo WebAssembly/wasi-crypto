@@ -1,7 +1,8 @@
+use std::sync::{Arc, Mutex, MutexGuard};
+
 use super::*;
 use crate::asymmetric_common::*;
 use crate::CryptoCtx;
-use std::sync::{Arc, Mutex, MutexGuard};
 
 pub trait KxSecretKeyBuilder {
     fn from_raw(&self, raw: &[u8]) -> Result<KxSecretKey, CryptoError>;

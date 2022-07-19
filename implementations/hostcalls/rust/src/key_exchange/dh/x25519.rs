@@ -1,12 +1,12 @@
-use crate::rand::SecureRandom;
-
-use super::*;
 use curve25519_dalek::{
     constants::{BASEPOINT_ORDER, X25519_BASEPOINT},
     montgomery::MontgomeryPoint,
     scalar::Scalar,
 };
 use subtle::ConstantTimeEq;
+
+use super::*;
+use crate::rand::SecureRandom;
 
 const PK_LEN: usize = 32;
 const SK_LEN: usize = 32;

@@ -1,3 +1,6 @@
+use std::convert::TryFrom;
+use std::sync::Arc;
+
 use ::sha2::{Digest, Sha256, Sha384};
 use k256::ecdsa::{
     self as ecdsa_k256, signature::DigestVerifier as _, signature::RandomizedDigestSigner as _,
@@ -20,8 +23,6 @@ use p384::elliptic_curve::sec1::ToEncodedPoint as _;
 use p384::pkcs8::{
     DecodePrivateKey as _, DecodePublicKey as _, EncodePrivateKey as _, EncodePublicKey as _,
 };
-use std::convert::TryFrom;
-use std::sync::Arc;
 
 use super::signature::*;
 use super::*;

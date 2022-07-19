@@ -1,10 +1,10 @@
-use super::state::*;
-use super::*;
-use crate::rand::SecureRandom;
-
 use ::xoodyak::*;
 use subtle::ConstantTimeEq;
 use zeroize::Zeroize;
+
+use super::state::*;
+use super::*;
+use crate::rand::SecureRandom;
 
 #[derive(Clone, Debug)]
 pub struct XoodyakSymmetricState {

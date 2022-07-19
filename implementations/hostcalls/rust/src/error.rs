@@ -1,5 +1,6 @@
-pub use anyhow::Error;
 use std::num::TryFromIntError;
+
+pub use anyhow::Error;
 
 #[derive(thiserror::Error, Debug)]
 pub enum CryptoError {

@@ -1,8 +1,8 @@
+use std::convert::TryFrom;
+
 use super::*;
 use crate::options::Options;
 use crate::AlgorithmType;
-
-use std::convert::TryFrom;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum KeyPairEncoding {

@@ -1,9 +1,9 @@
+use std::sync::{Arc, Mutex, MutexGuard};
+
 use super::*;
 use crate::array_output::*;
 use crate::version::*;
 use crate::CryptoCtx;
-
-use std::sync::{Arc, Mutex, MutexGuard};
 
 #[derive(Clone)]
 pub struct SymmetricKey {

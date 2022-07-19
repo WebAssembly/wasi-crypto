@@ -1,7 +1,7 @@
-use super::*;
-
-use crate::asymmetric_common::*;
 use std::sync::{Arc, Mutex, MutexGuard};
+
+use super::*;
+use crate::asymmetric_common::*;
 
 #[derive(Clone)]
 pub struct KxKeyPair {

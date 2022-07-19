@@ -1,12 +1,12 @@
-use super::*;
-use state::*;
-
-use crate::rand::SecureRandom;
 use ::aes_gcm::aead::{generic_array::GenericArray, AeadInPlace, NewAead};
 use ::aes_gcm::{Aes128Gcm, Aes256Gcm, AesGcm};
 use byteorder::{ByteOrder, LittleEndian};
+use state::*;
 use subtle::ConstantTimeEq;
 use zeroize::Zeroize;
+
+use super::*;
+use crate::rand::SecureRandom;
 
 pub const NONCE_LEN: usize = 12;
 pub const TAG_LEN: usize = 16;

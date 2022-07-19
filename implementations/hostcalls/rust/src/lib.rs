@@ -27,17 +27,16 @@ use std::rc::Rc;
 
 use array_output::*;
 use asymmetric_common::*;
+pub use asymmetric_common::{KeyPairEncoding, PublicKeyEncoding, SecretKeyEncoding};
+pub use error::CryptoError;
+pub use handles::Handle;
 use handles::*;
 use key_exchange::*;
 use options::*;
 use secrets_manager::*;
+pub use signatures::SignatureEncoding;
 use signatures::*;
 use symmetric::*;
-
-pub use asymmetric_common::{KeyPairEncoding, PublicKeyEncoding, SecretKeyEncoding};
-pub use error::CryptoError;
-pub use handles::Handle;
-pub use signatures::SignatureEncoding;
 pub use version::Version;
 
 pub(crate) struct HandleManagers {

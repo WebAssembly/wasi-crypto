@@ -9,23 +9,23 @@ mod state;
 mod tag;
 mod xoodyak;
 
-use self::aes_gcm::*;
-use self::chacha_poly::*;
-use self::hkdf::*;
-use self::hmac_sha2::*;
-use self::key::*;
-use self::sha2::*;
-use self::xoodyak::*;
-use crate::error::*;
-use crate::handles::*;
-use crate::options::*;
 use std::any::Any;
 use std::convert::TryFrom;
 use std::sync::{Arc, Mutex, MutexGuard};
 
+use self::aes_gcm::*;
+use self::chacha_poly::*;
+use self::hkdf::*;
+use self::hmac_sha2::*;
 pub use self::key::SymmetricKey;
+use self::key::*;
+use self::sha2::*;
 pub use self::state::SymmetricState;
 pub use self::tag::SymmetricTag;
+use self::xoodyak::*;
+use crate::error::*;
+use crate::handles::*;
+use crate::options::*;
 
 #[derive(Debug, Default)]
 pub struct SymmetricOptionsInner {

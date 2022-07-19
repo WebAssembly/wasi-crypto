@@ -1,11 +1,11 @@
-use super::state::*;
-use super::*;
-use crate::rand::SecureRandom;
-
 use ::hkdf::Hkdf;
 use ::sha2::{Sha256, Sha512};
 use subtle::ConstantTimeEq;
 use zeroize::Zeroize;
+
+use super::state::*;
+use super::*;
+use crate::rand::SecureRandom;
 
 #[derive(Clone, Debug)]
 pub struct HkdfSymmetricState {

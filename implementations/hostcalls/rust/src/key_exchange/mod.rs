@@ -6,6 +6,11 @@ mod secretkey;
 
 use std::any::Any;
 use std::convert::TryFrom;
+use std::sync::{Arc, Mutex};
+
+pub use keypair::*;
+pub use publickey::*;
+pub use secretkey::*;
 
 use self::dh::*;
 use self::kem::*;
@@ -13,11 +18,6 @@ use crate::array_output::*;
 use crate::error::*;
 use crate::handles::*;
 use crate::options::*;
-use std::sync::{Arc, Mutex};
-
-pub use keypair::*;
-pub use publickey::*;
-pub use secretkey::*;
 
 #[derive(Debug, Default)]
 pub struct KxOptionsInner {

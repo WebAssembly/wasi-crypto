@@ -1,6 +1,8 @@
-use crate::raw;
-use num_enum::{IntoPrimitive, TryFromPrimitive};
 use std::convert::TryFrom;
+
+use num_enum::{IntoPrimitive, TryFromPrimitive};
+
+use crate::raw;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Ord, PartialOrd, TryFromPrimitive, IntoPrimitive)]
 #[repr(u16)]

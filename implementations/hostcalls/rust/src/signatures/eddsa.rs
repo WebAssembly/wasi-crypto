@@ -1,5 +1,6 @@
-use ed25519_dalek::Signer as _;
 use std::sync::Arc;
+
+use ed25519_dalek::Signer as _;
 
 use super::*;
 use crate::asymmetric_common::*;
@@ -84,6 +85,7 @@ impl EddsaSignature {
     pub fn new(raw: Vec<u8>) -> Self {
         EddsaSignature { raw }
     }
+
     pub fn from_raw(alg: SignatureAlgorithm, raw: &[u8]) -> Result<Self, CryptoError> {
         let expected_len = match alg {
             SignatureAlgorithm::Ed25519 => 64,

@@ -1,8 +1,8 @@
-use super::*;
-use crate::CryptoCtx;
-
 use subtle::ConstantTimeEq;
 use zeroize::Zeroize;
+
+use super::*;
+use crate::CryptoCtx;
 
 #[derive(Debug, Clone, Eq)]
 pub struct SymmetricTag {

@@ -6,16 +6,16 @@ mod rsa;
 mod secretkey;
 mod signature;
 
-use crate::options::*;
-use crate::{asymmetric_common, error::*};
+use std::any::Any;
+use std::convert::TryFrom;
 
 pub use keypair::*;
 pub use publickey::*;
 pub use secretkey::*;
 pub use signature::*;
 
-use std::any::Any;
-use std::convert::TryFrom;
+use crate::options::*;
+use crate::{asymmetric_common, error::*};
 
 #[allow(non_camel_case_types)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

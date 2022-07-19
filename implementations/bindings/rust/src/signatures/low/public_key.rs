@@ -1,8 +1,7 @@
+use super::{Signature, SignatureVerificationState};
 use crate::asymmetric_common::*;
 use crate::error::*;
 use crate::raw;
-
-use super::{Signature, SignatureVerificationState};
 
 #[derive(Debug)]
 pub struct SignaturePublicKey(pub(crate) PublicKey);

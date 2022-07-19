@@ -1,4 +1,5 @@
 use std::io::{Cursor, Read};
+
 use zeroize::Zeroize;
 
 use crate::error::*;

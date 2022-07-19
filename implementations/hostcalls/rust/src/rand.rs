@@ -1,6 +1,7 @@
-use crate::CryptoError;
 use rand_core::{self, CryptoRng, OsRng, RngCore};
 use rand_core_05::{self, CryptoRng as CryptoRng05, OsRng as OsRng05, RngCore as RngCore05};
+
+use crate::CryptoError;
 
 pub struct SecureRandom;
 

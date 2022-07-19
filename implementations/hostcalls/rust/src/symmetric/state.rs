@@ -1,8 +1,8 @@
-use super::*;
-use crate::CryptoCtx;
-
 use std::convert::TryFrom;
 use std::sync::{Arc, Mutex, MutexGuard};
+
+use super::*;
+use crate::CryptoCtx;
 
 #[derive(Clone)]
 pub struct SymmetricState {

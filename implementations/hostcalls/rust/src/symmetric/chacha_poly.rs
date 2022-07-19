@@ -1,12 +1,12 @@
-use super::*;
-use state::*;
-
-use crate::rand::SecureRandom;
 use ::chacha20poly1305::aead::{generic_array::GenericArray, AeadInPlace, NewAead};
 use ::chacha20poly1305::{ChaCha20Poly1305, XChaCha20Poly1305};
 use byteorder::{ByteOrder, LittleEndian};
+use state::*;
 use subtle::ConstantTimeEq;
 use zeroize::Zeroize;
+
+use super::*;
+use crate::rand::SecureRandom;
 
 pub const TAG_LEN: usize = 16;
 

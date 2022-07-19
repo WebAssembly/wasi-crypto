@@ -6,7 +6,8 @@ use core::mem::MaybeUninit;
 pub struct CryptoErrno(u16);
 /// Operation succeeded.
 pub const CRYPTO_ERRNO_SUCCESS: CryptoErrno = CryptoErrno(0);
-/// An error occurred when trying to during a conversion from a host type to a guest type.
+/// An error occurred when trying to during a conversion from a host type to a
+/// guest type.
 ///
 /// Only an internal bug can throw this error.
 pub const CRYPTO_ERRNO_GUEST_ERROR: CryptoErrno = CryptoErrno(1);
@@ -24,96 +25,132 @@ pub const CRYPTO_ERRNO_UNSUPPORTED_ALGORITHM: CryptoErrno = CryptoErrno(6);
 pub const CRYPTO_ERRNO_UNSUPPORTED_OPTION: CryptoErrno = CryptoErrno(7);
 /// An invalid or incompatible key was supplied.
 ///
-/// The key may not be valid, or was generated for a different algorithm or parameters set.
+/// The key may not be valid, or was generated for a different algorithm or
+/// parameters set.
 pub const CRYPTO_ERRNO_INVALID_KEY: CryptoErrno = CryptoErrno(8);
-/// The currently selected algorithm doesn't support the requested output length.
+/// The currently selected algorithm doesn't support the requested output
+/// length.
 ///
-/// This error is thrown by non-extensible hash functions, when requesting an output size larger than they produce out of a single block.
+/// This error is thrown by non-extensible hash functions, when requesting an
+/// output size larger than they produce out of a single block.
 pub const CRYPTO_ERRNO_INVALID_LENGTH: CryptoErrno = CryptoErrno(9);
 /// A signature or authentication tag verification failed.
 pub const CRYPTO_ERRNO_VERIFICATION_FAILED: CryptoErrno = CryptoErrno(10);
 /// A secure random numbers generator is not available.
 ///
-/// The requested operation requires random numbers, but the host cannot securely generate them at the moment.
+/// The requested operation requires random numbers, but the host cannot
+/// securely generate them at the moment.
 pub const CRYPTO_ERRNO_RNG_ERROR: CryptoErrno = CryptoErrno(11);
 /// An error was returned by the underlying cryptography library.
 ///
-/// The host may be running out of memory, parameters may be incompatible with the chosen implementation of an algorithm or another unexpected error may have happened.
+/// The host may be running out of memory, parameters may be incompatible with
+/// the chosen implementation of an algorithm or another unexpected error may
+/// have happened.
 ///
-/// Ideally, the specification should provide enough details and guidance to make this error impossible to ever be thrown.
+/// Ideally, the specification should provide enough details and guidance to
+/// make this error impossible to ever be thrown.
 ///
-/// Realistically, the WASI crypto module cannot possibly cover all possible error types implementations can return, especially since some of these may be language-specific.
-/// This error can thus be thrown when other error types are not suitable, and when the original error comes from the cryptographic primitives themselves and not from the WASI module.
+/// Realistically, the WASI crypto module cannot possibly cover all possible
+/// error types implementations can return, especially since some of these may
+/// be language-specific. This error can thus be thrown when other error types
+/// are not suitable, and when the original error comes from the cryptographic
+/// primitives themselves and not from the WASI module.
 pub const CRYPTO_ERRNO_ALGORITHM_FAILURE: CryptoErrno = CryptoErrno(12);
-/// The supplied signature is invalid, or incompatible with the chosen algorithm.
+/// The supplied signature is invalid, or incompatible with the chosen
+/// algorithm.
 pub const CRYPTO_ERRNO_INVALID_SIGNATURE: CryptoErrno = CryptoErrno(13);
 /// An attempt was made to close a handle that was already closed.
 pub const CRYPTO_ERRNO_CLOSED: CryptoErrno = CryptoErrno(14);
-/// A function was called with an unassigned handle, a closed handle, or handle of an unexpected type.
+/// A function was called with an unassigned handle, a closed handle, or handle
+/// of an unexpected type.
 pub const CRYPTO_ERRNO_INVALID_HANDLE: CryptoErrno = CryptoErrno(15);
-/// The host needs to copy data to a guest-allocated buffer, but that buffer is too small.
+/// The host needs to copy data to a guest-allocated buffer, but that buffer is
+/// too small.
 pub const CRYPTO_ERRNO_OVERFLOW: CryptoErrno = CryptoErrno(16);
 /// An internal error occurred.
 ///
-/// This error is reserved to internal consistency checks, and must only be sent if the internal state of the host remains safe after an inconsistency was detected.
+/// This error is reserved to internal consistency checks, and must only be sent
+/// if the internal state of the host remains safe after an inconsistency was
+/// detected.
 pub const CRYPTO_ERRNO_INTERNAL_ERROR: CryptoErrno = CryptoErrno(17);
 /// Too many handles are currently open, and a new one cannot be created.
 ///
-/// Implementations are free to represent handles as they want, and to enforce limits to limit resources usage.
+/// Implementations are free to represent handles as they want, and to enforce
+/// limits to limit resources usage.
 pub const CRYPTO_ERRNO_TOO_MANY_HANDLES: CryptoErrno = CryptoErrno(18);
 /// A key was provided, but the chosen algorithm doesn't support keys.
 ///
 /// This is returned by symmetric operations.
 ///
-/// Many hash functions, in particular, do not support keys without being used in particular constructions.
-/// Blindly ignoring a key provided by mistake while trying to open a context for such as function could cause serious security vulnerabilities.
+/// Many hash functions, in particular, do not support keys without being used
+/// in particular constructions. Blindly ignoring a key provided by mistake
+/// while trying to open a context for such as function could cause serious
+/// security vulnerabilities.
 ///
-/// These functions must refuse to create the context and return this error instead.
+/// These functions must refuse to create the context and return this error
+/// instead.
 pub const CRYPTO_ERRNO_KEY_NOT_SUPPORTED: CryptoErrno = CryptoErrno(19);
 /// A key is required for the chosen algorithm, but none was given.
 pub const CRYPTO_ERRNO_KEY_REQUIRED: CryptoErrno = CryptoErrno(20);
-/// The provided authentication tag is invalid or incompatible with the current algorithm.
+/// The provided authentication tag is invalid or incompatible with the current
+/// algorithm.
 ///
-/// This error is returned by decryption functions and tag verification functions.
+/// This error is returned by decryption functions and tag verification
+/// functions.
 ///
-/// Unlike `verification_failed`, this error code is returned when the tag cannot possibly verify for any input.
+/// Unlike `verification_failed`, this error code is returned when the tag
+/// cannot possibly verify for any input.
 pub const CRYPTO_ERRNO_INVALID_TAG: CryptoErrno = CryptoErrno(21);
 /// The requested operation is incompatible with the current scheme.
 ///
-/// For example, the `symmetric_state_encrypt()` function cannot complete if the selected construction is a key derivation function.
-/// This error code will be returned instead.
+/// For example, the `symmetric_state_encrypt()` function cannot complete if the
+/// selected construction is a key derivation function. This error code will be
+/// returned instead.
 pub const CRYPTO_ERRNO_INVALID_OPERATION: CryptoErrno = CryptoErrno(22);
 /// A nonce is required.
 ///
 /// Most encryption schemes require a nonce.
 ///
-/// In the absence of a nonce, the WASI cryptography module can automatically generate one, if that can be done safely. The nonce can be retrieved later with the `symmetric_state_option_get()` function using the `nonce` parameter.
-/// If automatically generating a nonce cannot be done safely, the module never falls back to an insecure option and requests an explicit nonce by throwing that error.
+/// In the absence of a nonce, the WASI cryptography module can automatically
+/// generate one, if that can be done safely. The nonce can be retrieved later
+/// with the `symmetric_state_option_get()` function using the `nonce`
+/// parameter. If automatically generating a nonce cannot be done safely, the
+/// module never falls back to an insecure option and requests an explicit nonce
+/// by throwing that error.
 pub const CRYPTO_ERRNO_NONCE_REQUIRED: CryptoErrno = CryptoErrno(23);
 /// The provided nonce doesn't have a correct size for the given cipher.
 pub const CRYPTO_ERRNO_INVALID_NONCE: CryptoErrno = CryptoErrno(24);
 /// The named option was not set.
 ///
 /// The caller tried to read the value of an option that was not set.
-/// This error is used to make the distinction between an empty option, and an option that was not set and left to its default value.
+/// This error is used to make the distinction between an empty option, and an
+/// option that was not set and left to its default value.
 pub const CRYPTO_ERRNO_OPTION_NOT_SET: CryptoErrno = CryptoErrno(25);
-/// A key or key pair matching the requested identifier cannot be found using the supplied information.
+/// A key or key pair matching the requested identifier cannot be found using
+/// the supplied information.
 ///
-/// This error is returned by a secrets manager via the `keypair_from_id()` function.
+/// This error is returned by a secrets manager via the `keypair_from_id()`
+/// function.
 pub const CRYPTO_ERRNO_NOT_FOUND: CryptoErrno = CryptoErrno(26);
 /// The algorithm requires parameters that haven't been set.
 ///
-/// Non-generic options are required and must be given by building an `options` set and giving that object to functions instantiating that algorithm.
+/// Non-generic options are required and must be given by building an `options`
+/// set and giving that object to functions instantiating that algorithm.
 pub const CRYPTO_ERRNO_PARAMETERS_MISSING: CryptoErrno = CryptoErrno(27);
-/// A requested computation is not done yet, and additional calls to the function are required.
+/// A requested computation is not done yet, and additional calls to the
+/// function are required.
 ///
-/// Some functions, such as functions generating key pairs and password stretching functions, can take a long time to complete.
+/// Some functions, such as functions generating key pairs and password
+/// stretching functions, can take a long time to complete.
 ///
-/// In order to avoid a host call to be blocked for too long, these functions can return prematurely, requiring additional calls with the same parameters until they complete.
+/// In order to avoid a host call to be blocked for too long, these functions
+/// can return prematurely, requiring additional calls with the same parameters
+/// until they complete.
 pub const CRYPTO_ERRNO_IN_PROGRESS: CryptoErrno = CryptoErrno(28);
 /// Multiple keys have been provided, but they do not share the same type.
 ///
-/// This error is returned when trying to build a key pair from a public key and a secret key that were created for different and incompatible algorithms.
+/// This error is returned when trying to build a key pair from a public key and
+/// a secret key that were created for different and incompatible algorithms.
 pub const CRYPTO_ERRNO_INCOMPATIBLE_KEYS: CryptoErrno = CryptoErrno(29);
 /// A managed key or secret expired and cannot be used any more.
 pub const CRYPTO_ERRNO_EXPIRED: CryptoErrno = CryptoErrno(30);
@@ -158,59 +195,156 @@ impl CryptoErrno {
             _ => unsafe { core::hint::unreachable_unchecked() },
         }
     }
+
     pub fn message(&self) -> &'static str {
-        match self.0 {0 => "Operation succeeded.",1 => "An error occurred when trying to during a conversion from a host type to a guest type.
+        match self.0 {
+            0 => "Operation succeeded.",
+            1 => {
+                "An error occurred when trying to during a conversion from a host type to a guest \
+                 type.
 
-Only an internal bug can throw this error.",2 => "The requested operation is valid, but not implemented by the host.",3 => "The requested feature is not supported by the chosen algorithm.",4 => "The requested operation is valid, but was administratively prohibited.",5 => "Unsupported encoding for an import or export operation.",6 => "The requested algorithm is not supported by the host.",7 => "The requested option is not supported by the currently selected algorithm.",8 => "An invalid or incompatible key was supplied.
+Only an internal bug can throw this error."
+            }
+            2 => "The requested operation is valid, but not implemented by the host.",
+            3 => "The requested feature is not supported by the chosen algorithm.",
+            4 => "The requested operation is valid, but was administratively prohibited.",
+            5 => "Unsupported encoding for an import or export operation.",
+            6 => "The requested algorithm is not supported by the host.",
+            7 => "The requested option is not supported by the currently selected algorithm.",
+            8 => {
+                "An invalid or incompatible key was supplied.
 
-The key may not be valid, or was generated for a different algorithm or parameters set.",9 => "The currently selected algorithm doesn't support the requested output length.
+The key may not be valid, or was generated for a different algorithm or parameters set."
+            }
+            9 => {
+                "The currently selected algorithm doesn't support the requested output length.
 
-This error is thrown by non-extensible hash functions, when requesting an output size larger than they produce out of a single block.",10 => "A signature or authentication tag verification failed.",11 => "A secure random numbers generator is not available.
+This error is thrown by non-extensible hash functions, when requesting an output size larger than \
+                 they produce out of a single block."
+            }
+            10 => "A signature or authentication tag verification failed.",
+            11 => {
+                "A secure random numbers generator is not available.
 
-The requested operation requires random numbers, but the host cannot securely generate them at the moment.",12 => "An error was returned by the underlying cryptography library.
+The requested operation requires random numbers, but the host cannot securely generate them at the \
+                 moment."
+            }
+            12 => {
+                "An error was returned by the underlying cryptography library.
 
-The host may be running out of memory, parameters may be incompatible with the chosen implementation of an algorithm or another unexpected error may have happened.
+The host may be running out of memory, parameters may be incompatible with the chosen \
+                 implementation of an algorithm or another unexpected error may have happened.
 
-Ideally, the specification should provide enough details and guidance to make this error impossible to ever be thrown.
+Ideally, the specification should provide enough details and guidance to make this error \
+                 impossible to ever be thrown.
 
-Realistically, the WASI crypto module cannot possibly cover all possible error types implementations can return, especially since some of these may be language-specific.
-This error can thus be thrown when other error types are not suitable, and when the original error comes from the cryptographic primitives themselves and not from the WASI module.",13 => "The supplied signature is invalid, or incompatible with the chosen algorithm.",14 => "An attempt was made to close a handle that was already closed.",15 => "A function was called with an unassigned handle, a closed handle, or handle of an unexpected type.",16 => "The host needs to copy data to a guest-allocated buffer, but that buffer is too small.",17 => "An internal error occurred.
+Realistically, the WASI crypto module cannot possibly cover all possible error types \
+                 implementations can return, especially since some of these may be \
+                 language-specific.
+This error can thus be thrown when other error types are not suitable, and when the original error \
+                 comes from the cryptographic primitives themselves and not from the WASI module."
+            }
+            13 => "The supplied signature is invalid, or incompatible with the chosen algorithm.",
+            14 => "An attempt was made to close a handle that was already closed.",
+            15 => {
+                "A function was called with an unassigned handle, a closed handle, or handle of an \
+                 unexpected type."
+            }
+            16 => {
+                "The host needs to copy data to a guest-allocated buffer, but that buffer is too \
+                 small."
+            }
+            17 => {
+                "An internal error occurred.
 
-This error is reserved to internal consistency checks, and must only be sent if the internal state of the host remains safe after an inconsistency was detected.",18 => "Too many handles are currently open, and a new one cannot be created.
+This error is reserved to internal consistency checks, and must only be sent if the internal state \
+                 of the host remains safe after an inconsistency was detected."
+            }
+            18 => {
+                "Too many handles are currently open, and a new one cannot be created.
 
-Implementations are free to represent handles as they want, and to enforce limits to limit resources usage.",19 => "A key was provided, but the chosen algorithm doesn't support keys.
+Implementations are free to represent handles as they want, and to enforce limits to limit \
+                 resources usage."
+            }
+            19 => {
+                "A key was provided, but the chosen algorithm doesn't support keys.
 
 This is returned by symmetric operations.
 
-Many hash functions, in particular, do not support keys without being used in particular constructions.
-Blindly ignoring a key provided by mistake while trying to open a context for such as function could cause serious security vulnerabilities.
+Many hash functions, in particular, do not support keys without being used in particular \
+                 constructions.
+Blindly ignoring a key provided by mistake while trying to open a context for such as function \
+                 could cause serious security vulnerabilities.
 
-These functions must refuse to create the context and return this error instead.",20 => "A key is required for the chosen algorithm, but none was given.",21 => "The provided authentication tag is invalid or incompatible with the current algorithm.
+These functions must refuse to create the context and return this error instead."
+            }
+            20 => "A key is required for the chosen algorithm, but none was given.",
+            21 => {
+                "The provided authentication tag is invalid or incompatible with the current \
+                 algorithm.
 
 This error is returned by decryption functions and tag verification functions.
 
-Unlike `verification_failed`, this error code is returned when the tag cannot possibly verify for any input.",22 => "The requested operation is incompatible with the current scheme.
+Unlike `verification_failed`, this error code is returned when the tag cannot possibly verify for \
+                 any input."
+            }
+            22 => {
+                "The requested operation is incompatible with the current scheme.
 
-For example, the `symmetric_state_encrypt()` function cannot complete if the selected construction is a key derivation function.
-This error code will be returned instead.",23 => "A nonce is required.
+For example, the `symmetric_state_encrypt()` function cannot complete if the selected construction \
+                 is a key derivation function.
+This error code will be returned instead."
+            }
+            23 => {
+                "A nonce is required.
 
 Most encryption schemes require a nonce.
 
-In the absence of a nonce, the WASI cryptography module can automatically generate one, if that can be done safely. The nonce can be retrieved later with the `symmetric_state_option_get()` function using the `nonce` parameter.
-If automatically generating a nonce cannot be done safely, the module never falls back to an insecure option and requests an explicit nonce by throwing that error.",24 => "The provided nonce doesn't have a correct size for the given cipher.",25 => "The named option was not set.
+In the absence of a nonce, the WASI cryptography module can automatically generate one, if that \
+                 can be done safely. The nonce can be retrieved later with the \
+                 `symmetric_state_option_get()` function using the `nonce` parameter.
+If automatically generating a nonce cannot be done safely, the module never falls back to an \
+                 insecure option and requests an explicit nonce by throwing that error."
+            }
+            24 => "The provided nonce doesn't have a correct size for the given cipher.",
+            25 => {
+                "The named option was not set.
 
 The caller tried to read the value of an option that was not set.
-This error is used to make the distinction between an empty option, and an option that was not set and left to its default value.",26 => "A key or key pair matching the requested identifier cannot be found using the supplied information.
+This error is used to make the distinction between an empty option, and an option that was not set \
+                 and left to its default value."
+            }
+            26 => {
+                "A key or key pair matching the requested identifier cannot be found using the \
+                 supplied information.
 
-This error is returned by a secrets manager via the `keypair_from_id()` function.",27 => "The algorithm requires parameters that haven't been set.
+This error is returned by a secrets manager via the `keypair_from_id()` function."
+            }
+            27 => {
+                "The algorithm requires parameters that haven't been set.
 
-Non-generic options are required and must be given by building an `options` set and giving that object to functions instantiating that algorithm.",28 => "A requested computation is not done yet, and additional calls to the function are required.
+Non-generic options are required and must be given by building an `options` set and giving that \
+                 object to functions instantiating that algorithm."
+            }
+            28 => {
+                "A requested computation is not done yet, and additional calls to the function are \
+                 required.
 
-Some functions, such as functions generating key pairs and password stretching functions, can take a long time to complete.
+Some functions, such as functions generating key pairs and password stretching functions, can take \
+                 a long time to complete.
 
-In order to avoid a host call to be blocked for too long, these functions can return prematurely, requiring additional calls with the same parameters until they complete.",29 => "Multiple keys have been provided, but they do not share the same type.
+In order to avoid a host call to be blocked for too long, these functions can return prematurely, \
+                 requiring additional calls with the same parameters until they complete."
+            }
+            29 => {
+                "Multiple keys have been provided, but they do not share the same type.
 
-This error is returned when trying to build a key pair from a public key and a secret key that were created for different and incompatible algorithms.",30 => "A managed key or secret expired and cannot be used any more.",_ => unsafe { core::hint::unreachable_unchecked() },}
+This error is returned when trying to build a key pair from a public key and a secret key that \
+                 were created for different and incompatible algorithms."
+            }
+            30 => "A managed key or secret expired and cannot be used any more.",
+            _ => unsafe { core::hint::unreachable_unchecked() },
+        }
     }
 }
 impl fmt::Debug for CryptoErrno {
@@ -264,6 +398,7 @@ impl KeypairEncoding {
             _ => unsafe { core::hint::unreachable_unchecked() },
         }
     }
+
     pub fn message(&self) -> &'static str {
         match self.0 {
             0 => "Raw bytes.",
@@ -323,6 +458,7 @@ impl PublickeyEncoding {
             _ => unsafe { core::hint::unreachable_unchecked() },
         }
     }
+
     pub fn message(&self) -> &'static str {
         match self.0 {
             0 => "Raw bytes.",
@@ -375,6 +511,7 @@ impl SecretkeyEncoding {
             _ => unsafe { core::hint::unreachable_unchecked() },
         }
     }
+
     pub fn message(&self) -> &'static str {
         match self.0 {
             0 => "Raw bytes.",
@@ -415,6 +552,7 @@ impl SignatureEncoding {
             _ => unsafe { core::hint::unreachable_unchecked() },
         }
     }
+
     pub fn message(&self) -> &'static str {
         match self.0 {
             0 => "Raw bytes.",
@@ -452,6 +590,7 @@ impl AlgorithmType {
             _ => unsafe { core::hint::unreachable_unchecked() },
         }
     }
+
     pub fn message(&self) -> &'static str {
         match self.0 {
             0 => "",
@@ -503,6 +642,7 @@ impl OptOptionsU {
             _ => unsafe { core::hint::unreachable_unchecked() },
         }
     }
+
     pub fn message(&self) -> &'static str {
         match self.0 {
             0 => "",
@@ -551,6 +691,7 @@ impl OptSymmetricKeyU {
             _ => unsafe { core::hint::unreachable_unchecked() },
         }
     }
+
     pub fn message(&self) -> &'static str {
         match self.0 {
             0 => "",
@@ -614,7 +755,8 @@ pub unsafe fn options_open(algorithm_type: AlgorithmType) -> Result<Options, Cry
 
 /// Destroy an options object.
 ///
-/// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+/// Objects are reference counted. It is safe to close an object immediately
+/// after the last function needing it is called.
 pub unsafe fn options_close(handle: Options) -> Result<(), CryptoErrno> {
     let ret = wasi_ephemeral_crypto_common::options_close(handle as i32);
     match ret {
@@ -625,9 +767,11 @@ pub unsafe fn options_close(handle: Options) -> Result<(), CryptoErrno> {
 
 /// Set or update an option.
 ///
-/// This is used to set algorithm-specific parameters, but also to provide credentials for the secrets management facilities, if required.
+/// This is used to set algorithm-specific parameters, but also to provide
+/// credentials for the secrets management facilities, if required.
 ///
-/// This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
+/// This function may return `unsupported_option` if an option that doesn't
+/// exist for any implemented algorithms is specified.
 pub unsafe fn options_set(
     handle: Options,
     name: &str,
@@ -651,7 +795,8 @@ pub unsafe fn options_set(
 ///
 /// This is used to set algorithm-specific parameters.
 ///
-/// This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
+/// This function may return `unsupported_option` if an option that doesn't
+/// exist for any implemented algorithms is specified.
 pub unsafe fn options_set_u64(handle: Options, name: &str, value: u64) -> Result<(), CryptoErrno> {
     let ret = wasi_ephemeral_crypto_common::options_set_u64(
         handle as i32,
@@ -665,11 +810,14 @@ pub unsafe fn options_set_u64(handle: Options, name: &str, value: u64) -> Result
     }
 }
 
-/// Set or update a guest-allocated memory that the host can use or return data into.
+/// Set or update a guest-allocated memory that the host can use or return data
+/// into.
 ///
-/// This is for example used to set the scratch buffer required by memory-hard functions.
+/// This is for example used to set the scratch buffer required by memory-hard
+/// functions.
 ///
-/// This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
+/// This function may return `unsupported_option` if an option that doesn't
+/// exist for any implemented algorithms is specified.
 pub unsafe fn options_set_guest_buffer(
     handle: Options,
     name: &str,
@@ -691,7 +839,8 @@ pub unsafe fn options_set_guest_buffer(
 
 /// Return the length of an `array_output` object.
 ///
-/// This allows a guest to allocate a buffer of the correct size in order to copy the output of a function returning this object type.
+/// This allows a guest to allocate a buffer of the correct size in order to
+/// copy the output of a function returning this object type.
 pub unsafe fn array_output_len(array_output: ArrayOutput) -> Result<Size, CryptoErrno> {
     let mut rp0 = MaybeUninit::<Size>::uninit();
     let ret = wasi_ephemeral_crypto_common::array_output_len(
@@ -704,11 +853,15 @@ pub unsafe fn array_output_len(array_output: ArrayOutput) -> Result<Size, Crypto
     }
 }
 
-/// Copy the content of an `array_output` object into an application-allocated buffer.
+/// Copy the content of an `array_output` object into an application-allocated
+/// buffer.
 ///
-/// Multiple calls to that function can be made in order to consume the data in a streaming fashion, if necessary.
+/// Multiple calls to that function can be made in order to consume the data in
+/// a streaming fashion, if necessary.
 ///
-/// The function returns the number of bytes that were actually copied. `0` means that the end of the stream has been reached. The total size always matches the output of `array_output_len()`.
+/// The function returns the number of bytes that were actually copied. `0`
+/// means that the end of the stream has been reached. The total size always
+/// matches the output of `array_output_len()`.
 ///
 /// The handle is automatically closed after all the data has been consumed.
 ///
@@ -742,8 +895,9 @@ pub unsafe fn array_output_pull(
 ///
 /// The set of required and supported options is defined by the host.
 ///
-/// The function returns the `unsupported_feature` error code if secrets management facilities are not supported by the host.
-/// This is also an optional import, meaning that the function may not even exist.
+/// The function returns the `unsupported_feature` error code if secrets
+/// management facilities are not supported by the host. This is also an
+/// optional import, meaning that the function may not even exist.
 pub unsafe fn secrets_manager_open(options: OptOptions) -> Result<SecretsManager, CryptoErrno> {
     let mut rp0 = MaybeUninit::<SecretsManager>::uninit();
     let ret = wasi_ephemeral_crypto_common::secrets_manager_open(
@@ -761,8 +915,9 @@ pub unsafe fn secrets_manager_open(options: OptOptions) -> Result<SecretsManager
 /// __(optional)__
 /// Destroy a secrets manager context.
 ///
-/// The function returns the `unsupported_feature` error code if secrets management facilities are not supported by the host.
-/// This is also an optional import, meaning that the function may not even exist.
+/// The function returns the `unsupported_feature` error code if secrets
+/// management facilities are not supported by the host. This is also an
+/// optional import, meaning that the function may not even exist.
 pub unsafe fn secrets_manager_close(secrets_manager: SecretsManager) -> Result<(), CryptoErrno> {
     let ret = wasi_ephemeral_crypto_common::secrets_manager_close(secrets_manager as i32);
     match ret {
@@ -774,11 +929,16 @@ pub unsafe fn secrets_manager_close(secrets_manager: SecretsManager) -> Result<(
 /// __(optional)__
 /// Invalidate a managed key or key pair given an identifier and a version.
 ///
-/// This asks the secrets manager to delete or revoke a stored key, a specific version of a key.
+/// This asks the secrets manager to delete or revoke a stored key, a specific
+/// version of a key.
 ///
-/// `key_version` can be set to a version number, to `version.latest` to invalidate the current version, or to `version.all` to invalidate all versions of a key.
+/// `key_version` can be set to a version number, to `version.latest` to
+/// invalidate the current version, or to `version.all` to invalidate all
+/// versions of a key.
 ///
-/// The function returns `unsupported_feature` if this operation is not supported by the host, and `not_found` if the identifier and version don't match any existing key.
+/// The function returns `unsupported_feature` if this operation is not
+/// supported by the host, and `not_found` if the identifier and version don't
+/// match any existing key.
 ///
 /// This is an optional import, meaning that the function may not even exist.
 pub unsafe fn secrets_manager_invalidate(
@@ -816,25 +976,33 @@ pub mod wasi_ephemeral_crypto_common {
         pub fn options_open(arg0: i32, arg1: i32) -> i32;
         /// Destroy an options object.
         ///
-        /// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+        /// Objects are reference counted. It is safe to close an object
+        /// immediately after the last function needing it is called.
         pub fn options_close(arg0: i32) -> i32;
         /// Set or update an option.
         ///
-        /// This is used to set algorithm-specific parameters, but also to provide credentials for the secrets management facilities, if required.
+        /// This is used to set algorithm-specific parameters, but also to
+        /// provide credentials for the secrets management facilities, if
+        /// required.
         ///
-        /// This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
+        /// This function may return `unsupported_option` if an option that
+        /// doesn't exist for any implemented algorithms is specified.
         pub fn options_set(arg0: i32, arg1: i32, arg2: i32, arg3: i32, arg4: i32) -> i32;
         /// Set or update an integer option.
         ///
         /// This is used to set algorithm-specific parameters.
         ///
-        /// This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
+        /// This function may return `unsupported_option` if an option that
+        /// doesn't exist for any implemented algorithms is specified.
         pub fn options_set_u64(arg0: i32, arg1: i32, arg2: i32, arg3: i64) -> i32;
-        /// Set or update a guest-allocated memory that the host can use or return data into.
+        /// Set or update a guest-allocated memory that the host can use or
+        /// return data into.
         ///
-        /// This is for example used to set the scratch buffer required by memory-hard functions.
+        /// This is for example used to set the scratch buffer required by
+        /// memory-hard functions.
         ///
-        /// This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
+        /// This function may return `unsupported_option` if an option that
+        /// doesn't exist for any implemented algorithms is specified.
         pub fn options_set_guest_buffer(
             arg0: i32,
             arg1: i32,
@@ -844,15 +1012,21 @@ pub mod wasi_ephemeral_crypto_common {
         ) -> i32;
         /// Return the length of an `array_output` object.
         ///
-        /// This allows a guest to allocate a buffer of the correct size in order to copy the output of a function returning this object type.
+        /// This allows a guest to allocate a buffer of the correct size in
+        /// order to copy the output of a function returning this object type.
         pub fn array_output_len(arg0: i32, arg1: i32) -> i32;
-        /// Copy the content of an `array_output` object into an application-allocated buffer.
+        /// Copy the content of an `array_output` object into an
+        /// application-allocated buffer.
         ///
-        /// Multiple calls to that function can be made in order to consume the data in a streaming fashion, if necessary.
+        /// Multiple calls to that function can be made in order to consume the
+        /// data in a streaming fashion, if necessary.
         ///
-        /// The function returns the number of bytes that were actually copied. `0` means that the end of the stream has been reached. The total size always matches the output of `array_output_len()`.
+        /// The function returns the number of bytes that were actually copied.
+        /// `0` means that the end of the stream has been reached. The total
+        /// size always matches the output of `array_output_len()`.
         ///
-        /// The handle is automatically closed after all the data has been consumed.
+        /// The handle is automatically closed after all the data has been
+        /// consumed.
         ///
         /// Example usage:
         ///
@@ -867,45 +1041,62 @@ pub mod wasi_ephemeral_crypto_common {
         ///
         /// The set of required and supported options is defined by the host.
         ///
-        /// The function returns the `unsupported_feature` error code if secrets management facilities are not supported by the host.
-        /// This is also an optional import, meaning that the function may not even exist.
+        /// The function returns the `unsupported_feature` error code if secrets
+        /// management facilities are not supported by the host. This is
+        /// also an optional import, meaning that the function may not even
+        /// exist.
         pub fn secrets_manager_open(arg0: i32, arg1: i32) -> i32;
         /// __(optional)__
         /// Destroy a secrets manager context.
         ///
-        /// The function returns the `unsupported_feature` error code if secrets management facilities are not supported by the host.
-        /// This is also an optional import, meaning that the function may not even exist.
+        /// The function returns the `unsupported_feature` error code if secrets
+        /// management facilities are not supported by the host. This is
+        /// also an optional import, meaning that the function may not even
+        /// exist.
         pub fn secrets_manager_close(arg0: i32) -> i32;
         /// __(optional)__
-        /// Invalidate a managed key or key pair given an identifier and a version.
+        /// Invalidate a managed key or key pair given an identifier and a
+        /// version.
         ///
-        /// This asks the secrets manager to delete or revoke a stored key, a specific version of a key.
+        /// This asks the secrets manager to delete or revoke a stored key, a
+        /// specific version of a key.
         ///
-        /// `key_version` can be set to a version number, to `version.latest` to invalidate the current version, or to `version.all` to invalidate all versions of a key.
+        /// `key_version` can be set to a version number, to `version.latest` to
+        /// invalidate the current version, or to `version.all` to invalidate
+        /// all versions of a key.
         ///
-        /// The function returns `unsupported_feature` if this operation is not supported by the host, and `not_found` if the identifier and version don't match any existing key.
+        /// The function returns `unsupported_feature` if this operation is not
+        /// supported by the host, and `not_found` if the identifier and version
+        /// don't match any existing key.
         ///
-        /// This is an optional import, meaning that the function may not even exist.
+        /// This is an optional import, meaning that the function may not even
+        /// exist.
         pub fn secrets_manager_invalidate(arg0: i32, arg1: i32, arg2: i32, arg3: i64) -> i32;
     }
 }
 /// Generate a new key pair.
 ///
-/// Internally, a key pair stores the supplied algorithm and optional parameters.
+/// Internally, a key pair stores the supplied algorithm and optional
+/// parameters.
 ///
-/// Trying to use that key pair with different parameters will throw an `invalid_key` error.
+/// Trying to use that key pair with different parameters will throw an
+/// `invalid_key` error.
 ///
-/// This function may return `$crypto_errno.unsupported_feature` if key generation is not supported by the host for the chosen algorithm.
+/// This function may return `$crypto_errno.unsupported_feature` if key
+/// generation is not supported by the host for the chosen algorithm.
 ///
-/// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+/// The function may also return `unsupported_algorithm` if the algorithm is not
+/// supported by the host.
 ///
-/// Finally, if generating that type of key pair is an expensive operation, the function may return `in_progress`.
-/// In that case, the guest should retry with the same parameters until the function completes.
+/// Finally, if generating that type of key pair is an expensive operation, the
+/// function may return `in_progress`. In that case, the guest should retry with
+/// the same parameters until the function completes.
 ///
 /// Example usage:
 ///
 /// ```rust
-/// let kp_handle = ctx.keypair_generate(AlgorithmType::Signatures, "RSA_PKCS1_2048_SHA256", None)?;
+/// let kp_handle =
+///     ctx.keypair_generate(AlgorithmType::Signatures, "RSA_PKCS1_2048_SHA256", None)?;
 /// ```
 pub unsafe fn keypair_generate(
     algorithm_type: AlgorithmType,
@@ -930,14 +1121,20 @@ pub unsafe fn keypair_generate(
 ///
 /// This function creates a `keypair` object from existing material.
 ///
-/// It may return `unsupported_algorithm` if the encoding scheme is not supported, or `invalid_key` if the key cannot be decoded.
+/// It may return `unsupported_algorithm` if the encoding scheme is not
+/// supported, or `invalid_key` if the key cannot be decoded.
 ///
-/// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+/// The function may also return `unsupported_algorithm` if the algorithm is not
+/// supported by the host.
 ///
 /// Example usage:
 ///
 /// ```rust
-/// let kp_handle = ctx.keypair_import(AlgorithmType::Signatures, "RSA_PKCS1_2048_SHA256", KeypairEncoding::PKCS8)?;
+/// let kp_handle = ctx.keypair_import(
+///     AlgorithmType::Signatures,
+///     "RSA_PKCS1_2048_SHA256",
+///     KeypairEncoding::PKCS8,
+/// )?;
 /// ```
 pub unsafe fn keypair_import(
     algorithm_type: AlgorithmType,
@@ -967,14 +1164,19 @@ pub unsafe fn keypair_import(
 ///
 /// The key pair is generated and stored by the secrets management facilities.
 ///
-/// It may be used through its identifier, but the host may not allow it to be exported.
+/// It may be used through its identifier, but the host may not allow it to be
+/// exported.
 ///
-/// The function returns the `unsupported_feature` error code if secrets management facilities are not supported by the host,
-/// or `unsupported_algorithm` if a key cannot be created for the chosen algorithm.
+/// The function returns the `unsupported_feature` error code if secrets
+/// management facilities are not supported by the host,
+/// or `unsupported_algorithm` if a key cannot be created for the chosen
+/// algorithm.
 ///
-/// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+/// The function may also return `unsupported_algorithm` if the algorithm is not
+/// supported by the host.
 ///
-/// This is also an optional import, meaning that the function may not even exist.
+/// This is also an optional import, meaning that the function may not even
+/// exist.
 pub unsafe fn keypair_generate_managed(
     secrets_manager: SecretsManager,
     algorithm_type: AlgorithmType,
@@ -1024,20 +1226,25 @@ pub unsafe fn keypair_store_managed(
 /// __(optional)__
 /// Replace a managed key pair.
 ///
-/// This function crates a new version of a managed key pair, by replacing `$kp_old` with `$kp_new`.
+/// This function crates a new version of a managed key pair, by replacing
+/// `$kp_old` with `$kp_new`.
 ///
 /// It does several things:
 ///
 /// - The key identifier for `$kp_new` is set to the one of `$kp_old`.
-/// - A new, unique version identifier is assigned to `$kp_new`. This version will be equivalent to using `$version_latest` until the key is replaced.
+/// - A new, unique version identifier is assigned to `$kp_new`. This version
+///   will be equivalent to using `$version_latest` until the key is replaced.
 /// - The `$kp_old` handle is closed.
 ///
-/// Both keys must share the same algorithm and have compatible parameters. If this is not the case, `incompatible_keys` is returned.
+/// Both keys must share the same algorithm and have compatible parameters. If
+/// this is not the case, `incompatible_keys` is returned.
 ///
-/// The function may also return the `unsupported_feature` error code if secrets management facilities are not supported by the host,
-/// or if keys cannot be rotated.
+/// The function may also return the `unsupported_feature` error code if secrets
+/// management facilities are not supported by the host, or if keys cannot be
+/// rotated.
 ///
-/// Finally, `prohibited_operation` can be returned if `$kp_new` wasn't created by the secrets manager, and the secrets manager prohibits imported keys.
+/// Finally, `prohibited_operation` can be returned if `$kp_new` wasn't created
+/// by the secrets manager, and the secrets manager prohibits imported keys.
 ///
 /// If the operation succeeded, the new version is returned.
 ///
@@ -1092,9 +1299,11 @@ pub unsafe fn keypair_id(
 /// __(optional)__
 /// Return a managed key pair from a key identifier.
 ///
-/// `kp_version` can be set to `version_latest` to retrieve the most recent version of a key pair.
+/// `kp_version` can be set to `version_latest` to retrieve the most recent
+/// version of a key pair.
 ///
-/// If no key pair matching the provided information is found, `not_found` is returned instead.
+/// If no key pair matching the provided information is found, `not_found` is
+/// returned instead.
 ///
 /// This is an optional import, meaning that the function may not even exist.
 /// ```
@@ -1137,7 +1346,8 @@ pub unsafe fn keypair_from_pk_and_sk(
 
 /// Export a key pair as the given encoding format.
 ///
-/// May return `prohibited_operation` if this operation is denied or `unsupported_encoding` if the encoding is not supported.
+/// May return `prohibited_operation` if this operation is denied or
+/// `unsupported_encoding` if the encoding is not supported.
 pub unsafe fn keypair_export(
     kp: Keypair,
     encoding: KeypairEncoding,
@@ -1186,7 +1396,8 @@ pub unsafe fn keypair_secretkey(kp: Keypair) -> Result<Secretkey, CryptoErrno> {
 ///
 /// The host will automatically wipe traces of the secret key from memory.
 ///
-/// If this is a managed key, the key will not be removed from persistent storage, and can be reconstructed later using the key identifier.
+/// If this is a managed key, the key will not be removed from persistent
+/// storage, and can be reconstructed later using the key identifier.
 pub unsafe fn keypair_close(kp: Keypair) -> Result<(), CryptoErrno> {
     let ret = wasi_ephemeral_crypto_asymmetric_common::keypair_close(kp as i32);
     match ret {
@@ -1197,16 +1408,20 @@ pub unsafe fn keypair_close(kp: Keypair) -> Result<(), CryptoErrno> {
 
 /// Import a public key.
 ///
-/// The function may return `unsupported_encoding` if importing from the given format is not implemented or incompatible with the key type.
+/// The function may return `unsupported_encoding` if importing from the given
+/// format is not implemented or incompatible with the key type.
 ///
-/// It may also return `invalid_key` if the key doesn't appear to match the supplied algorithm.
+/// It may also return `invalid_key` if the key doesn't appear to match the
+/// supplied algorithm.
 ///
-/// Finally, the function may return `unsupported_algorithm` if the algorithm is not supported by the host.
+/// Finally, the function may return `unsupported_algorithm` if the algorithm is
+/// not supported by the host.
 ///
 /// Example usage:
 ///
 /// ```rust
-/// let pk_handle = ctx.publickey_import(AlgorithmType::Signatures, encoded, PublicKeyEncoding::Sec)?;
+/// let pk_handle =
+///     ctx.publickey_import(AlgorithmType::Signatures, encoded, PublicKeyEncoding::Sec)?;
 /// ```
 pub unsafe fn publickey_import(
     algorithm_type: AlgorithmType,
@@ -1254,7 +1469,8 @@ pub unsafe fn publickey_export(
 
 /// Check that a public key is valid and in canonical form.
 ///
-/// This function may perform stricter checks than those made during importation at the expense of additional CPU cycles.
+/// This function may perform stricter checks than those made during importation
+/// at the expense of additional CPU cycles.
 ///
 /// The function returns `invalid_key` if the public key didn't pass the checks.
 pub unsafe fn publickey_verify(pk: Publickey) -> Result<(), CryptoErrno> {
@@ -1280,7 +1496,8 @@ pub unsafe fn publickey_from_secretkey(sk: Secretkey) -> Result<Publickey, Crypt
 
 /// Destroy a public key.
 ///
-/// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+/// Objects are reference counted. It is safe to close an object immediately
+/// after the last function needing it is called.
 pub unsafe fn publickey_close(pk: Publickey) -> Result<(), CryptoErrno> {
     let ret = wasi_ephemeral_crypto_asymmetric_common::publickey_close(pk as i32);
     match ret {
@@ -1291,11 +1508,14 @@ pub unsafe fn publickey_close(pk: Publickey) -> Result<(), CryptoErrno> {
 
 /// Import a secret key.
 ///
-/// The function may return `unsupported_encoding` if importing from the given format is not implemented or incompatible with the key type.
+/// The function may return `unsupported_encoding` if importing from the given
+/// format is not implemented or incompatible with the key type.
 ///
-/// It may also return `invalid_key` if the key doesn't appear to match the supplied algorithm.
+/// It may also return `invalid_key` if the key doesn't appear to match the
+/// supplied algorithm.
 ///
-/// Finally, the function may return `unsupported_algorithm` if the algorithm is not supported by the host.
+/// Finally, the function may return `unsupported_algorithm` if the algorithm is
+/// not supported by the host.
 ///
 /// Example usage:
 ///
@@ -1348,7 +1568,8 @@ pub unsafe fn secretkey_export(
 
 /// Destroy a secret key.
 ///
-/// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+/// Objects are reference counted. It is safe to close an object immediately
+/// after the last function needing it is called.
 pub unsafe fn secretkey_close(sk: Secretkey) -> Result<(), CryptoErrno> {
     let ret = wasi_ephemeral_crypto_asymmetric_common::secretkey_close(sk as i32);
     match ret {
@@ -1362,35 +1583,48 @@ pub mod wasi_ephemeral_crypto_asymmetric_common {
     extern "C" {
         /// Generate a new key pair.
         ///
-        /// Internally, a key pair stores the supplied algorithm and optional parameters.
+        /// Internally, a key pair stores the supplied algorithm and optional
+        /// parameters.
         ///
-        /// Trying to use that key pair with different parameters will throw an `invalid_key` error.
+        /// Trying to use that key pair with different parameters will throw an
+        /// `invalid_key` error.
         ///
-        /// This function may return `$crypto_errno.unsupported_feature` if key generation is not supported by the host for the chosen algorithm.
+        /// This function may return `$crypto_errno.unsupported_feature` if key
+        /// generation is not supported by the host for the chosen algorithm.
         ///
-        /// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+        /// The function may also return `unsupported_algorithm` if the
+        /// algorithm is not supported by the host.
         ///
-        /// Finally, if generating that type of key pair is an expensive operation, the function may return `in_progress`.
-        /// In that case, the guest should retry with the same parameters until the function completes.
+        /// Finally, if generating that type of key pair is an expensive
+        /// operation, the function may return `in_progress`.
+        /// In that case, the guest should retry with the same parameters until
+        /// the function completes.
         ///
         /// Example usage:
         ///
         /// ```rust
-        /// let kp_handle = ctx.keypair_generate(AlgorithmType::Signatures, "RSA_PKCS1_2048_SHA256", None)?;
+        /// let kp_handle =
+        ///     ctx.keypair_generate(AlgorithmType::Signatures, "RSA_PKCS1_2048_SHA256", None)?;
         /// ```
         pub fn keypair_generate(arg0: i32, arg1: i32, arg2: i32, arg3: i32, arg4: i32) -> i32;
         /// Import a key pair.
         ///
         /// This function creates a `keypair` object from existing material.
         ///
-        /// It may return `unsupported_algorithm` if the encoding scheme is not supported, or `invalid_key` if the key cannot be decoded.
+        /// It may return `unsupported_algorithm` if the encoding scheme is not
+        /// supported, or `invalid_key` if the key cannot be decoded.
         ///
-        /// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+        /// The function may also return `unsupported_algorithm` if the
+        /// algorithm is not supported by the host.
         ///
         /// Example usage:
         ///
         /// ```rust
-        /// let kp_handle = ctx.keypair_import(AlgorithmType::Signatures, "RSA_PKCS1_2048_SHA256", KeypairEncoding::PKCS8)?;
+        /// let kp_handle = ctx.keypair_import(
+        ///     AlgorithmType::Signatures,
+        ///     "RSA_PKCS1_2048_SHA256",
+        ///     KeypairEncoding::PKCS8,
+        /// )?;
         /// ```
         pub fn keypair_import(
             arg0: i32,
@@ -1404,16 +1638,22 @@ pub mod wasi_ephemeral_crypto_asymmetric_common {
         /// __(optional)__
         /// Generate a new managed key pair.
         ///
-        /// The key pair is generated and stored by the secrets management facilities.
+        /// The key pair is generated and stored by the secrets management
+        /// facilities.
         ///
-        /// It may be used through its identifier, but the host may not allow it to be exported.
+        /// It may be used through its identifier, but the host may not allow it
+        /// to be exported.
         ///
-        /// The function returns the `unsupported_feature` error code if secrets management facilities are not supported by the host,
-        /// or `unsupported_algorithm` if a key cannot be created for the chosen algorithm.
+        /// The function returns the `unsupported_feature` error code if secrets
+        /// management facilities are not supported by the host,
+        /// or `unsupported_algorithm` if a key cannot be created for the chosen
+        /// algorithm.
         ///
-        /// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+        /// The function may also return `unsupported_algorithm` if the
+        /// algorithm is not supported by the host.
         ///
-        /// This is also an optional import, meaning that the function may not even exist.
+        /// This is also an optional import, meaning that the function may not
+        /// even exist.
         pub fn keypair_generate_managed(
             arg0: i32,
             arg1: i32,
@@ -1425,55 +1665,69 @@ pub mod wasi_ephemeral_crypto_asymmetric_common {
         /// __(optional)__
         /// Store a key pair into the secrets manager.
         ///
-        /// On success, the function stores the key pair identifier into `$kp_id`,
-        /// into which up to `$kp_id_max_len` can be written.
+        /// On success, the function stores the key pair identifier into
+        /// `$kp_id`, into which up to `$kp_id_max_len` can be written.
         ///
         /// The function returns `overflow` if the supplied buffer is too small.
         pub fn keypair_store_managed(arg0: i32, arg1: i32, arg2: i32, arg3: i32) -> i32;
         /// __(optional)__
         /// Replace a managed key pair.
         ///
-        /// This function crates a new version of a managed key pair, by replacing `$kp_old` with `$kp_new`.
+        /// This function crates a new version of a managed key pair, by
+        /// replacing `$kp_old` with `$kp_new`.
         ///
         /// It does several things:
         ///
         /// - The key identifier for `$kp_new` is set to the one of `$kp_old`.
-        /// - A new, unique version identifier is assigned to `$kp_new`. This version will be equivalent to using `$version_latest` until the key is replaced.
+        /// - A new, unique version identifier is assigned to `$kp_new`. This
+        ///   version will be equivalent to using `$version_latest` until the
+        ///   key is replaced.
         /// - The `$kp_old` handle is closed.
         ///
-        /// Both keys must share the same algorithm and have compatible parameters. If this is not the case, `incompatible_keys` is returned.
+        /// Both keys must share the same algorithm and have compatible
+        /// parameters. If this is not the case, `incompatible_keys` is
+        /// returned.
         ///
-        /// The function may also return the `unsupported_feature` error code if secrets management facilities are not supported by the host,
+        /// The function may also return the `unsupported_feature` error code if
+        /// secrets management facilities are not supported by the host,
         /// or if keys cannot be rotated.
         ///
-        /// Finally, `prohibited_operation` can be returned if `$kp_new` wasn't created by the secrets manager, and the secrets manager prohibits imported keys.
+        /// Finally, `prohibited_operation` can be returned if `$kp_new` wasn't
+        /// created by the secrets manager, and the secrets manager prohibits
+        /// imported keys.
         ///
         /// If the operation succeeded, the new version is returned.
         ///
-        /// This is an optional import, meaning that the function may not even exist.
+        /// This is an optional import, meaning that the function may not even
+        /// exist.
         pub fn keypair_replace_managed(arg0: i32, arg1: i32, arg2: i32, arg3: i32) -> i32;
         /// __(optional)__
         /// Return the key pair identifier and version of a managed key pair.
         ///
-        /// If the key pair is not managed, `unsupported_feature` is returned instead.
+        /// If the key pair is not managed, `unsupported_feature` is returned
+        /// instead.
         ///
-        /// This is an optional import, meaning that the function may not even exist.
+        /// This is an optional import, meaning that the function may not even
+        /// exist.
         pub fn keypair_id(arg0: i32, arg1: i32, arg2: i32, arg3: i32, arg4: i32) -> i32;
         /// __(optional)__
         /// Return a managed key pair from a key identifier.
         ///
-        /// `kp_version` can be set to `version_latest` to retrieve the most recent version of a key pair.
+        /// `kp_version` can be set to `version_latest` to retrieve the most
+        /// recent version of a key pair.
         ///
-        /// If no key pair matching the provided information is found, `not_found` is returned instead.
+        /// If no key pair matching the provided information is found,
+        /// `not_found` is returned instead.
         ///
-        /// This is an optional import, meaning that the function may not even exist.
-        /// ```
+        /// This is an optional import, meaning that the function may not even
+        /// exist. ```
         pub fn keypair_from_id(arg0: i32, arg1: i32, arg2: i32, arg3: i64, arg4: i32) -> i32;
         /// Create a key pair from a public key and a secret key.
         pub fn keypair_from_pk_and_sk(arg0: i32, arg1: i32, arg2: i32) -> i32;
         /// Export a key pair as the given encoding format.
         ///
-        /// May return `prohibited_operation` if this operation is denied or `unsupported_encoding` if the encoding is not supported.
+        /// May return `prohibited_operation` if this operation is denied or
+        /// `unsupported_encoding` if the encoding is not supported.
         pub fn keypair_export(arg0: i32, arg1: i32, arg2: i32) -> i32;
         /// Get the public key of a key pair.
         pub fn keypair_publickey(arg0: i32, arg1: i32) -> i32;
@@ -1481,22 +1735,29 @@ pub mod wasi_ephemeral_crypto_asymmetric_common {
         pub fn keypair_secretkey(arg0: i32, arg1: i32) -> i32;
         /// Destroy a key pair.
         ///
-        /// The host will automatically wipe traces of the secret key from memory.
+        /// The host will automatically wipe traces of the secret key from
+        /// memory.
         ///
-        /// If this is a managed key, the key will not be removed from persistent storage, and can be reconstructed later using the key identifier.
+        /// If this is a managed key, the key will not be removed from
+        /// persistent storage, and can be reconstructed later using the key
+        /// identifier.
         pub fn keypair_close(arg0: i32) -> i32;
         /// Import a public key.
         ///
-        /// The function may return `unsupported_encoding` if importing from the given format is not implemented or incompatible with the key type.
+        /// The function may return `unsupported_encoding` if importing from the
+        /// given format is not implemented or incompatible with the key type.
         ///
-        /// It may also return `invalid_key` if the key doesn't appear to match the supplied algorithm.
+        /// It may also return `invalid_key` if the key doesn't appear to match
+        /// the supplied algorithm.
         ///
-        /// Finally, the function may return `unsupported_algorithm` if the algorithm is not supported by the host.
+        /// Finally, the function may return `unsupported_algorithm` if the
+        /// algorithm is not supported by the host.
         ///
         /// Example usage:
         ///
         /// ```rust
-        /// let pk_handle = ctx.publickey_import(AlgorithmType::Signatures, encoded, PublicKeyEncoding::Sec)?;
+        /// let pk_handle =
+        ///     ctx.publickey_import(AlgorithmType::Signatures, encoded, PublicKeyEncoding::Sec)?;
         /// ```
         pub fn publickey_import(
             arg0: i32,
@@ -1513,23 +1774,29 @@ pub mod wasi_ephemeral_crypto_asymmetric_common {
         pub fn publickey_export(arg0: i32, arg1: i32, arg2: i32) -> i32;
         /// Check that a public key is valid and in canonical form.
         ///
-        /// This function may perform stricter checks than those made during importation at the expense of additional CPU cycles.
+        /// This function may perform stricter checks than those made during
+        /// importation at the expense of additional CPU cycles.
         ///
-        /// The function returns `invalid_key` if the public key didn't pass the checks.
+        /// The function returns `invalid_key` if the public key didn't pass the
+        /// checks.
         pub fn publickey_verify(arg0: i32) -> i32;
         /// Compute the public key for a secret key.
         pub fn publickey_from_secretkey(arg0: i32, arg1: i32) -> i32;
         /// Destroy a public key.
         ///
-        /// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+        /// Objects are reference counted. It is safe to close an object
+        /// immediately after the last function needing it is called.
         pub fn publickey_close(arg0: i32) -> i32;
         /// Import a secret key.
         ///
-        /// The function may return `unsupported_encoding` if importing from the given format is not implemented or incompatible with the key type.
+        /// The function may return `unsupported_encoding` if importing from the
+        /// given format is not implemented or incompatible with the key type.
         ///
-        /// It may also return `invalid_key` if the key doesn't appear to match the supplied algorithm.
+        /// It may also return `invalid_key` if the key doesn't appear to match
+        /// the supplied algorithm.
         ///
-        /// Finally, the function may return `unsupported_algorithm` if the algorithm is not supported by the host.
+        /// Finally, the function may return `unsupported_algorithm` if the
+        /// algorithm is not supported by the host.
         ///
         /// Example usage:
         ///
@@ -1551,7 +1818,8 @@ pub mod wasi_ephemeral_crypto_asymmetric_common {
         pub fn secretkey_export(arg0: i32, arg1: i32, arg2: i32) -> i32;
         /// Destroy a secret key.
         ///
-        /// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+        /// Objects are reference counted. It is safe to close an object
+        /// immediately after the last function needing it is called.
         pub fn secretkey_close(arg0: i32) -> i32;
     }
 }
@@ -1559,7 +1827,8 @@ pub mod wasi_ephemeral_crypto_asymmetric_common {
 ///
 /// This function exports a signature object using the specified encoding.
 ///
-/// May return `unsupported_encoding` if the signature cannot be encoded into the given format.
+/// May return `unsupported_encoding` if the signature cannot be encoded into
+/// the given format.
 pub unsafe fn signature_export(
     signature: Signature,
     encoding: SignatureEncoding,
@@ -1580,16 +1849,21 @@ pub unsafe fn signature_export(
 
 /// Create a signature object.
 ///
-/// This object can be used along with a public key to verify an existing signature.
+/// This object can be used along with a public key to verify an existing
+/// signature.
 ///
-/// It may return `invalid_signature` if the signature is invalid or incompatible with the specified algorithm, as well as `unsupported_encoding` if the encoding is not compatible with the signature type.
+/// It may return `invalid_signature` if the signature is invalid or
+/// incompatible with the specified algorithm, as well as `unsupported_encoding`
+/// if the encoding is not compatible with the signature type.
 ///
-/// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+/// The function may also return `unsupported_algorithm` if the algorithm is not
+/// supported by the host.
 ///
 /// Example usage:
 ///
 /// ```rust
-/// let signature_handle = ctx.signature_import("ECDSA_P256_SHA256", SignatureEncoding::DER, encoded)?;
+/// let signature_handle =
+///     ctx.signature_import("ECDSA_P256_SHA256", SignatureEncoding::DER, encoded)?;
 /// ```
 pub unsafe fn signature_import(
     algorithm: &str,
@@ -1614,14 +1888,22 @@ pub unsafe fn signature_import(
 
 /// Create a new state to collect data to compute a signature on.
 ///
-/// This function allows data to be signed to be supplied in a streaming fashion.
+/// This function allows data to be signed to be supplied in a streaming
+/// fashion.
 ///
-/// The state is not closed and can be used after a signature has been computed, allowing incremental updates by calling `signature_state_update()` again afterwards.
+/// The state is not closed and can be used after a signature has been computed,
+/// allowing incremental updates by calling `signature_state_update()` again
+/// afterwards.
 ///
 /// Example usage - signature creation
 ///
 /// ```rust
-/// let kp_handle = ctx.keypair_import(AlgorithmType::Signatures, "Ed25519ph", keypair, KeypairEncoding::Raw)?;
+/// let kp_handle = ctx.keypair_import(
+///     AlgorithmType::Signatures,
+///     "Ed25519ph",
+///     keypair,
+///     KeypairEncoding::Raw,
+/// )?;
 /// let state_handle = ctx.signature_state_open(kp_handle)?;
 /// ctx.signature_state_update(state_handle, b"message part 1")?;
 /// ctx.signature_state_update(state_handle, b"message part 2")?;
@@ -1642,7 +1924,8 @@ pub unsafe fn signature_state_open(kp: SignatureKeypair) -> Result<SignatureStat
 
 /// Absorb data into the signature state.
 ///
-/// This function may return `unsupported_feature` is the selected algorithm doesn't support incremental updates.
+/// This function may return `unsupported_feature` is the selected algorithm
+/// doesn't support incremental updates.
 pub unsafe fn signature_state_update(
     state: SignatureState,
     input: *const u8,
@@ -1678,9 +1961,11 @@ pub unsafe fn signature_state_sign(state: SignatureState) -> Result<ArrayOutput,
 
 /// Destroy a signature state.
 ///
-/// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+/// Objects are reference counted. It is safe to close an object immediately
+/// after the last function needing it is called.
 ///
-/// Note that closing a signature state doesn't close or invalidate the key pair object, that be reused for further signatures.
+/// Note that closing a signature state doesn't close or invalidate the key pair
+/// object, that be reused for further signatures.
 pub unsafe fn signature_state_close(state: SignatureState) -> Result<(), CryptoErrno> {
     let ret = wasi_ephemeral_crypto_signatures::signature_state_close(state as i32);
     match ret {
@@ -1693,13 +1978,24 @@ pub unsafe fn signature_state_close(state: SignatureState) -> Result<(), CryptoE
 ///
 /// This is the verification counterpart of `signature_state`.
 ///
-/// Data can be injected using `signature_verification_state_update()`, and the state is not closed after a verification, allowing incremental verification.
+/// Data can be injected using `signature_verification_state_update()`, and the
+/// state is not closed after a verification, allowing incremental verification.
 ///
 /// Example usage - signature verification:
 ///
 /// ```rust
-/// let pk_handle = ctx.publickey_import(AlgorithmType::Signatures, "ECDSA_P256_SHA256", encoded_pk, PublicKeyEncoding::Sec)?;
-/// let signature_handle = ctx.signature_import(AlgorithmType::Signatures, "ECDSA_P256_SHA256", encoded_sig, SignatureEncoding::Der)?;
+/// let pk_handle = ctx.publickey_import(
+///     AlgorithmType::Signatures,
+///     "ECDSA_P256_SHA256",
+///     encoded_pk,
+///     PublicKeyEncoding::Sec,
+/// )?;
+/// let signature_handle = ctx.signature_import(
+///     AlgorithmType::Signatures,
+///     "ECDSA_P256_SHA256",
+///     encoded_sig,
+///     SignatureEncoding::Der,
+/// )?;
 /// let state_handle = ctx.signature_verification_state_open(pk_handle)?;
 /// ctx.signature_verification_state_update(state_handle, "message")?;
 /// ctx.signature_verification_state_verify(signature_handle)?;
@@ -1722,7 +2018,8 @@ pub unsafe fn signature_verification_state_open(
 
 /// Absorb data into the signature verification state.
 ///
-/// This function may return `unsupported_feature` is the selected algorithm doesn't support incremental updates.
+/// This function may return `unsupported_feature` is the selected algorithm
+/// doesn't support incremental updates.
 pub unsafe fn signature_verification_state_update(
     state: SignatureVerificationState,
     input: *const u8,
@@ -1739,11 +2036,14 @@ pub unsafe fn signature_verification_state_update(
     }
 }
 
-/// Check that the given signature is verifies for the data collected up to that point point.
+/// Check that the given signature is verifies for the data collected up to that
+/// point point.
 ///
-/// The state is not closed and can absorb more data to allow for incremental verification.
+/// The state is not closed and can absorb more data to allow for incremental
+/// verification.
 ///
-/// The function returns `invalid_signature` if the signature doesn't appear to be valid.
+/// The function returns `invalid_signature` if the signature doesn't appear to
+/// be valid.
 pub unsafe fn signature_verification_state_verify(
     state: SignatureVerificationState,
     signature: Signature,
@@ -1760,9 +2060,11 @@ pub unsafe fn signature_verification_state_verify(
 
 /// Destroy a signature verification state.
 ///
-/// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+/// Objects are reference counted. It is safe to close an object immediately
+/// after the last function needing it is called.
 ///
-/// Note that closing a signature state doesn't close or invalidate the public key object, that be reused for further verifications.
+/// Note that closing a signature state doesn't close or invalidate the public
+/// key object, that be reused for further verifications.
 pub unsafe fn signature_verification_state_close(
     state: SignatureVerificationState,
 ) -> Result<(), CryptoErrno> {
@@ -1775,7 +2077,8 @@ pub unsafe fn signature_verification_state_close(
 
 /// Destroy a signature.
 ///
-/// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+/// Objects are reference counted. It is safe to close an object immediately
+/// after the last function needing it is called.
 pub unsafe fn signature_close(signature: Signature) -> Result<(), CryptoErrno> {
     let ret = wasi_ephemeral_crypto_signatures::signature_close(signature as i32);
     match ret {
@@ -1789,22 +2092,30 @@ pub mod wasi_ephemeral_crypto_signatures {
     extern "C" {
         /// Export a signature.
         ///
-        /// This function exports a signature object using the specified encoding.
+        /// This function exports a signature object using the specified
+        /// encoding.
         ///
-        /// May return `unsupported_encoding` if the signature cannot be encoded into the given format.
+        /// May return `unsupported_encoding` if the signature cannot be encoded
+        /// into the given format.
         pub fn signature_export(arg0: i32, arg1: i32, arg2: i32) -> i32;
         /// Create a signature object.
         ///
-        /// This object can be used along with a public key to verify an existing signature.
+        /// This object can be used along with a public key to verify an
+        /// existing signature.
         ///
-        /// It may return `invalid_signature` if the signature is invalid or incompatible with the specified algorithm, as well as `unsupported_encoding` if the encoding is not compatible with the signature type.
+        /// It may return `invalid_signature` if the signature is invalid or
+        /// incompatible with the specified algorithm, as well as
+        /// `unsupported_encoding` if the encoding is not compatible with the
+        /// signature type.
         ///
-        /// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+        /// The function may also return `unsupported_algorithm` if the
+        /// algorithm is not supported by the host.
         ///
         /// Example usage:
         ///
         /// ```rust
-        /// let signature_handle = ctx.signature_import("ECDSA_P256_SHA256", SignatureEncoding::DER, encoded)?;
+        /// let signature_handle =
+        ///     ctx.signature_import("ECDSA_P256_SHA256", SignatureEncoding::DER, encoded)?;
         /// ```
         pub fn signature_import(
             arg0: i32,
@@ -1816,14 +2127,22 @@ pub mod wasi_ephemeral_crypto_signatures {
         ) -> i32;
         /// Create a new state to collect data to compute a signature on.
         ///
-        /// This function allows data to be signed to be supplied in a streaming fashion.
+        /// This function allows data to be signed to be supplied in a streaming
+        /// fashion.
         ///
-        /// The state is not closed and can be used after a signature has been computed, allowing incremental updates by calling `signature_state_update()` again afterwards.
+        /// The state is not closed and can be used after a signature has been
+        /// computed, allowing incremental updates by calling
+        /// `signature_state_update()` again afterwards.
         ///
         /// Example usage - signature creation
         ///
         /// ```rust
-        /// let kp_handle = ctx.keypair_import(AlgorithmType::Signatures, "Ed25519ph", keypair, KeypairEncoding::Raw)?;
+        /// let kp_handle = ctx.keypair_import(
+        ///     AlgorithmType::Signatures,
+        ///     "Ed25519ph",
+        ///     keypair,
+        ///     KeypairEncoding::Raw,
+        /// )?;
         /// let state_handle = ctx.signature_state_open(kp_handle)?;
         /// ctx.signature_state_update(state_handle, b"message part 1")?;
         /// ctx.signature_state_update(state_handle, b"message part 2")?;
@@ -1833,7 +2152,8 @@ pub mod wasi_ephemeral_crypto_signatures {
         pub fn signature_state_open(arg0: i32, arg1: i32) -> i32;
         /// Absorb data into the signature state.
         ///
-        /// This function may return `unsupported_feature` is the selected algorithm doesn't support incremental updates.
+        /// This function may return `unsupported_feature` is the selected
+        /// algorithm doesn't support incremental updates.
         pub fn signature_state_update(arg0: i32, arg1: i32, arg2: i32) -> i32;
         /// Compute a signature for all the data collected up to that point.
         ///
@@ -1841,21 +2161,35 @@ pub mod wasi_ephemeral_crypto_signatures {
         pub fn signature_state_sign(arg0: i32, arg1: i32) -> i32;
         /// Destroy a signature state.
         ///
-        /// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+        /// Objects are reference counted. It is safe to close an object
+        /// immediately after the last function needing it is called.
         ///
-        /// Note that closing a signature state doesn't close or invalidate the key pair object, that be reused for further signatures.
+        /// Note that closing a signature state doesn't close or invalidate the
+        /// key pair object, that be reused for further signatures.
         pub fn signature_state_close(arg0: i32) -> i32;
         /// Create a new state to collect data to verify a signature on.
         ///
         /// This is the verification counterpart of `signature_state`.
         ///
-        /// Data can be injected using `signature_verification_state_update()`, and the state is not closed after a verification, allowing incremental verification.
+        /// Data can be injected using `signature_verification_state_update()`,
+        /// and the state is not closed after a verification, allowing
+        /// incremental verification.
         ///
         /// Example usage - signature verification:
         ///
         /// ```rust
-        /// let pk_handle = ctx.publickey_import(AlgorithmType::Signatures, "ECDSA_P256_SHA256", encoded_pk, PublicKeyEncoding::Sec)?;
-        /// let signature_handle = ctx.signature_import(AlgorithmType::Signatures, "ECDSA_P256_SHA256", encoded_sig, SignatureEncoding::Der)?;
+        /// let pk_handle = ctx.publickey_import(
+        ///     AlgorithmType::Signatures,
+        ///     "ECDSA_P256_SHA256",
+        ///     encoded_pk,
+        ///     PublicKeyEncoding::Sec,
+        /// )?;
+        /// let signature_handle = ctx.signature_import(
+        ///     AlgorithmType::Signatures,
+        ///     "ECDSA_P256_SHA256",
+        ///     encoded_sig,
+        ///     SignatureEncoding::Der,
+        /// )?;
         /// let state_handle = ctx.signature_verification_state_open(pk_handle)?;
         /// ctx.signature_verification_state_update(state_handle, "message")?;
         /// ctx.signature_verification_state_verify(signature_handle)?;
@@ -1863,31 +2197,41 @@ pub mod wasi_ephemeral_crypto_signatures {
         pub fn signature_verification_state_open(arg0: i32, arg1: i32) -> i32;
         /// Absorb data into the signature verification state.
         ///
-        /// This function may return `unsupported_feature` is the selected algorithm doesn't support incremental updates.
+        /// This function may return `unsupported_feature` is the selected
+        /// algorithm doesn't support incremental updates.
         pub fn signature_verification_state_update(arg0: i32, arg1: i32, arg2: i32) -> i32;
-        /// Check that the given signature is verifies for the data collected up to that point point.
+        /// Check that the given signature is verifies for the data collected up
+        /// to that point point.
         ///
-        /// The state is not closed and can absorb more data to allow for incremental verification.
+        /// The state is not closed and can absorb more data to allow for
+        /// incremental verification.
         ///
-        /// The function returns `invalid_signature` if the signature doesn't appear to be valid.
+        /// The function returns `invalid_signature` if the signature doesn't
+        /// appear to be valid.
         pub fn signature_verification_state_verify(arg0: i32, arg1: i32) -> i32;
         /// Destroy a signature verification state.
         ///
-        /// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+        /// Objects are reference counted. It is safe to close an object
+        /// immediately after the last function needing it is called.
         ///
-        /// Note that closing a signature state doesn't close or invalidate the public key object, that be reused for further verifications.
+        /// Note that closing a signature state doesn't close or invalidate the
+        /// public key object, that be reused for further verifications.
         pub fn signature_verification_state_close(arg0: i32) -> i32;
         /// Destroy a signature.
         ///
-        /// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+        /// Objects are reference counted. It is safe to close an object
+        /// immediately after the last function needing it is called.
         pub fn signature_close(arg0: i32) -> i32;
     }
 }
 /// Generate a new symmetric key for a given algorithm.
 ///
-/// `options` can be `None` to use the default parameters, or an algoritm-specific set of parameters to override.
+/// `options` can be `None` to use the default parameters, or an
+/// algoritm-specific set of parameters to override.
 ///
-/// This function may return `unsupported_feature` if key generation is not supported by the host for the chosen algorithm, or `unsupported_algorithm` if the algorithm is not supported by the host.
+/// This function may return `unsupported_feature` if key generation is not
+/// supported by the host for the chosen algorithm, or `unsupported_algorithm`
+/// if the algorithm is not supported by the host.
 pub unsafe fn symmetric_key_generate(
     algorithm: &str,
     options: OptOptions,
@@ -1909,9 +2253,12 @@ pub unsafe fn symmetric_key_generate(
 
 /// Create a symmetric key from raw material.
 ///
-/// The algorithm is internally stored along with the key, and trying to use the key with an operation expecting a different algorithm will return `invalid_key`.
+/// The algorithm is internally stored along with the key, and trying to use the
+/// key with an operation expecting a different algorithm will return
+/// `invalid_key`.
 ///
-/// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+/// The function may also return `unsupported_algorithm` if the algorithm is not
+/// supported by the host.
 pub unsafe fn symmetric_key_import(
     algorithm: &str,
     raw: *const u8,
@@ -1956,7 +2303,8 @@ pub unsafe fn symmetric_key_export(
 
 /// Destroy a symmetric key.
 ///
-/// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+/// Objects are reference counted. It is safe to close an object immediately
+/// after the last function needing it is called.
 pub unsafe fn symmetric_key_close(symmetric_key: SymmetricKey) -> Result<(), CryptoErrno> {
     let ret = wasi_ephemeral_crypto_symmetric::symmetric_key_close(symmetric_key as i32);
     match ret {
@@ -1970,14 +2318,19 @@ pub unsafe fn symmetric_key_close(symmetric_key: SymmetricKey) -> Result<(), Cry
 ///
 /// The key is generated and stored by the secrets management facilities.
 ///
-/// It may be used through its identifier, but the host may not allow it to be exported.
+/// It may be used through its identifier, but the host may not allow it to be
+/// exported.
 ///
-/// The function returns the `unsupported_feature` error code if secrets management facilities are not supported by the host,
-/// or `unsupported_algorithm` if a key cannot be created for the chosen algorithm.
+/// The function returns the `unsupported_feature` error code if secrets
+/// management facilities are not supported by the host,
+/// or `unsupported_algorithm` if a key cannot be created for the chosen
+/// algorithm.
 ///
-/// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+/// The function may also return `unsupported_algorithm` if the algorithm is not
+/// supported by the host.
 ///
-/// This is also an optional import, meaning that the function may not even exist.
+/// This is also an optional import, meaning that the function may not even
+/// exist.
 pub unsafe fn symmetric_key_generate_managed(
     secrets_manager: SecretsManager,
     algorithm: &str,
@@ -2027,20 +2380,27 @@ pub unsafe fn symmetric_key_store_managed(
 /// __(optional)__
 /// Replace a managed symmetric key.
 ///
-/// This function crates a new version of a managed symmetric key, by replacing `$kp_old` with `$kp_new`.
+/// This function crates a new version of a managed symmetric key, by replacing
+/// `$kp_old` with `$kp_new`.
 ///
 /// It does several things:
 ///
-/// - The key identifier for `$symmetric_key_new` is set to the one of `$symmetric_key_old`.
-/// - A new, unique version identifier is assigned to `$kp_new`. This version will be equivalent to using `$version_latest` until the key is replaced.
+/// - The key identifier for `$symmetric_key_new` is set to the one of
+///   `$symmetric_key_old`.
+/// - A new, unique version identifier is assigned to `$kp_new`. This version
+///   will be equivalent to using `$version_latest` until the key is replaced.
 /// - The `$symmetric_key_old` handle is closed.
 ///
-/// Both keys must share the same algorithm and have compatible parameters. If this is not the case, `incompatible_keys` is returned.
+/// Both keys must share the same algorithm and have compatible parameters. If
+/// this is not the case, `incompatible_keys` is returned.
 ///
-/// The function may also return the `unsupported_feature` error code if secrets management facilities are not supported by the host,
-/// or if keys cannot be rotated.
+/// The function may also return the `unsupported_feature` error code if secrets
+/// management facilities are not supported by the host, or if keys cannot be
+/// rotated.
 ///
-/// Finally, `prohibited_operation` can be returned if `$symmetric_key_new` wasn't created by the secrets manager, and the secrets manager prohibits imported keys.
+/// Finally, `prohibited_operation` can be returned if `$symmetric_key_new`
+/// wasn't created by the secrets manager, and the secrets manager prohibits
+/// imported keys.
 ///
 /// If the operation succeeded, the new version is returned.
 ///
@@ -2095,9 +2455,11 @@ pub unsafe fn symmetric_key_id(
 /// __(optional)__
 /// Return a managed symmetric key from a key identifier.
 ///
-/// `kp_version` can be set to `version_latest` to retrieve the most recent version of a symmetric key.
+/// `kp_version` can be set to `version_latest` to retrieve the most recent
+/// version of a symmetric key.
 ///
-/// If no key matching the provided information is found, `not_found` is returned instead.
+/// If no key matching the provided information is found, `not_found` is
+/// returned instead.
 ///
 /// This is an optional import, meaning that the function may not even exist.
 pub unsafe fn symmetric_key_from_id(
@@ -2124,15 +2486,19 @@ pub unsafe fn symmetric_key_from_id(
 
 /// Create a new state to aborb and produce data using symmetric operations.
 ///
-/// The state remains valid after every operation in order to support incremental updates.
+/// The state remains valid after every operation in order to support
+/// incremental updates.
 ///
 /// The function has two optional parameters: a key and an options set.
 ///
-/// It will fail with a `key_not_supported` error code if a key was provided but the chosen algorithm doesn't natively support keying.
+/// It will fail with a `key_not_supported` error code if a key was provided but
+/// the chosen algorithm doesn't natively support keying.
 ///
-/// On the other hand, if a key is required, but was not provided, a `key_required` error will be thrown.
+/// On the other hand, if a key is required, but was not provided, a
+/// `key_required` error will be thrown.
 ///
-/// Some algorithms may require additional parameters. They have to be supplied as an options set:
+/// Some algorithms may require additional parameters. They have to be supplied
+/// as an options set:
 ///
 /// ```rust
 /// let options_handle = ctx.options_open()?;
@@ -2141,16 +2507,22 @@ pub unsafe fn symmetric_key_from_id(
 /// let state_handle = ctx.symmetric_state_open("BLAKE2b-512", None, Some(options_handle))?;
 /// ```
 ///
-/// If some parameters are mandatory but were not set, the `parameters_missing` error code will be returned.
+/// If some parameters are mandatory but were not set, the `parameters_missing`
+/// error code will be returned.
 ///
-/// A notable exception is the `nonce` parameter, that is common to most AEAD constructions.
+/// A notable exception is the `nonce` parameter, that is common to most AEAD
+/// constructions.
 ///
 /// If a nonce is required but was not supplied:
 ///
-/// - If it is safe to do so, the host will automatically generate a nonce. This is true for nonces that are large enough to be randomly generated, or if the host is able to maintain a global counter.
-/// - If not, the function will fail and return the dedicated `nonce_required` error code.
+/// - If it is safe to do so, the host will automatically generate a nonce. This
+///   is true for nonces that are large enough to be randomly generated, or if
+///   the host is able to maintain a global counter.
+/// - If not, the function will fail and return the dedicated `nonce_required`
+///   error code.
 ///
-/// A nonce that was automatically generated can be retrieved after the function returns with `symmetric_state_get(state_handle, "nonce")`.
+/// A nonce that was automatically generated can be retrieved after the function
+/// returns with `symmetric_state_get(state_handle, "nonce")`.
 ///
 /// **Sample usage patterns:**
 ///
@@ -2196,7 +2568,8 @@ pub unsafe fn symmetric_key_from_id(
 /// ctx.symmetric_state_absorb(state_handle, b"value 3")?;
 /// ctx.symmetric_state_squeeze(state_handle, &mut out)?;
 /// ```
-/// Unlike MACs and regular hash functions, inputs are domain separated instead of being concatenated.
+/// Unlike MACs and regular hash functions, inputs are domain separated instead
+/// of being concatenated.
 ///
 /// - **Key derivation using extract-and-expand**
 ///
@@ -2257,7 +2630,8 @@ pub unsafe fn symmetric_key_from_id(
 /// let options_handle = ctx.symmetric_options_open()?;
 /// ctx.symmetric_options_set(options_handle, "nonce", nonce)?;
 ///
-/// let state_handle = ctx.symmetric_state_open("AES-256-GCM", Some(key_handle), Some(options_handle))?;
+/// let state_handle =
+///     ctx.symmetric_state_open("AES-256-GCM", Some(key_handle), Some(options_handle))?;
 /// let mut ciphertext = vec![0u8; message.len() + ctx.symmetric_state_max_tag_len(state_handle)?];
 /// ctx.symmetric_state_absorb(state_handle, "additional data")?;
 /// ctx.symmetric_state_encrypt(state_handle, &mut ciphertext, message)?;
@@ -2321,11 +2695,14 @@ pub unsafe fn symmetric_state_open(
 
 /// Retrieve a parameter from the current state.
 ///
-/// In particular, `symmetric_state_options_get("nonce")` can be used to get a nonce that as automatically generated.
+/// In particular, `symmetric_state_options_get("nonce")` can be used to get a
+/// nonce that as automatically generated.
 ///
-/// The function may return `options_not_set` if an option was not set, which is different from an empty value.
+/// The function may return `options_not_set` if an option was not set, which is
+/// different from an empty value.
 ///
-/// It may also return `unsupported_option` if the option doesn't exist for the chosen algorithm.
+/// It may also return `unsupported_option` if the option doesn't exist for the
+/// chosen algorithm.
 pub unsafe fn symmetric_state_options_get(
     handle: SymmetricState,
     name: &str,
@@ -2349,11 +2726,13 @@ pub unsafe fn symmetric_state_options_get(
 
 /// Retrieve an integer parameter from the current state.
 ///
-/// In particular, `symmetric_state_options_get("nonce")` can be used to get a nonce that as automatically generated.
+/// In particular, `symmetric_state_options_get("nonce")` can be used to get a
+/// nonce that as automatically generated.
 ///
 /// The function may return `options_not_set` if an option was not set.
 ///
-/// It may also return `unsupported_option` if the option doesn't exist for the chosen algorithm.
+/// It may also return `unsupported_option` if the option doesn't exist for the
+/// chosen algorithm.
 pub unsafe fn symmetric_state_options_get_u64(
     handle: SymmetricState,
     name: &str,
@@ -2373,7 +2752,8 @@ pub unsafe fn symmetric_state_options_get_u64(
 
 /// Destroy a symmetric state.
 ///
-/// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+/// Objects are reference counted. It is safe to close an object immediately
+/// after the last function needing it is called.
 pub unsafe fn symmetric_state_close(handle: SymmetricState) -> Result<(), CryptoErrno> {
     let ret = wasi_ephemeral_crypto_symmetric::symmetric_state_close(handle as i32);
     match ret {
@@ -2387,11 +2767,13 @@ pub unsafe fn symmetric_state_close(handle: SymmetricState) -> Result<(), Crypto
 /// - **Hash functions:** adds data to be hashed.
 /// - **MAC functions:** adds data to be authenticated.
 /// - **Tuplehash-like constructions:** adds a new tuple to the state.
-/// - **Key derivation functions:** adds to the IKM or to the subkey information.
+/// - **Key derivation functions:** adds to the IKM or to the subkey
+///   information.
 /// - **AEAD constructions:** adds additional data to be authenticated.
 /// - **Stateful hash objects, permutation-based constructions:** absorbs.
 ///
-/// If the chosen algorithm doesn't accept input data, the `invalid_operation` error code is returned.
+/// If the chosen algorithm doesn't accept input data, the `invalid_operation`
+/// error code is returned.
 ///
 /// If too much data has been fed for the algorithm, `overflow` may be thrown.
 pub unsafe fn symmetric_state_absorb(
@@ -2412,7 +2794,10 @@ pub unsafe fn symmetric_state_absorb(
 
 /// Squeeze bytes from the state.
 ///
-/// - **Hash functions:** this tries to output an `out_len` bytes digest from the absorbed data. The hash function output will be truncated if necessary. If the requested size is too large, the `invalid_len` error code is returned.
+/// - **Hash functions:** this tries to output an `out_len` bytes digest from
+///   the absorbed data. The hash function output will be truncated if
+///   necessary. If the requested size is too large, the `invalid_len` error
+///   code is returned.
 /// - **Key derivation functions:** : outputs an arbitrary-long derived key.
 /// - **RNGs, DRBGs, stream ciphers:**: outputs arbitrary-long data.
 /// - **Stateful hash objects, permutation-based constructions:** squeeze.
@@ -2420,7 +2805,8 @@ pub unsafe fn symmetric_state_absorb(
 /// Other kinds of algorithms may return `invalid_operation` instead.
 ///
 /// For password-stretching functions, the function may return `in_progress`.
-/// In that case, the guest should retry with the same parameters until the function completes.
+/// In that case, the guest should retry with the same parameters until the
+/// function completes.
 pub unsafe fn symmetric_state_squeeze(
     handle: SymmetricState,
     out: *mut u8,
@@ -2440,13 +2826,16 @@ pub unsafe fn symmetric_state_squeeze(
 /// Compute and return a tag for all the data injected into the state so far.
 ///
 /// - **MAC functions**: returns a tag authenticating the absorbed data.
-/// - **Tuplehash-like constructions:** returns a tag authenticating all the absorbed tuples.
-/// - **Password-hashing functions:** returns a standard string containing all the required parameters for password verification.
+/// - **Tuplehash-like constructions:** returns a tag authenticating all the
+///   absorbed tuples.
+/// - **Password-hashing functions:** returns a standard string containing all
+///   the required parameters for password verification.
 ///
 /// Other kinds of algorithms may return `invalid_operation` instead.
 ///
 /// For password-stretching functions, the function may return `in_progress`.
-/// In that case, the guest should retry with the same parameters until the function completes.
+/// In that case, the guest should retry with the same parameters until the
+/// function completes.
 pub unsafe fn symmetric_state_squeeze_tag(
     handle: SymmetricState,
 ) -> Result<SymmetricTag, CryptoErrno> {
@@ -2466,9 +2855,11 @@ pub unsafe fn symmetric_state_squeeze_tag(
 /// Use the current state to produce a key for a target algorithm.
 ///
 /// For extract-then-expand constructions, this returns the PRK.
-/// For session-base authentication encryption, this returns a key that can be used to resume a session without storing a nonce.
+/// For session-base authentication encryption, this returns a key that can be
+/// used to resume a session without storing a nonce.
 ///
-/// `invalid_operation` is returned for algorithms not supporting this operation.
+/// `invalid_operation` is returned for algorithms not supporting this
+/// operation.
 pub unsafe fn symmetric_state_squeeze_key(
     handle: SymmetricState,
     alg_str: &str,
@@ -2488,15 +2879,20 @@ pub unsafe fn symmetric_state_squeeze_key(
     }
 }
 
-/// Return the maximum length of an authentication tag for the current algorithm.
+/// Return the maximum length of an authentication tag for the current
+/// algorithm.
 ///
-/// This allows guests to compute the size required to store a ciphertext along with its authentication tag.
+/// This allows guests to compute the size required to store a ciphertext along
+/// with its authentication tag.
 ///
-/// The returned length may include the encryption mode's padding requirements in addition to the actual tag.
+/// The returned length may include the encryption mode's padding requirements
+/// in addition to the actual tag.
 ///
-/// For an encryption operation, the size of the output buffer should be `input_len + symmetric_state_max_tag_len()`.
+/// For an encryption operation, the size of the output buffer should be
+/// `input_len + symmetric_state_max_tag_len()`.
 ///
-/// For a decryption operation, the size of the buffer that will store the decrypted data must be `ciphertext_len - symmetric_state_max_tag_len()`.
+/// For a decryption operation, the size of the buffer that will store the
+/// decrypted data must be `ciphertext_len - symmetric_state_max_tag_len()`.
 pub unsafe fn symmetric_state_max_tag_len(handle: SymmetricState) -> Result<Size, CryptoErrno> {
     let mut rp0 = MaybeUninit::<Size>::uninit();
     let ret = wasi_ephemeral_crypto_symmetric::symmetric_state_max_tag_len(
@@ -2511,9 +2907,15 @@ pub unsafe fn symmetric_state_max_tag_len(handle: SymmetricState) -> Result<Size
 
 /// Encrypt data with an attached tag.
 ///
-/// - **Stream cipher:** adds the input to the stream cipher output. `out_len` and `data_len` can be equal, as no authentication tags will be added.
-/// - **AEAD:** encrypts `data` into `out`, including the authentication tag to the output. Additional data must have been previously absorbed using `symmetric_state_absorb()`. The `symmetric_state_max_tag_len()` function can be used to retrieve the overhead of adding the tag, as well as padding if necessary.
-/// - **SHOE, Xoodyak, Strobe:** encrypts data, squeezes a tag and appends it to the output.
+/// - **Stream cipher:** adds the input to the stream cipher output. `out_len`
+///   and `data_len` can be equal, as no authentication tags will be added.
+/// - **AEAD:** encrypts `data` into `out`, including the authentication tag to
+///   the output. Additional data must have been previously absorbed using
+///   `symmetric_state_absorb()`. The `symmetric_state_max_tag_len()` function
+///   can be used to retrieve the overhead of adding the tag, as well as padding
+///   if necessary.
+/// - **SHOE, Xoodyak, Strobe:** encrypts data, squeezes a tag and appends it to
+///   the output.
 ///
 /// If `out` and `data` are the same address, encryption may happen in-place.
 ///
@@ -2544,8 +2946,12 @@ pub unsafe fn symmetric_state_encrypt(
 
 /// Encrypt data, with a detached tag.
 ///
-/// - **Stream cipher:** returns `invalid_operation` since stream ciphers do not include authentication tags.
-/// - **AEAD:** encrypts `data` into `out` and returns the tag separately. Additional data must have been previously absorbed using `symmetric_state_absorb()`. The output and input buffers must be of the same length.
+/// - **Stream cipher:** returns `invalid_operation` since stream ciphers do not
+///   include authentication tags.
+/// - **AEAD:** encrypts `data` into `out` and returns the tag separately.
+///   Additional data must have been previously absorbed using
+///   `symmetric_state_absorb()`. The output and input buffers must be of the
+///   same length.
 /// - **SHOE, Xoodyak, Strobe:** encrypts data and squeezes a tag.
 ///
 /// If `out` and `data` are the same address, encryption may happen in-place.
@@ -2577,15 +2983,19 @@ pub unsafe fn symmetric_state_encrypt_detached(
     }
 }
 
-/// - **Stream cipher:** adds the input to the stream cipher output. `out_len` and `data_len` can be equal, as no authentication tags will be added.
-/// - **AEAD:** decrypts `data` into `out`. Additional data must have been previously absorbed using `symmetric_state_absorb()`.
-/// - **SHOE, Xoodyak, Strobe:** decrypts data, squeezes a tag and verify that it matches the one that was appended to the ciphertext.
+/// - **Stream cipher:** adds the input to the stream cipher output. `out_len`
+///   and `data_len` can be equal, as no authentication tags will be added.
+/// - **AEAD:** decrypts `data` into `out`. Additional data must have been
+///   previously absorbed using `symmetric_state_absorb()`.
+/// - **SHOE, Xoodyak, Strobe:** decrypts data, squeezes a tag and verify that
+///   it matches the one that was appended to the ciphertext.
 ///
 /// If `out` and `data` are the same address, decryption may happen in-place.
 ///
 /// `out_len` must be exactly `data_len` + `max_tag_len` bytes.
 ///
-/// The function returns the actual size of the decrypted message, which can be smaller than `out_len` for modes that requires padding.
+/// The function returns the actual size of the decrypted message, which can be
+/// smaller than `out_len` for modes that requires padding.
 ///
 /// `invalid_tag` is returned if the tag didn't verify.
 ///
@@ -2612,9 +3022,12 @@ pub unsafe fn symmetric_state_decrypt(
     }
 }
 
-/// - **Stream cipher:** returns `invalid_operation` since stream ciphers do not include authentication tags.
-/// - **AEAD:** decrypts `data` into `out`. Additional data must have been previously absorbed using `symmetric_state_absorb()`.
-/// - **SHOE, Xoodyak, Strobe:** decrypts data, squeezes a tag and verify that it matches the expected one.
+/// - **Stream cipher:** returns `invalid_operation` since stream ciphers do not
+///   include authentication tags.
+/// - **AEAD:** decrypts `data` into `out`. Additional data must have been
+///   previously absorbed using `symmetric_state_absorb()`.
+/// - **SHOE, Xoodyak, Strobe:** decrypts data, squeezes a tag and verify that
+///   it matches the expected one.
 ///
 /// `raw_tag` is the expected tag, as raw bytes.
 ///
@@ -2654,7 +3067,8 @@ pub unsafe fn symmetric_state_decrypt_detached(
 
 /// Make it impossible to recover the previous state.
 ///
-/// This operation is supported by some systems keeping a rolling state over an entire session, for forward security.
+/// This operation is supported by some systems keeping a rolling state over an
+/// entire session, for forward security.
 ///
 /// `invalid_operation` is returned for algorithms not supporting ratcheting.
 pub unsafe fn symmetric_state_ratchet(handle: SymmetricState) -> Result<(), CryptoErrno> {
@@ -2667,7 +3081,8 @@ pub unsafe fn symmetric_state_ratchet(handle: SymmetricState) -> Result<(), Cryp
 
 /// Return the length of an authentication tag.
 ///
-/// This function can be used by a guest to allocate the correct buffer size to copy a computed authentication tag.
+/// This function can be used by a guest to allocate the correct buffer size to
+/// copy a computed authentication tag.
 pub unsafe fn symmetric_tag_len(symmetric_tag: SymmetricTag) -> Result<Size, CryptoErrno> {
     let mut rp0 = MaybeUninit::<Size>::uninit();
     let ret = wasi_ephemeral_crypto_symmetric::symmetric_tag_len(
@@ -2682,7 +3097,8 @@ pub unsafe fn symmetric_tag_len(symmetric_tag: SymmetricTag) -> Result<Size, Cry
 
 /// Copy an authentication tag into a guest-allocated buffer.
 ///
-/// The handle automatically becomes invalid after this operation. Manually closing it is not required.
+/// The handle automatically becomes invalid after this operation. Manually
+/// closing it is not required.
 ///
 /// Example usage:
 ///
@@ -2691,7 +3107,8 @@ pub unsafe fn symmetric_tag_len(symmetric_tag: SymmetricTag) -> Result<Size, Cry
 /// ctx.symmetric_tag_pull(raw_tag_handle, &mut raw_tag)?;
 /// ```
 ///
-/// The function returns `overflow` if the supplied buffer is too small to copy the tag.
+/// The function returns `overflow` if the supplied buffer is too small to copy
+/// the tag.
 ///
 /// Otherwise, it returns the number of bytes that have been copied.
 pub unsafe fn symmetric_tag_pull(
@@ -2712,7 +3129,8 @@ pub unsafe fn symmetric_tag_pull(
     }
 }
 
-/// Verify that a computed authentication tag matches the expected value, in constant-time.
+/// Verify that a computed authentication tag matches the expected value, in
+/// constant-time.
 ///
 /// The expected tag must be provided as a raw byte string.
 ///
@@ -2745,9 +3163,11 @@ pub unsafe fn symmetric_tag_verify(
 
 /// Explicitly destroy an unused authentication tag.
 ///
-/// This is usually not necessary, as `symmetric_tag_pull()` automatically closes a tag after it has been copied.
+/// This is usually not necessary, as `symmetric_tag_pull()` automatically
+/// closes a tag after it has been copied.
 ///
-/// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+/// Objects are reference counted. It is safe to close an object immediately
+/// after the last function needing it is called.
 pub unsafe fn symmetric_tag_close(symmetric_tag: SymmetricTag) -> Result<(), CryptoErrno> {
     let ret = wasi_ephemeral_crypto_symmetric::symmetric_tag_close(symmetric_tag as i32);
     match ret {
@@ -2761,15 +3181,22 @@ pub mod wasi_ephemeral_crypto_symmetric {
     extern "C" {
         /// Generate a new symmetric key for a given algorithm.
         ///
-        /// `options` can be `None` to use the default parameters, or an algoritm-specific set of parameters to override.
+        /// `options` can be `None` to use the default parameters, or an
+        /// algoritm-specific set of parameters to override.
         ///
-        /// This function may return `unsupported_feature` if key generation is not supported by the host for the chosen algorithm, or `unsupported_algorithm` if the algorithm is not supported by the host.
+        /// This function may return `unsupported_feature` if key generation is
+        /// not supported by the host for the chosen algorithm, or
+        /// `unsupported_algorithm` if the algorithm is not supported by the
+        /// host.
         pub fn symmetric_key_generate(arg0: i32, arg1: i32, arg2: i32, arg3: i32) -> i32;
         /// Create a symmetric key from raw material.
         ///
-        /// The algorithm is internally stored along with the key, and trying to use the key with an operation expecting a different algorithm will return `invalid_key`.
+        /// The algorithm is internally stored along with the key, and trying to
+        /// use the key with an operation expecting a different algorithm will
+        /// return `invalid_key`.
         ///
-        /// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+        /// The function may also return `unsupported_algorithm` if the
+        /// algorithm is not supported by the host.
         pub fn symmetric_key_import(arg0: i32, arg1: i32, arg2: i32, arg3: i32, arg4: i32) -> i32;
         /// Export a symmetric key as raw material.
         ///
@@ -2779,21 +3206,28 @@ pub mod wasi_ephemeral_crypto_symmetric {
         pub fn symmetric_key_export(arg0: i32, arg1: i32) -> i32;
         /// Destroy a symmetric key.
         ///
-        /// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+        /// Objects are reference counted. It is safe to close an object
+        /// immediately after the last function needing it is called.
         pub fn symmetric_key_close(arg0: i32) -> i32;
         /// __(optional)__
         /// Generate a new managed symmetric key.
         ///
-        /// The key is generated and stored by the secrets management facilities.
+        /// The key is generated and stored by the secrets management
+        /// facilities.
         ///
-        /// It may be used through its identifier, but the host may not allow it to be exported.
+        /// It may be used through its identifier, but the host may not allow it
+        /// to be exported.
         ///
-        /// The function returns the `unsupported_feature` error code if secrets management facilities are not supported by the host,
-        /// or `unsupported_algorithm` if a key cannot be created for the chosen algorithm.
+        /// The function returns the `unsupported_feature` error code if secrets
+        /// management facilities are not supported by the host,
+        /// or `unsupported_algorithm` if a key cannot be created for the chosen
+        /// algorithm.
         ///
-        /// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+        /// The function may also return `unsupported_algorithm` if the
+        /// algorithm is not supported by the host.
         ///
-        /// This is also an optional import, meaning that the function may not even exist.
+        /// This is also an optional import, meaning that the function may not
+        /// even exist.
         pub fn symmetric_key_generate_managed(
             arg0: i32,
             arg1: i32,
@@ -2804,60 +3238,81 @@ pub mod wasi_ephemeral_crypto_symmetric {
         /// __(optional)__
         /// Store a symmetric key into the secrets manager.
         ///
-        /// On success, the function stores the key identifier into `$symmetric_key_id`,
-        /// into which up to `$symmetric_key_id_max_len` can be written.
+        /// On success, the function stores the key identifier into
+        /// `$symmetric_key_id`, into which up to
+        /// `$symmetric_key_id_max_len` can be written.
         ///
         /// The function returns `overflow` if the supplied buffer is too small.
         pub fn symmetric_key_store_managed(arg0: i32, arg1: i32, arg2: i32, arg3: i32) -> i32;
         /// __(optional)__
         /// Replace a managed symmetric key.
         ///
-        /// This function crates a new version of a managed symmetric key, by replacing `$kp_old` with `$kp_new`.
+        /// This function crates a new version of a managed symmetric key, by
+        /// replacing `$kp_old` with `$kp_new`.
         ///
         /// It does several things:
         ///
-        /// - The key identifier for `$symmetric_key_new` is set to the one of `$symmetric_key_old`.
-        /// - A new, unique version identifier is assigned to `$kp_new`. This version will be equivalent to using `$version_latest` until the key is replaced.
+        /// - The key identifier for `$symmetric_key_new` is set to the one of
+        ///   `$symmetric_key_old`.
+        /// - A new, unique version identifier is assigned to `$kp_new`. This
+        ///   version will be equivalent to using `$version_latest` until the
+        ///   key is replaced.
         /// - The `$symmetric_key_old` handle is closed.
         ///
-        /// Both keys must share the same algorithm and have compatible parameters. If this is not the case, `incompatible_keys` is returned.
+        /// Both keys must share the same algorithm and have compatible
+        /// parameters. If this is not the case, `incompatible_keys` is
+        /// returned.
         ///
-        /// The function may also return the `unsupported_feature` error code if secrets management facilities are not supported by the host,
+        /// The function may also return the `unsupported_feature` error code if
+        /// secrets management facilities are not supported by the host,
         /// or if keys cannot be rotated.
         ///
-        /// Finally, `prohibited_operation` can be returned if `$symmetric_key_new` wasn't created by the secrets manager, and the secrets manager prohibits imported keys.
+        /// Finally, `prohibited_operation` can be returned if
+        /// `$symmetric_key_new` wasn't created by the secrets manager, and the
+        /// secrets manager prohibits imported keys.
         ///
         /// If the operation succeeded, the new version is returned.
         ///
-        /// This is an optional import, meaning that the function may not even exist.
+        /// This is an optional import, meaning that the function may not even
+        /// exist.
         pub fn symmetric_key_replace_managed(arg0: i32, arg1: i32, arg2: i32, arg3: i32) -> i32;
         /// __(optional)__
         /// Return the key identifier and version of a managed symmetric key.
         ///
-        /// If the key is not managed, `unsupported_feature` is returned instead.
+        /// If the key is not managed, `unsupported_feature` is returned
+        /// instead.
         ///
-        /// This is an optional import, meaning that the function may not even exist.
+        /// This is an optional import, meaning that the function may not even
+        /// exist.
         pub fn symmetric_key_id(arg0: i32, arg1: i32, arg2: i32, arg3: i32, arg4: i32) -> i32;
         /// __(optional)__
         /// Return a managed symmetric key from a key identifier.
         ///
-        /// `kp_version` can be set to `version_latest` to retrieve the most recent version of a symmetric key.
+        /// `kp_version` can be set to `version_latest` to retrieve the most
+        /// recent version of a symmetric key.
         ///
-        /// If no key matching the provided information is found, `not_found` is returned instead.
+        /// If no key matching the provided information is found, `not_found` is
+        /// returned instead.
         ///
-        /// This is an optional import, meaning that the function may not even exist.
+        /// This is an optional import, meaning that the function may not even
+        /// exist.
         pub fn symmetric_key_from_id(arg0: i32, arg1: i32, arg2: i32, arg3: i64, arg4: i32) -> i32;
-        /// Create a new state to aborb and produce data using symmetric operations.
+        /// Create a new state to aborb and produce data using symmetric
+        /// operations.
         ///
-        /// The state remains valid after every operation in order to support incremental updates.
+        /// The state remains valid after every operation in order to support
+        /// incremental updates.
         ///
         /// The function has two optional parameters: a key and an options set.
         ///
-        /// It will fail with a `key_not_supported` error code if a key was provided but the chosen algorithm doesn't natively support keying.
+        /// It will fail with a `key_not_supported` error code if a key was
+        /// provided but the chosen algorithm doesn't natively support keying.
         ///
-        /// On the other hand, if a key is required, but was not provided, a `key_required` error will be thrown.
+        /// On the other hand, if a key is required, but was not provided, a
+        /// `key_required` error will be thrown.
         ///
-        /// Some algorithms may require additional parameters. They have to be supplied as an options set:
+        /// Some algorithms may require additional parameters. They have to be
+        /// supplied as an options set:
         ///
         /// ```rust
         /// let options_handle = ctx.options_open()?;
@@ -2866,16 +3321,23 @@ pub mod wasi_ephemeral_crypto_symmetric {
         /// let state_handle = ctx.symmetric_state_open("BLAKE2b-512", None, Some(options_handle))?;
         /// ```
         ///
-        /// If some parameters are mandatory but were not set, the `parameters_missing` error code will be returned.
+        /// If some parameters are mandatory but were not set, the
+        /// `parameters_missing` error code will be returned.
         ///
-        /// A notable exception is the `nonce` parameter, that is common to most AEAD constructions.
+        /// A notable exception is the `nonce` parameter, that is common to most
+        /// AEAD constructions.
         ///
         /// If a nonce is required but was not supplied:
         ///
-        /// - If it is safe to do so, the host will automatically generate a nonce. This is true for nonces that are large enough to be randomly generated, or if the host is able to maintain a global counter.
-        /// - If not, the function will fail and return the dedicated `nonce_required` error code.
+        /// - If it is safe to do so, the host will automatically generate a
+        ///   nonce. This is true for nonces that are large enough to be
+        ///   randomly generated, or if the host is able to maintain a global
+        ///   counter.
+        /// - If not, the function will fail and return the dedicated
+        ///   `nonce_required` error code.
         ///
-        /// A nonce that was automatically generated can be retrieved after the function returns with `symmetric_state_get(state_handle, "nonce")`.
+        /// A nonce that was automatically generated can be retrieved after the
+        /// function returns with `symmetric_state_get(state_handle, "nonce")`.
         ///
         /// **Sample usage patterns:**
         ///
@@ -2921,7 +3383,8 @@ pub mod wasi_ephemeral_crypto_symmetric {
         /// ctx.symmetric_state_absorb(state_handle, b"value 3")?;
         /// ctx.symmetric_state_squeeze(state_handle, &mut out)?;
         /// ```
-        /// Unlike MACs and regular hash functions, inputs are domain separated instead of being concatenated.
+        /// Unlike MACs and regular hash functions, inputs are domain separated
+        /// instead of being concatenated.
         ///
         /// - **Key derivation using extract-and-expand**
         ///
@@ -2982,7 +3445,8 @@ pub mod wasi_ephemeral_crypto_symmetric {
         /// let options_handle = ctx.symmetric_options_open()?;
         /// ctx.symmetric_options_set(options_handle, "nonce", nonce)?;
         ///
-        /// let state_handle = ctx.symmetric_state_open("AES-256-GCM", Some(key_handle), Some(options_handle))?;
+        /// let state_handle =
+        ///     ctx.symmetric_state_open("AES-256-GCM", Some(key_handle), Some(options_handle))?;
         /// let mut ciphertext = vec![0u8; message.len() + ctx.symmetric_state_max_tag_len(state_handle)?];
         /// ctx.symmetric_state_absorb(state_handle, "additional data")?;
         /// ctx.symmetric_state_encrypt(state_handle, &mut ciphertext, message)?;
@@ -3026,11 +3490,14 @@ pub mod wasi_ephemeral_crypto_symmetric {
         pub fn symmetric_state_open(arg0: i32, arg1: i32, arg2: i32, arg3: i32, arg4: i32) -> i32;
         /// Retrieve a parameter from the current state.
         ///
-        /// In particular, `symmetric_state_options_get("nonce")` can be used to get a nonce that as automatically generated.
+        /// In particular, `symmetric_state_options_get("nonce")` can be used to
+        /// get a nonce that as automatically generated.
         ///
-        /// The function may return `options_not_set` if an option was not set, which is different from an empty value.
+        /// The function may return `options_not_set` if an option was not set,
+        /// which is different from an empty value.
         ///
-        /// It may also return `unsupported_option` if the option doesn't exist for the chosen algorithm.
+        /// It may also return `unsupported_option` if the option doesn't exist
+        /// for the chosen algorithm.
         pub fn symmetric_state_options_get(
             arg0: i32,
             arg1: i32,
@@ -3041,80 +3508,115 @@ pub mod wasi_ephemeral_crypto_symmetric {
         ) -> i32;
         /// Retrieve an integer parameter from the current state.
         ///
-        /// In particular, `symmetric_state_options_get("nonce")` can be used to get a nonce that as automatically generated.
+        /// In particular, `symmetric_state_options_get("nonce")` can be used to
+        /// get a nonce that as automatically generated.
         ///
         /// The function may return `options_not_set` if an option was not set.
         ///
-        /// It may also return `unsupported_option` if the option doesn't exist for the chosen algorithm.
+        /// It may also return `unsupported_option` if the option doesn't exist
+        /// for the chosen algorithm.
         pub fn symmetric_state_options_get_u64(arg0: i32, arg1: i32, arg2: i32, arg3: i32) -> i32;
         /// Destroy a symmetric state.
         ///
-        /// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+        /// Objects are reference counted. It is safe to close an object
+        /// immediately after the last function needing it is called.
         pub fn symmetric_state_close(arg0: i32) -> i32;
         /// Absorb data into the state.
         ///
         /// - **Hash functions:** adds data to be hashed.
         /// - **MAC functions:** adds data to be authenticated.
         /// - **Tuplehash-like constructions:** adds a new tuple to the state.
-        /// - **Key derivation functions:** adds to the IKM or to the subkey information.
+        /// - **Key derivation functions:** adds to the IKM or to the subkey
+        ///   information.
         /// - **AEAD constructions:** adds additional data to be authenticated.
-        /// - **Stateful hash objects, permutation-based constructions:** absorbs.
+        /// - **Stateful hash objects, permutation-based constructions:**
+        ///   absorbs.
         ///
-        /// If the chosen algorithm doesn't accept input data, the `invalid_operation` error code is returned.
+        /// If the chosen algorithm doesn't accept input data, the
+        /// `invalid_operation` error code is returned.
         ///
-        /// If too much data has been fed for the algorithm, `overflow` may be thrown.
+        /// If too much data has been fed for the algorithm, `overflow` may be
+        /// thrown.
         pub fn symmetric_state_absorb(arg0: i32, arg1: i32, arg2: i32) -> i32;
         /// Squeeze bytes from the state.
         ///
-        /// - **Hash functions:** this tries to output an `out_len` bytes digest from the absorbed data. The hash function output will be truncated if necessary. If the requested size is too large, the `invalid_len` error code is returned.
-        /// - **Key derivation functions:** : outputs an arbitrary-long derived key.
+        /// - **Hash functions:** this tries to output an `out_len` bytes digest
+        ///   from the absorbed data. The hash function output will be truncated
+        ///   if necessary. If the requested size is too large, the
+        ///   `invalid_len` error code is returned.
+        /// - **Key derivation functions:** : outputs an arbitrary-long derived
+        ///   key.
         /// - **RNGs, DRBGs, stream ciphers:**: outputs arbitrary-long data.
-        /// - **Stateful hash objects, permutation-based constructions:** squeeze.
+        /// - **Stateful hash objects, permutation-based constructions:**
+        ///   squeeze.
         ///
         /// Other kinds of algorithms may return `invalid_operation` instead.
         ///
-        /// For password-stretching functions, the function may return `in_progress`.
-        /// In that case, the guest should retry with the same parameters until the function completes.
+        /// For password-stretching functions, the function may return
+        /// `in_progress`. In that case, the guest should retry with the
+        /// same parameters until the function completes.
         pub fn symmetric_state_squeeze(arg0: i32, arg1: i32, arg2: i32) -> i32;
-        /// Compute and return a tag for all the data injected into the state so far.
+        /// Compute and return a tag for all the data injected into the state so
+        /// far.
         ///
         /// - **MAC functions**: returns a tag authenticating the absorbed data.
-        /// - **Tuplehash-like constructions:** returns a tag authenticating all the absorbed tuples.
-        /// - **Password-hashing functions:** returns a standard string containing all the required parameters for password verification.
+        /// - **Tuplehash-like constructions:** returns a tag authenticating all
+        ///   the absorbed tuples.
+        /// - **Password-hashing functions:** returns a standard string
+        ///   containing all the required parameters for password verification.
         ///
         /// Other kinds of algorithms may return `invalid_operation` instead.
         ///
-        /// For password-stretching functions, the function may return `in_progress`.
-        /// In that case, the guest should retry with the same parameters until the function completes.
+        /// For password-stretching functions, the function may return
+        /// `in_progress`. In that case, the guest should retry with the
+        /// same parameters until the function completes.
         pub fn symmetric_state_squeeze_tag(arg0: i32, arg1: i32) -> i32;
         /// Use the current state to produce a key for a target algorithm.
         ///
         /// For extract-then-expand constructions, this returns the PRK.
-        /// For session-base authentication encryption, this returns a key that can be used to resume a session without storing a nonce.
+        /// For session-base authentication encryption, this returns a key that
+        /// can be used to resume a session without storing a nonce.
         ///
-        /// `invalid_operation` is returned for algorithms not supporting this operation.
+        /// `invalid_operation` is returned for algorithms not supporting this
+        /// operation.
         pub fn symmetric_state_squeeze_key(arg0: i32, arg1: i32, arg2: i32, arg3: i32) -> i32;
-        /// Return the maximum length of an authentication tag for the current algorithm.
+        /// Return the maximum length of an authentication tag for the current
+        /// algorithm.
         ///
-        /// This allows guests to compute the size required to store a ciphertext along with its authentication tag.
+        /// This allows guests to compute the size required to store a
+        /// ciphertext along with its authentication tag.
         ///
-        /// The returned length may include the encryption mode's padding requirements in addition to the actual tag.
+        /// The returned length may include the encryption mode's padding
+        /// requirements in addition to the actual tag.
         ///
-        /// For an encryption operation, the size of the output buffer should be `input_len + symmetric_state_max_tag_len()`.
+        /// For an encryption operation, the size of the output buffer should be
+        /// `input_len + symmetric_state_max_tag_len()`.
         ///
-        /// For a decryption operation, the size of the buffer that will store the decrypted data must be `ciphertext_len - symmetric_state_max_tag_len()`.
+        /// For a decryption operation, the size of the buffer that will store
+        /// the decrypted data must be `ciphertext_len -
+        /// symmetric_state_max_tag_len()`.
         pub fn symmetric_state_max_tag_len(arg0: i32, arg1: i32) -> i32;
         /// Encrypt data with an attached tag.
         ///
-        /// - **Stream cipher:** adds the input to the stream cipher output. `out_len` and `data_len` can be equal, as no authentication tags will be added.
-        /// - **AEAD:** encrypts `data` into `out`, including the authentication tag to the output. Additional data must have been previously absorbed using `symmetric_state_absorb()`. The `symmetric_state_max_tag_len()` function can be used to retrieve the overhead of adding the tag, as well as padding if necessary.
-        /// - **SHOE, Xoodyak, Strobe:** encrypts data, squeezes a tag and appends it to the output.
+        /// - **Stream cipher:** adds the input to the stream cipher output.
+        ///   `out_len` and `data_len` can be equal, as no authentication tags
+        ///   will be added.
+        /// - **AEAD:** encrypts `data` into `out`, including the authentication
+        ///   tag to the output. Additional data must have been previously
+        ///   absorbed using `symmetric_state_absorb()`. The
+        ///   `symmetric_state_max_tag_len()` function can be used to retrieve
+        ///   the overhead of adding the tag, as well as padding if necessary.
+        /// - **SHOE, Xoodyak, Strobe:** encrypts data, squeezes a tag and
+        ///   appends it to the output.
         ///
-        /// If `out` and `data` are the same address, encryption may happen in-place.
+        /// If `out` and `data` are the same address, encryption may happen
+        /// in-place.
         ///
-        /// The function returns the actual size of the ciphertext along with the tag.
+        /// The function returns the actual size of the ciphertext along with
+        /// the tag.
         ///
-        /// `invalid_operation` is returned for algorithms not supporting encryption.
+        /// `invalid_operation` is returned for algorithms not supporting
+        /// encryption.
         pub fn symmetric_state_encrypt(
             arg0: i32,
             arg1: i32,
@@ -3125,15 +3627,21 @@ pub mod wasi_ephemeral_crypto_symmetric {
         ) -> i32;
         /// Encrypt data, with a detached tag.
         ///
-        /// - **Stream cipher:** returns `invalid_operation` since stream ciphers do not include authentication tags.
-        /// - **AEAD:** encrypts `data` into `out` and returns the tag separately. Additional data must have been previously absorbed using `symmetric_state_absorb()`. The output and input buffers must be of the same length.
+        /// - **Stream cipher:** returns `invalid_operation` since stream
+        ///   ciphers do not include authentication tags.
+        /// - **AEAD:** encrypts `data` into `out` and returns the tag
+        ///   separately. Additional data must have been previously absorbed
+        ///   using `symmetric_state_absorb()`. The output and input buffers
+        ///   must be of the same length.
         /// - **SHOE, Xoodyak, Strobe:** encrypts data and squeezes a tag.
         ///
-        /// If `out` and `data` are the same address, encryption may happen in-place.
+        /// If `out` and `data` are the same address, encryption may happen
+        /// in-place.
         ///
         /// The function returns the tag.
         ///
-        /// `invalid_operation` is returned for algorithms not supporting encryption.
+        /// `invalid_operation` is returned for algorithms not supporting
+        /// encryption.
         pub fn symmetric_state_encrypt_detached(
             arg0: i32,
             arg1: i32,
@@ -3142,19 +3650,27 @@ pub mod wasi_ephemeral_crypto_symmetric {
             arg4: i32,
             arg5: i32,
         ) -> i32;
-        /// - **Stream cipher:** adds the input to the stream cipher output. `out_len` and `data_len` can be equal, as no authentication tags will be added.
-        /// - **AEAD:** decrypts `data` into `out`. Additional data must have been previously absorbed using `symmetric_state_absorb()`.
-        /// - **SHOE, Xoodyak, Strobe:** decrypts data, squeezes a tag and verify that it matches the one that was appended to the ciphertext.
+        /// - **Stream cipher:** adds the input to the stream cipher output.
+        ///   `out_len` and `data_len` can be equal, as no authentication tags
+        ///   will be added.
+        /// - **AEAD:** decrypts `data` into `out`. Additional data must have
+        ///   been previously absorbed using `symmetric_state_absorb()`.
+        /// - **SHOE, Xoodyak, Strobe:** decrypts data, squeezes a tag and
+        ///   verify that it matches the one that was appended to the
+        ///   ciphertext.
         ///
-        /// If `out` and `data` are the same address, decryption may happen in-place.
+        /// If `out` and `data` are the same address, decryption may happen
+        /// in-place.
         ///
         /// `out_len` must be exactly `data_len` + `max_tag_len` bytes.
         ///
-        /// The function returns the actual size of the decrypted message, which can be smaller than `out_len` for modes that requires padding.
+        /// The function returns the actual size of the decrypted message, which
+        /// can be smaller than `out_len` for modes that requires padding.
         ///
         /// `invalid_tag` is returned if the tag didn't verify.
         ///
-        /// `invalid_operation` is returned for algorithms not supporting encryption.
+        /// `invalid_operation` is returned for algorithms not supporting
+        /// encryption.
         pub fn symmetric_state_decrypt(
             arg0: i32,
             arg1: i32,
@@ -3163,9 +3679,12 @@ pub mod wasi_ephemeral_crypto_symmetric {
             arg4: i32,
             arg5: i32,
         ) -> i32;
-        /// - **Stream cipher:** returns `invalid_operation` since stream ciphers do not include authentication tags.
-        /// - **AEAD:** decrypts `data` into `out`. Additional data must have been previously absorbed using `symmetric_state_absorb()`.
-        /// - **SHOE, Xoodyak, Strobe:** decrypts data, squeezes a tag and verify that it matches the expected one.
+        /// - **Stream cipher:** returns `invalid_operation` since stream
+        ///   ciphers do not include authentication tags.
+        /// - **AEAD:** decrypts `data` into `out`. Additional data must have
+        ///   been previously absorbed using `symmetric_state_absorb()`.
+        /// - **SHOE, Xoodyak, Strobe:** decrypts data, squeezes a tag and
+        ///   verify that it matches the expected one.
         ///
         /// `raw_tag` is the expected tag, as raw bytes.
         ///
@@ -3176,7 +3695,8 @@ pub mod wasi_ephemeral_crypto_symmetric {
         ///
         /// `invalid_tag` is returned if the tag verification failed.
         ///
-        /// `invalid_operation` is returned for algorithms not supporting encryption.
+        /// `invalid_operation` is returned for algorithms not supporting
+        /// encryption.
         pub fn symmetric_state_decrypt_detached(
             arg0: i32,
             arg1: i32,
@@ -3189,17 +3709,21 @@ pub mod wasi_ephemeral_crypto_symmetric {
         ) -> i32;
         /// Make it impossible to recover the previous state.
         ///
-        /// This operation is supported by some systems keeping a rolling state over an entire session, for forward security.
+        /// This operation is supported by some systems keeping a rolling state
+        /// over an entire session, for forward security.
         ///
-        /// `invalid_operation` is returned for algorithms not supporting ratcheting.
+        /// `invalid_operation` is returned for algorithms not supporting
+        /// ratcheting.
         pub fn symmetric_state_ratchet(arg0: i32) -> i32;
         /// Return the length of an authentication tag.
         ///
-        /// This function can be used by a guest to allocate the correct buffer size to copy a computed authentication tag.
+        /// This function can be used by a guest to allocate the correct buffer
+        /// size to copy a computed authentication tag.
         pub fn symmetric_tag_len(arg0: i32, arg1: i32) -> i32;
         /// Copy an authentication tag into a guest-allocated buffer.
         ///
-        /// The handle automatically becomes invalid after this operation. Manually closing it is not required.
+        /// The handle automatically becomes invalid after this operation.
+        /// Manually closing it is not required.
         ///
         /// Example usage:
         ///
@@ -3208,11 +3732,13 @@ pub mod wasi_ephemeral_crypto_symmetric {
         /// ctx.symmetric_tag_pull(raw_tag_handle, &mut raw_tag)?;
         /// ```
         ///
-        /// The function returns `overflow` if the supplied buffer is too small to copy the tag.
+        /// The function returns `overflow` if the supplied buffer is too small
+        /// to copy the tag.
         ///
         /// Otherwise, it returns the number of bytes that have been copied.
         pub fn symmetric_tag_pull(arg0: i32, arg1: i32, arg2: i32, arg3: i32) -> i32;
-        /// Verify that a computed authentication tag matches the expected value, in constant-time.
+        /// Verify that a computed authentication tag matches the expected
+        /// value, in constant-time.
         ///
         /// The expected tag must be provided as a raw byte string.
         ///
@@ -3230,19 +3756,23 @@ pub mod wasi_ephemeral_crypto_symmetric {
         pub fn symmetric_tag_verify(arg0: i32, arg1: i32, arg2: i32) -> i32;
         /// Explicitly destroy an unused authentication tag.
         ///
-        /// This is usually not necessary, as `symmetric_tag_pull()` automatically closes a tag after it has been copied.
+        /// This is usually not necessary, as `symmetric_tag_pull()`
+        /// automatically closes a tag after it has been copied.
         ///
-        /// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
+        /// Objects are reference counted. It is safe to close an object
+        /// immediately after the last function needing it is called.
         pub fn symmetric_tag_close(arg0: i32) -> i32;
     }
 }
 /// Perform a simple Diffie-Hellman key exchange.
 ///
-/// Both keys must be of the same type, or else the `$crypto_errno.incompatible_keys` error is returned.
-/// The algorithm also has to support this kind of key exchange. If this is not the case, the `$crypto_errno.invalid_operation` error is returned.
+/// Both keys must be of the same type, or else the
+/// `$crypto_errno.incompatible_keys` error is returned. The algorithm also has
+/// to support this kind of key exchange. If this is not the case, the
+/// `$crypto_errno.invalid_operation` error is returned.
 ///
-/// Otherwide, a raw shared key is returned, and can be imported as a symmetric key.
-/// ```
+/// Otherwide, a raw shared key is returned, and can be imported as a symmetric
+/// key. ```
 pub unsafe fn kx_dh(pk: Publickey, sk: Secretkey) -> Result<ArrayOutput, CryptoErrno> {
     let mut rp0 = MaybeUninit::<ArrayOutput>::uninit();
     let ret = wasi_ephemeral_crypto_kx::kx_dh(pk as i32, sk as i32, rp0.as_mut_ptr() as i32);
@@ -3257,7 +3787,8 @@ pub unsafe fn kx_dh(pk: Publickey, sk: Secretkey) -> Result<ArrayOutput, CryptoE
 /// Create a shared secret and encrypt it for the given public key.
 ///
 /// This operation is only compatible with specific algorithms.
-/// If a selected algorithm doesn't support it, `$crypto_errno.invalid_operation` is returned.
+/// If a selected algorithm doesn't support it,
+/// `$crypto_errno.invalid_operation` is returned.
 ///
 /// On success, both the shared secret and its encrypted version are returned.
 pub unsafe fn kx_encapsulate(pk: Publickey) -> Result<(ArrayOutput, ArrayOutput), CryptoErrno> {
@@ -3305,18 +3836,23 @@ pub mod wasi_ephemeral_crypto_kx {
     extern "C" {
         /// Perform a simple Diffie-Hellman key exchange.
         ///
-        /// Both keys must be of the same type, or else the `$crypto_errno.incompatible_keys` error is returned.
-        /// The algorithm also has to support this kind of key exchange. If this is not the case, the `$crypto_errno.invalid_operation` error is returned.
+        /// Both keys must be of the same type, or else the
+        /// `$crypto_errno.incompatible_keys` error is returned.
+        /// The algorithm also has to support this kind of key exchange. If this
+        /// is not the case, the `$crypto_errno.invalid_operation` error is
+        /// returned.
         ///
-        /// Otherwide, a raw shared key is returned, and can be imported as a symmetric key.
-        /// ```
+        /// Otherwide, a raw shared key is returned, and can be imported as a
+        /// symmetric key. ```
         pub fn kx_dh(arg0: i32, arg1: i32, arg2: i32) -> i32;
         /// Create a shared secret and encrypt it for the given public key.
         ///
         /// This operation is only compatible with specific algorithms.
-        /// If a selected algorithm doesn't support it, `$crypto_errno.invalid_operation` is returned.
+        /// If a selected algorithm doesn't support it,
+        /// `$crypto_errno.invalid_operation` is returned.
         ///
-        /// On success, both the shared secret and its encrypted version are returned.
+        /// On success, both the shared secret and its encrypted version are
+        /// returned.
         pub fn kx_encapsulate(arg0: i32, arg1: i32, arg2: i32) -> i32;
         /// Decapsulate an encapsulated secret crated with `kx_encapsulate`
         ///

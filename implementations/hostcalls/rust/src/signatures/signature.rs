@@ -1,5 +1,6 @@
 use std::convert::TryFrom;
 use std::sync::{Arc, Mutex, MutexGuard};
+
 use subtle::ConstantTimeEq;
 
 use super::ecdsa::*;

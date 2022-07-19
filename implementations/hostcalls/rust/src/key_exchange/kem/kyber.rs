@@ -1,6 +1,7 @@
-use super::*;
 pub use pqcrypto::kem::kyber768;
 pub use pqcrypto::prelude::*;
+
+use super::*;
 
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]

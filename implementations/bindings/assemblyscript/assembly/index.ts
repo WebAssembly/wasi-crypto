@@ -1,7 +1,7 @@
 import "wasi";
 
-import { Console, Random } from "as-wasi/assembly";
-import { Auth, Hash, Hkdf, SymmetricKey, Aead, SignatureKeyPair, SignaturePublicKey } from "./crypto";
+import {Console, Random} from "as-wasi/assembly";
+import {Auth, Hash, Hkdf, SymmetricKey, Aead, SignatureKeyPair, SignaturePublicKey} from "./crypto";
 
 let msgStr = "test";
 let msg = String.UTF8.encode("test", false);
@@ -84,7 +84,7 @@ let tag = Auth.auth(msg, key)!;
 Console.log("\nHMAC/SHA-256(" + msgStr + "):");
 Console.log(Uint8Array.wrap(tag).toString());
 
-Console.log("\nVerifies:")
+Console.log("\nVerifies:");
 let verified = Auth.verify(msg, key, tag);
 Console.log(verified.toString());
 
@@ -92,7 +92,7 @@ Console.log(verified.toString());
 
 Console.log("\n--- EdDSA signatures");
 let keypair = SignatureKeyPair.generate("Ed25519")!;
-let signature = keypair.sign(msg)!
+let signature = keypair.sign(msg)!;
 Console.log("\nEd25519(" + msgStr + "):");
 Console.log(Uint8Array.wrap(signature.raw()!).toString());
 

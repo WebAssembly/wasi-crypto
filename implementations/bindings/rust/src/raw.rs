@@ -713,8 +713,8 @@ impl fmt::Debug for OptSymmetricKeyU {
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union OptSymmetricKeyUnion {
-    pub some: SymmetricKey,
     pub none: (),
+    pub some: SymmetricKey,
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -724,12 +724,12 @@ pub struct OptSymmetricKey {
 }
 
 pub type U64 = u64;
-pub type SignatureKeypair = Keypair;
-pub type SignaturePublickey = Publickey;
-pub type SignatureSecretkey = Secretkey;
 pub type KxKeypair = Keypair;
 pub type KxPublickey = Publickey;
 pub type KxSecretkey = Secretkey;
+pub type SignatureKeypair = Keypair;
+pub type SignaturePublickey = Publickey;
+pub type SignatureSecretkey = Secretkey;
 /// Create a new object to set non-default options.
 ///
 /// Example usage:
@@ -1823,6 +1823,102 @@ pub mod wasi_ephemeral_crypto_asymmetric_common {
         pub fn secretkey_close(arg0: i32) -> i32;
     }
 }
+/// Perform a simple Diffie-Hellman key exchange.
+///
+/// Both keys must be of the same type, or else the
+/// `$crypto_errno.incompatible_keys` error is returned. The algorithm also has
+/// to support this kind of key exchange. If this is not the case, the
+/// `$crypto_errno.invalid_operation` error is returned.
+///
+/// Otherwide, a raw shared key is returned, and can be imported as a symmetric
+/// key. ```
+pub unsafe fn kx_dh(pk: Publickey, sk: Secretkey) -> Result<ArrayOutput, CryptoErrno> {
+    let mut rp0 = MaybeUninit::<ArrayOutput>::uninit();
+    let ret = wasi_ephemeral_crypto_kx::kx_dh(pk as i32, sk as i32, rp0.as_mut_ptr() as i32);
+    match ret {
+        0 => Ok(core::ptr::read(
+            rp0.as_mut_ptr() as i32 as *const ArrayOutput
+        )),
+        _ => Err(CryptoErrno(ret as u16)),
+    }
+}
+
+/// Create a shared secret and encrypt it for the given public key.
+///
+/// This operation is only compatible with specific algorithms.
+/// If a selected algorithm doesn't support it,
+/// `$crypto_errno.invalid_operation` is returned.
+///
+/// On success, both the shared secret and its encrypted version are returned.
+pub unsafe fn kx_encapsulate(pk: Publickey) -> Result<(ArrayOutput, ArrayOutput), CryptoErrno> {
+    let mut rp0 = MaybeUninit::<ArrayOutput>::uninit();
+    let mut rp1 = MaybeUninit::<ArrayOutput>::uninit();
+    let ret = wasi_ephemeral_crypto_kx::kx_encapsulate(
+        pk as i32,
+        rp0.as_mut_ptr() as i32,
+        rp1.as_mut_ptr() as i32,
+    );
+    match ret {
+        0 => Ok((
+            core::ptr::read(rp0.as_mut_ptr() as i32 as *const ArrayOutput),
+            core::ptr::read(rp1.as_mut_ptr() as i32 as *const ArrayOutput),
+        )),
+        _ => Err(CryptoErrno(ret as u16)),
+    }
+}
+
+/// Decapsulate an encapsulated secret crated with `kx_encapsulate`
+///
+/// Return the secret, or `$crypto_errno.verification_failed` on error.
+pub unsafe fn kx_decapsulate(
+    sk: Secretkey,
+    encapsulated_secret: *const u8,
+    encapsulated_secret_len: Size,
+) -> Result<ArrayOutput, CryptoErrno> {
+    let mut rp0 = MaybeUninit::<ArrayOutput>::uninit();
+    let ret = wasi_ephemeral_crypto_kx::kx_decapsulate(
+        sk as i32,
+        encapsulated_secret as i32,
+        encapsulated_secret_len as i32,
+        rp0.as_mut_ptr() as i32,
+    );
+    match ret {
+        0 => Ok(core::ptr::read(
+            rp0.as_mut_ptr() as i32 as *const ArrayOutput
+        )),
+        _ => Err(CryptoErrno(ret as u16)),
+    }
+}
+
+pub mod wasi_ephemeral_crypto_kx {
+    #[link(wasm_import_module = "wasi_ephemeral_crypto_kx")]
+    extern "C" {
+        /// Perform a simple Diffie-Hellman key exchange.
+        ///
+        /// Both keys must be of the same type, or else the
+        /// `$crypto_errno.incompatible_keys` error is returned.
+        /// The algorithm also has to support this kind of key exchange. If this
+        /// is not the case, the `$crypto_errno.invalid_operation` error is
+        /// returned.
+        ///
+        /// Otherwide, a raw shared key is returned, and can be imported as a
+        /// symmetric key. ```
+        pub fn kx_dh(arg0: i32, arg1: i32, arg2: i32) -> i32;
+        /// Create a shared secret and encrypt it for the given public key.
+        ///
+        /// This operation is only compatible with specific algorithms.
+        /// If a selected algorithm doesn't support it,
+        /// `$crypto_errno.invalid_operation` is returned.
+        ///
+        /// On success, both the shared secret and its encrypted version are
+        /// returned.
+        pub fn kx_encapsulate(arg0: i32, arg1: i32, arg2: i32) -> i32;
+        /// Decapsulate an encapsulated secret crated with `kx_encapsulate`
+        ///
+        /// Return the secret, or `$crypto_errno.verification_failed` on error.
+        pub fn kx_decapsulate(arg0: i32, arg1: i32, arg2: i32, arg3: i32) -> i32;
+    }
+}
 /// Export a signature.
 ///
 /// This function exports a signature object using the specified encoding.
@@ -2646,8 +2742,7 @@ pub unsafe fn symmetric_key_from_id(
 ///
 /// let state_handle = ctx.symmetric_state_open("AES-256-GCM-SIV", Some(key_handle), None)?;
 ///
-/// let nonce_handle = ctx.symmetric_state_options_get(state_handle, "nonce")?;
-/// ctx.array_output_pull(nonce_handle, &mut nonce)?;
+/// let nonce = ctx.symmetric_state_options_get(state_handle, "nonce")?;
 ///
 /// let mut ciphertext = vec![0u8; message.len() + ctx.symmetric_state_max_tag_len(state_handle)?];
 /// ctx.symmetric_state_absorb(state_handle, "additional data")?;
@@ -2726,9 +2821,6 @@ pub unsafe fn symmetric_state_options_get(
 
 /// Retrieve an integer parameter from the current state.
 ///
-/// In particular, `symmetric_state_options_get("nonce")` can be used to get a
-/// nonce that as automatically generated.
-///
 /// The function may return `options_not_set` if an option was not set.
 ///
 /// It may also return `unsupported_option` if the option doesn't exist for the
@@ -2746,6 +2838,24 @@ pub unsafe fn symmetric_state_options_get_u64(
     );
     match ret {
         0 => Ok(core::ptr::read(rp0.as_mut_ptr() as i32 as *const U64)),
+        _ => Err(CryptoErrno(ret as u16)),
+    }
+}
+
+/// Clone a symmetric state.
+///
+/// The function clones the internal state, assigns a new handle to it and
+/// returns the new handle.
+pub unsafe fn symmetric_state_clone(handle: SymmetricState) -> Result<SymmetricState, CryptoErrno> {
+    let mut rp0 = MaybeUninit::<SymmetricState>::uninit();
+    let ret = wasi_ephemeral_crypto_symmetric::symmetric_state_clone(
+        handle as i32,
+        rp0.as_mut_ptr() as i32,
+    );
+    match ret {
+        0 => Ok(core::ptr::read(
+            rp0.as_mut_ptr() as i32 as *const SymmetricState
+        )),
         _ => Err(CryptoErrno(ret as u16)),
     }
 }
@@ -3461,8 +3571,7 @@ pub mod wasi_ephemeral_crypto_symmetric {
         ///
         /// let state_handle = ctx.symmetric_state_open("AES-256-GCM-SIV", Some(key_handle), None)?;
         ///
-        /// let nonce_handle = ctx.symmetric_state_options_get(state_handle, "nonce")?;
-        /// ctx.array_output_pull(nonce_handle, &mut nonce)?;
+        /// let nonce = ctx.symmetric_state_options_get(state_handle, "nonce")?;
         ///
         /// let mut ciphertext = vec![0u8; message.len() + ctx.symmetric_state_max_tag_len(state_handle)?];
         /// ctx.symmetric_state_absorb(state_handle, "additional data")?;
@@ -3508,14 +3617,16 @@ pub mod wasi_ephemeral_crypto_symmetric {
         ) -> i32;
         /// Retrieve an integer parameter from the current state.
         ///
-        /// In particular, `symmetric_state_options_get("nonce")` can be used to
-        /// get a nonce that as automatically generated.
-        ///
         /// The function may return `options_not_set` if an option was not set.
         ///
         /// It may also return `unsupported_option` if the option doesn't exist
         /// for the chosen algorithm.
         pub fn symmetric_state_options_get_u64(arg0: i32, arg1: i32, arg2: i32, arg3: i32) -> i32;
+        /// Clone a symmetric state.
+        ///
+        /// The function clones the internal state, assigns a new handle to it
+        /// and returns the new handle.
+        pub fn symmetric_state_clone(arg0: i32, arg1: i32) -> i32;
         /// Destroy a symmetric state.
         ///
         /// Objects are reference counted. It is safe to close an object
@@ -3762,102 +3873,6 @@ pub mod wasi_ephemeral_crypto_symmetric {
         /// Objects are reference counted. It is safe to close an object
         /// immediately after the last function needing it is called.
         pub fn symmetric_tag_close(arg0: i32) -> i32;
-    }
-}
-/// Perform a simple Diffie-Hellman key exchange.
-///
-/// Both keys must be of the same type, or else the
-/// `$crypto_errno.incompatible_keys` error is returned. The algorithm also has
-/// to support this kind of key exchange. If this is not the case, the
-/// `$crypto_errno.invalid_operation` error is returned.
-///
-/// Otherwide, a raw shared key is returned, and can be imported as a symmetric
-/// key. ```
-pub unsafe fn kx_dh(pk: Publickey, sk: Secretkey) -> Result<ArrayOutput, CryptoErrno> {
-    let mut rp0 = MaybeUninit::<ArrayOutput>::uninit();
-    let ret = wasi_ephemeral_crypto_kx::kx_dh(pk as i32, sk as i32, rp0.as_mut_ptr() as i32);
-    match ret {
-        0 => Ok(core::ptr::read(
-            rp0.as_mut_ptr() as i32 as *const ArrayOutput
-        )),
-        _ => Err(CryptoErrno(ret as u16)),
-    }
-}
-
-/// Create a shared secret and encrypt it for the given public key.
-///
-/// This operation is only compatible with specific algorithms.
-/// If a selected algorithm doesn't support it,
-/// `$crypto_errno.invalid_operation` is returned.
-///
-/// On success, both the shared secret and its encrypted version are returned.
-pub unsafe fn kx_encapsulate(pk: Publickey) -> Result<(ArrayOutput, ArrayOutput), CryptoErrno> {
-    let mut rp0 = MaybeUninit::<ArrayOutput>::uninit();
-    let mut rp1 = MaybeUninit::<ArrayOutput>::uninit();
-    let ret = wasi_ephemeral_crypto_kx::kx_encapsulate(
-        pk as i32,
-        rp0.as_mut_ptr() as i32,
-        rp1.as_mut_ptr() as i32,
-    );
-    match ret {
-        0 => Ok((
-            core::ptr::read(rp0.as_mut_ptr() as i32 as *const ArrayOutput),
-            core::ptr::read(rp1.as_mut_ptr() as i32 as *const ArrayOutput),
-        )),
-        _ => Err(CryptoErrno(ret as u16)),
-    }
-}
-
-/// Decapsulate an encapsulated secret crated with `kx_encapsulate`
-///
-/// Return the secret, or `$crypto_errno.verification_failed` on error.
-pub unsafe fn kx_decapsulate(
-    sk: Secretkey,
-    encapsulated_secret: *const u8,
-    encapsulated_secret_len: Size,
-) -> Result<ArrayOutput, CryptoErrno> {
-    let mut rp0 = MaybeUninit::<ArrayOutput>::uninit();
-    let ret = wasi_ephemeral_crypto_kx::kx_decapsulate(
-        sk as i32,
-        encapsulated_secret as i32,
-        encapsulated_secret_len as i32,
-        rp0.as_mut_ptr() as i32,
-    );
-    match ret {
-        0 => Ok(core::ptr::read(
-            rp0.as_mut_ptr() as i32 as *const ArrayOutput
-        )),
-        _ => Err(CryptoErrno(ret as u16)),
-    }
-}
-
-pub mod wasi_ephemeral_crypto_kx {
-    #[link(wasm_import_module = "wasi_ephemeral_crypto_kx")]
-    extern "C" {
-        /// Perform a simple Diffie-Hellman key exchange.
-        ///
-        /// Both keys must be of the same type, or else the
-        /// `$crypto_errno.incompatible_keys` error is returned.
-        /// The algorithm also has to support this kind of key exchange. If this
-        /// is not the case, the `$crypto_errno.invalid_operation` error is
-        /// returned.
-        ///
-        /// Otherwide, a raw shared key is returned, and can be imported as a
-        /// symmetric key. ```
-        pub fn kx_dh(arg0: i32, arg1: i32, arg2: i32) -> i32;
-        /// Create a shared secret and encrypt it for the given public key.
-        ///
-        /// This operation is only compatible with specific algorithms.
-        /// If a selected algorithm doesn't support it,
-        /// `$crypto_errno.invalid_operation` is returned.
-        ///
-        /// On success, both the shared secret and its encrypted version are
-        /// returned.
-        pub fn kx_encapsulate(arg0: i32, arg1: i32, arg2: i32) -> i32;
-        /// Decapsulate an encapsulated secret crated with `kx_encapsulate`
-        ///
-        /// Return the secret, or `$crypto_errno.verification_failed` on error.
-        pub fn kx_decapsulate(arg0: i32, arg1: i32, arg2: i32, arg3: i32) -> i32;
     }
 }
 pub const VERSION_UNSPECIFIED: Version = 18374686479671623680;

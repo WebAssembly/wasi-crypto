@@ -5,23 +5,23 @@ import * as crypto from "./wasi_crypto";
 // @ts-ignore: cast
 export let buf: usize = changetype<ArrayBufferView>(mem64).dataStart;
 
-export type ptr<T> = crypto.ptr<T>;
+export type ptr<T> = crypto.WasiPtr<T>;
 
 export namespace error {
     // @ts-ignore: decorator
-    export let last: crypto.crypto_errno = 0;
+    export let last: crypto.CryptoErrno = 0;
 
     function reset(): void {
         last = 0;
     }
 }
 
-export function fromWasiArray(arrayOutput: crypto.array_output): ArrayBuffer | null {
-    if ((error.last = crypto.array_output_len(arrayOutput, buf))) {
+export function fromWasiArray(arrayOutput: crypto.ArrayOutput): ArrayBuffer | null {
+    if ((error.last = crypto.arrayOutputLen(arrayOutput, buf))) {
         return null;
     }
     let out = new ArrayBuffer(load<usize>(buf) as i32);
-    crypto.array_output_pull(arrayOutput, changetype<ptr<u8>>(out), out.byteLength, buf);
+    crypto.arrayOutputPull(arrayOutput, changetype<ptr<u8>>(out), out.byteLength, buf);
     return out;
 }
 

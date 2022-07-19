@@ -4,14 +4,14 @@ use super::state::*;
 use super::*;
 
 #[allow(clippy::large_enum_variant)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum HashVariant {
     Sha256(Sha256),
     Sha512(Sha512),
     Sha512_256(Sha512_256),
 }
 
-#[derive(Derivative)]
+#[derive(Derivative, Clone)]
 #[derivative(Debug)]
 pub struct Sha2SymmetricState {
     pub alg: SymmetricAlgorithm,

@@ -12,12 +12,13 @@ pub const NONCE_LEN: usize = 12;
 pub const TAG_LEN: usize = 16;
 
 #[allow(clippy::large_enum_variant)]
+#[derive(Clone)]
 enum AesGcmVariant {
     Aes128(Aes128Gcm),
     Aes256(Aes256Gcm),
 }
 
-#[derive(Derivative)]
+#[derive(Derivative, Clone)]
 #[derivative(Debug)]
 pub struct AesGcmSymmetricState {
     pub alg: SymmetricAlgorithm,

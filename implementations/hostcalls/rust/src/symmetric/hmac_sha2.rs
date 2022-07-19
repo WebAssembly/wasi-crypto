@@ -8,13 +8,13 @@ use super::*;
 use crate::rand::SecureRandom;
 
 #[allow(clippy::large_enum_variant)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum HmacVariant {
     Sha256(Hmac<Sha256>),
     Sha512(Hmac<Sha512>),
 }
 
-#[derive(Derivative)]
+#[derive(Derivative, Clone)]
 #[derivative(Debug)]
 pub struct HmacSha2SymmetricState {
     pub alg: SymmetricAlgorithm,

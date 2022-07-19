@@ -11,12 +11,13 @@ use crate::rand::SecureRandom;
 pub const TAG_LEN: usize = 16;
 
 #[allow(clippy::large_enum_variant)]
+#[derive(Clone)]
 enum ChaChaPolyVariant {
     ChaCha(ChaCha20Poly1305),
     XChaCha(XChaCha20Poly1305),
 }
 
-#[derive(Derivative)]
+#[derive(Derivative, Clone)]
 #[derivative(Debug)]
 pub struct ChaChaPolySymmetricState {
     pub alg: SymmetricAlgorithm,

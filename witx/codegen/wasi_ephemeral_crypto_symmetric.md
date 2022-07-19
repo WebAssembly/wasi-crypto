@@ -9,7 +9,7 @@
 
 ### Functions list:
 
-[**[All](#functions)**] - [[`symmetric_key_generate()`](#symmetric_key_generate)] - [[`symmetric_key_import()`](#symmetric_key_import)] - [[`symmetric_key_export()`](#symmetric_key_export)] - [[`symmetric_key_close()`](#symmetric_key_close)] - [[`symmetric_key_generate_managed()`](#symmetric_key_generate_managed)] - [[`symmetric_key_store_managed()`](#symmetric_key_store_managed)] - [[`symmetric_key_replace_managed()`](#symmetric_key_replace_managed)] - [[`symmetric_key_id()`](#symmetric_key_id)] - [[`symmetric_key_from_id()`](#symmetric_key_from_id)] - [[`symmetric_state_open()`](#symmetric_state_open)] - [[`symmetric_state_options_get()`](#symmetric_state_options_get)] - [[`symmetric_state_options_get_u64()`](#symmetric_state_options_get_u64)] - [[`symmetric_state_close()`](#symmetric_state_close)] - [[`symmetric_state_absorb()`](#symmetric_state_absorb)] - [[`symmetric_state_squeeze()`](#symmetric_state_squeeze)] - [[`symmetric_state_squeeze_tag()`](#symmetric_state_squeeze_tag)] - [[`symmetric_state_squeeze_key()`](#symmetric_state_squeeze_key)] - [[`symmetric_state_max_tag_len()`](#symmetric_state_max_tag_len)] - [[`symmetric_state_encrypt()`](#symmetric_state_encrypt)] - [[`symmetric_state_encrypt_detached()`](#symmetric_state_encrypt_detached)] - [[`symmetric_state_decrypt()`](#symmetric_state_decrypt)] - [[`symmetric_state_decrypt_detached()`](#symmetric_state_decrypt_detached)] - [[`symmetric_state_ratchet()`](#symmetric_state_ratchet)] - [[`symmetric_tag_len()`](#symmetric_tag_len)] - [[`symmetric_tag_pull()`](#symmetric_tag_pull)] - [[`symmetric_tag_verify()`](#symmetric_tag_verify)] - [[`symmetric_tag_close()`](#symmetric_tag_close)]
+[**[All](#functions)**] - [[`symmetric_key_generate()`](#symmetric_key_generate)] - [[`symmetric_key_import()`](#symmetric_key_import)] - [[`symmetric_key_export()`](#symmetric_key_export)] - [[`symmetric_key_close()`](#symmetric_key_close)] - [[`symmetric_key_generate_managed()`](#symmetric_key_generate_managed)] - [[`symmetric_key_store_managed()`](#symmetric_key_store_managed)] - [[`symmetric_key_replace_managed()`](#symmetric_key_replace_managed)] - [[`symmetric_key_id()`](#symmetric_key_id)] - [[`symmetric_key_from_id()`](#symmetric_key_from_id)] - [[`symmetric_state_open()`](#symmetric_state_open)] - [[`symmetric_state_options_get()`](#symmetric_state_options_get)] - [[`symmetric_state_options_get_u64()`](#symmetric_state_options_get_u64)] - [[`symmetric_state_clone()`](#symmetric_state_clone)] - [[`symmetric_state_close()`](#symmetric_state_close)] - [[`symmetric_state_absorb()`](#symmetric_state_absorb)] - [[`symmetric_state_squeeze()`](#symmetric_state_squeeze)] - [[`symmetric_state_squeeze_tag()`](#symmetric_state_squeeze_tag)] - [[`symmetric_state_squeeze_key()`](#symmetric_state_squeeze_key)] - [[`symmetric_state_max_tag_len()`](#symmetric_state_max_tag_len)] - [[`symmetric_state_encrypt()`](#symmetric_state_encrypt)] - [[`symmetric_state_encrypt_detached()`](#symmetric_state_encrypt_detached)] - [[`symmetric_state_decrypt()`](#symmetric_state_decrypt)] - [[`symmetric_state_decrypt_detached()`](#symmetric_state_decrypt_detached)] - [[`symmetric_state_ratchet()`](#symmetric_state_ratchet)] - [[`symmetric_tag_len()`](#symmetric_tag_len)] - [[`symmetric_tag_pull()`](#symmetric_tag_pull)] - [[`symmetric_tag_verify()`](#symmetric_tag_verify)] - [[`symmetric_tag_close()`](#symmetric_tag_close)]
 
 ## Types
 
@@ -812,6 +812,24 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > The function may return `options_not_set` if an option was not set.
 > 
 > It may also return `unsupported_option` if the option doesn't exist for the chosen algorithm.
+
+
+---
+
+### [`symmetric_state_clone()`](#symmetric_state_clone)
+Returned error type: _[`crypto_errno`](#crypto_errno)_
+
+#### Input:
+
+* **`handle`**: _[`symmetric_state`](#symmetric_state)_
+
+#### Output:
+
+* _[`symmetric_state`](#symmetric_state)_ mutable pointer
+
+> Clone a symmetric state.
+> 
+> The function clones the internal state, assigns a new handle to it and returns the new handle.
 
 
 ---

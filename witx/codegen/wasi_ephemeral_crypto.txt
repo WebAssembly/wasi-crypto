@@ -434,6 +434,12 @@ function symmetric_state_options_get_u64(): crypto_errno
     - Output:
         - mut_ptr<u64>
 
+function symmetric_state_clone(): crypto_errno
+    - Input:
+        - handle: symmetric_state
+    - Output:
+        - mut_ptr<symmetric_state>
+
 function symmetric_state_close(): crypto_errno
     - Input:
         - handle: symmetric_state

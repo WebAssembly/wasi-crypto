@@ -376,12 +376,8 @@ pub const KEYPAIR_ENCODING_RAW: KeypairEncoding = KeypairEncoding(0);
 pub const KEYPAIR_ENCODING_PKCS8: KeypairEncoding = KeypairEncoding(1);
 /// PEM encoding.
 pub const KEYPAIR_ENCODING_PEM: KeypairEncoding = KeypairEncoding(2);
-/// PCSK8/DER encoding with compressed coordinates.
-pub const KEYPAIR_ENCODING_COMPRESSED_PKCS8: KeypairEncoding = KeypairEncoding(3);
-/// PEM encoding with compressed coordinates.
-pub const KEYPAIR_ENCODING_COMPRESSED_PEM: KeypairEncoding = KeypairEncoding(4);
 /// Implementation-defined encoding.
-pub const KEYPAIR_ENCODING_LOCAL: KeypairEncoding = KeypairEncoding(5);
+pub const KEYPAIR_ENCODING_LOCAL: KeypairEncoding = KeypairEncoding(3);
 impl KeypairEncoding {
     pub const fn raw(&self) -> u16 {
         self.0
@@ -392,9 +388,7 @@ impl KeypairEncoding {
             0 => "RAW",
             1 => "PKCS8",
             2 => "PEM",
-            3 => "COMPRESSED_PKCS8",
-            4 => "COMPRESSED_PEM",
-            5 => "LOCAL",
+            3 => "LOCAL",
             _ => unsafe { core::hint::unreachable_unchecked() },
         }
     }
@@ -404,9 +398,7 @@ impl KeypairEncoding {
             0 => "Raw bytes.",
             1 => "PCSK8/DER encoding.",
             2 => "PEM encoding.",
-            3 => "PCSK8/DER encoding with compressed coordinates.",
-            4 => "PEM encoding with compressed coordinates.",
-            5 => "Implementation-defined encoding.",
+            3 => "Implementation-defined encoding.",
             _ => unsafe { core::hint::unreachable_unchecked() },
         }
     }
@@ -432,14 +424,8 @@ pub const PUBLICKEY_ENCODING_PKCS8: PublickeyEncoding = PublickeyEncoding(1);
 pub const PUBLICKEY_ENCODING_PEM: PublickeyEncoding = PublickeyEncoding(2);
 /// SEC-1 encoding.
 pub const PUBLICKEY_ENCODING_SEC: PublickeyEncoding = PublickeyEncoding(3);
-/// Compressed SEC-1 encoding.
-pub const PUBLICKEY_ENCODING_COMPRESSED_SEC: PublickeyEncoding = PublickeyEncoding(4);
-/// PKCS8/DER encoding with compressed coordinates.
-pub const PUBLICKEY_ENCODING_COMPRESSED_PKCS8: PublickeyEncoding = PublickeyEncoding(5);
-/// PEM encoding with compressed coordinates.
-pub const PUBLICKEY_ENCODING_COMPRESSED_PEM: PublickeyEncoding = PublickeyEncoding(6);
 /// Implementation-defined encoding.
-pub const PUBLICKEY_ENCODING_LOCAL: PublickeyEncoding = PublickeyEncoding(7);
+pub const PUBLICKEY_ENCODING_LOCAL: PublickeyEncoding = PublickeyEncoding(4);
 impl PublickeyEncoding {
     pub const fn raw(&self) -> u16 {
         self.0
@@ -451,10 +437,7 @@ impl PublickeyEncoding {
             1 => "PKCS8",
             2 => "PEM",
             3 => "SEC",
-            4 => "COMPRESSED_SEC",
-            5 => "COMPRESSED_PKCS8",
-            6 => "COMPRESSED_PEM",
-            7 => "LOCAL",
+            4 => "LOCAL",
             _ => unsafe { core::hint::unreachable_unchecked() },
         }
     }
@@ -465,10 +448,7 @@ impl PublickeyEncoding {
             1 => "PKCS8/DER encoding.",
             2 => "PEM encoding.",
             3 => "SEC-1 encoding.",
-            4 => "Compressed SEC-1 encoding.",
-            5 => "PKCS8/DER encoding with compressed coordinates.",
-            6 => "PEM encoding with compressed coordinates.",
-            7 => "Implementation-defined encoding.",
+            4 => "Implementation-defined encoding.",
             _ => unsafe { core::hint::unreachable_unchecked() },
         }
     }
@@ -724,12 +704,12 @@ pub struct OptSymmetricKey {
 }
 
 pub type U64 = u64;
-pub type KxKeypair = Keypair;
-pub type KxPublickey = Publickey;
-pub type KxSecretkey = Secretkey;
 pub type SignatureKeypair = Keypair;
 pub type SignaturePublickey = Publickey;
 pub type SignatureSecretkey = Secretkey;
+pub type KxKeypair = Keypair;
+pub type KxPublickey = Publickey;
+pub type KxSecretkey = Secretkey;
 /// Create a new object to set non-default options.
 ///
 /// Example usage:
@@ -1821,102 +1801,6 @@ pub mod wasi_ephemeral_crypto_asymmetric_common {
         /// Objects are reference counted. It is safe to close an object
         /// immediately after the last function needing it is called.
         pub fn secretkey_close(arg0: i32) -> i32;
-    }
-}
-/// Perform a simple Diffie-Hellman key exchange.
-///
-/// Both keys must be of the same type, or else the
-/// `$crypto_errno.incompatible_keys` error is returned. The algorithm also has
-/// to support this kind of key exchange. If this is not the case, the
-/// `$crypto_errno.invalid_operation` error is returned.
-///
-/// Otherwide, a raw shared key is returned, and can be imported as a symmetric
-/// key. ```
-pub unsafe fn kx_dh(pk: Publickey, sk: Secretkey) -> Result<ArrayOutput, CryptoErrno> {
-    let mut rp0 = MaybeUninit::<ArrayOutput>::uninit();
-    let ret = wasi_ephemeral_crypto_kx::kx_dh(pk as i32, sk as i32, rp0.as_mut_ptr() as i32);
-    match ret {
-        0 => Ok(core::ptr::read(
-            rp0.as_mut_ptr() as i32 as *const ArrayOutput
-        )),
-        _ => Err(CryptoErrno(ret as u16)),
-    }
-}
-
-/// Create a shared secret and encrypt it for the given public key.
-///
-/// This operation is only compatible with specific algorithms.
-/// If a selected algorithm doesn't support it,
-/// `$crypto_errno.invalid_operation` is returned.
-///
-/// On success, both the shared secret and its encrypted version are returned.
-pub unsafe fn kx_encapsulate(pk: Publickey) -> Result<(ArrayOutput, ArrayOutput), CryptoErrno> {
-    let mut rp0 = MaybeUninit::<ArrayOutput>::uninit();
-    let mut rp1 = MaybeUninit::<ArrayOutput>::uninit();
-    let ret = wasi_ephemeral_crypto_kx::kx_encapsulate(
-        pk as i32,
-        rp0.as_mut_ptr() as i32,
-        rp1.as_mut_ptr() as i32,
-    );
-    match ret {
-        0 => Ok((
-            core::ptr::read(rp0.as_mut_ptr() as i32 as *const ArrayOutput),
-            core::ptr::read(rp1.as_mut_ptr() as i32 as *const ArrayOutput),
-        )),
-        _ => Err(CryptoErrno(ret as u16)),
-    }
-}
-
-/// Decapsulate an encapsulated secret crated with `kx_encapsulate`
-///
-/// Return the secret, or `$crypto_errno.verification_failed` on error.
-pub unsafe fn kx_decapsulate(
-    sk: Secretkey,
-    encapsulated_secret: *const u8,
-    encapsulated_secret_len: Size,
-) -> Result<ArrayOutput, CryptoErrno> {
-    let mut rp0 = MaybeUninit::<ArrayOutput>::uninit();
-    let ret = wasi_ephemeral_crypto_kx::kx_decapsulate(
-        sk as i32,
-        encapsulated_secret as i32,
-        encapsulated_secret_len as i32,
-        rp0.as_mut_ptr() as i32,
-    );
-    match ret {
-        0 => Ok(core::ptr::read(
-            rp0.as_mut_ptr() as i32 as *const ArrayOutput
-        )),
-        _ => Err(CryptoErrno(ret as u16)),
-    }
-}
-
-pub mod wasi_ephemeral_crypto_kx {
-    #[link(wasm_import_module = "wasi_ephemeral_crypto_kx")]
-    extern "C" {
-        /// Perform a simple Diffie-Hellman key exchange.
-        ///
-        /// Both keys must be of the same type, or else the
-        /// `$crypto_errno.incompatible_keys` error is returned.
-        /// The algorithm also has to support this kind of key exchange. If this
-        /// is not the case, the `$crypto_errno.invalid_operation` error is
-        /// returned.
-        ///
-        /// Otherwide, a raw shared key is returned, and can be imported as a
-        /// symmetric key. ```
-        pub fn kx_dh(arg0: i32, arg1: i32, arg2: i32) -> i32;
-        /// Create a shared secret and encrypt it for the given public key.
-        ///
-        /// This operation is only compatible with specific algorithms.
-        /// If a selected algorithm doesn't support it,
-        /// `$crypto_errno.invalid_operation` is returned.
-        ///
-        /// On success, both the shared secret and its encrypted version are
-        /// returned.
-        pub fn kx_encapsulate(arg0: i32, arg1: i32, arg2: i32) -> i32;
-        /// Decapsulate an encapsulated secret crated with `kx_encapsulate`
-        ///
-        /// Return the secret, or `$crypto_errno.verification_failed` on error.
-        pub fn kx_decapsulate(arg0: i32, arg1: i32, arg2: i32, arg3: i32) -> i32;
     }
 }
 /// Export a signature.
@@ -3873,6 +3757,102 @@ pub mod wasi_ephemeral_crypto_symmetric {
         /// Objects are reference counted. It is safe to close an object
         /// immediately after the last function needing it is called.
         pub fn symmetric_tag_close(arg0: i32) -> i32;
+    }
+}
+/// Perform a simple Diffie-Hellman key exchange.
+///
+/// Both keys must be of the same type, or else the
+/// `$crypto_errno.incompatible_keys` error is returned. The algorithm also has
+/// to support this kind of key exchange. If this is not the case, the
+/// `$crypto_errno.invalid_operation` error is returned.
+///
+/// Otherwide, a raw shared key is returned, and can be imported as a symmetric
+/// key. ```
+pub unsafe fn kx_dh(pk: Publickey, sk: Secretkey) -> Result<ArrayOutput, CryptoErrno> {
+    let mut rp0 = MaybeUninit::<ArrayOutput>::uninit();
+    let ret = wasi_ephemeral_crypto_kx::kx_dh(pk as i32, sk as i32, rp0.as_mut_ptr() as i32);
+    match ret {
+        0 => Ok(core::ptr::read(
+            rp0.as_mut_ptr() as i32 as *const ArrayOutput
+        )),
+        _ => Err(CryptoErrno(ret as u16)),
+    }
+}
+
+/// Create a shared secret and encrypt it for the given public key.
+///
+/// This operation is only compatible with specific algorithms.
+/// If a selected algorithm doesn't support it,
+/// `$crypto_errno.invalid_operation` is returned.
+///
+/// On success, both the shared secret and its encrypted version are returned.
+pub unsafe fn kx_encapsulate(pk: Publickey) -> Result<(ArrayOutput, ArrayOutput), CryptoErrno> {
+    let mut rp0 = MaybeUninit::<ArrayOutput>::uninit();
+    let mut rp1 = MaybeUninit::<ArrayOutput>::uninit();
+    let ret = wasi_ephemeral_crypto_kx::kx_encapsulate(
+        pk as i32,
+        rp0.as_mut_ptr() as i32,
+        rp1.as_mut_ptr() as i32,
+    );
+    match ret {
+        0 => Ok((
+            core::ptr::read(rp0.as_mut_ptr() as i32 as *const ArrayOutput),
+            core::ptr::read(rp1.as_mut_ptr() as i32 as *const ArrayOutput),
+        )),
+        _ => Err(CryptoErrno(ret as u16)),
+    }
+}
+
+/// Decapsulate an encapsulated secret crated with `kx_encapsulate`
+///
+/// Return the secret, or `$crypto_errno.verification_failed` on error.
+pub unsafe fn kx_decapsulate(
+    sk: Secretkey,
+    encapsulated_secret: *const u8,
+    encapsulated_secret_len: Size,
+) -> Result<ArrayOutput, CryptoErrno> {
+    let mut rp0 = MaybeUninit::<ArrayOutput>::uninit();
+    let ret = wasi_ephemeral_crypto_kx::kx_decapsulate(
+        sk as i32,
+        encapsulated_secret as i32,
+        encapsulated_secret_len as i32,
+        rp0.as_mut_ptr() as i32,
+    );
+    match ret {
+        0 => Ok(core::ptr::read(
+            rp0.as_mut_ptr() as i32 as *const ArrayOutput
+        )),
+        _ => Err(CryptoErrno(ret as u16)),
+    }
+}
+
+pub mod wasi_ephemeral_crypto_kx {
+    #[link(wasm_import_module = "wasi_ephemeral_crypto_kx")]
+    extern "C" {
+        /// Perform a simple Diffie-Hellman key exchange.
+        ///
+        /// Both keys must be of the same type, or else the
+        /// `$crypto_errno.incompatible_keys` error is returned.
+        /// The algorithm also has to support this kind of key exchange. If this
+        /// is not the case, the `$crypto_errno.invalid_operation` error is
+        /// returned.
+        ///
+        /// Otherwide, a raw shared key is returned, and can be imported as a
+        /// symmetric key. ```
+        pub fn kx_dh(arg0: i32, arg1: i32, arg2: i32) -> i32;
+        /// Create a shared secret and encrypt it for the given public key.
+        ///
+        /// This operation is only compatible with specific algorithms.
+        /// If a selected algorithm doesn't support it,
+        /// `$crypto_errno.invalid_operation` is returned.
+        ///
+        /// On success, both the shared secret and its encrypted version are
+        /// returned.
+        pub fn kx_encapsulate(arg0: i32, arg1: i32, arg2: i32) -> i32;
+        /// Decapsulate an encapsulated secret crated with `kx_encapsulate`
+        ///
+        /// Return the secret, or `$crypto_errno.verification_failed` on error.
+        pub fn kx_decapsulate(arg0: i32, arg1: i32, arg2: i32, arg3: i32) -> i32;
     }
 }
 pub const VERSION_UNSPECIFIED: Version = 18374686479671623680;

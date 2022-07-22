@@ -108,9 +108,7 @@ export namespace KeypairEncoding {
     export const RAW: KeypairEncoding = 0;
     export const PKCS_8: KeypairEncoding = 1;
     export const PEM: KeypairEncoding = 2;
-    export const COMPRESSED_PKCS_8: KeypairEncoding = 3;
-    export const COMPRESSED_PEM: KeypairEncoding = 4;
-    export const LOCAL: KeypairEncoding = 5;
+    export const LOCAL: KeypairEncoding = 3;
 }
 
 /**
@@ -123,10 +121,7 @@ export namespace PublickeyEncoding {
     export const PKCS_8: PublickeyEncoding = 1;
     export const PEM: PublickeyEncoding = 2;
     export const SEC: PublickeyEncoding = 3;
-    export const COMPRESSED_SEC: PublickeyEncoding = 4;
-    export const COMPRESSED_PKCS_8: PublickeyEncoding = 5;
-    export const COMPRESSED_PEM: PublickeyEncoding = 6;
-    export const LOCAL: PublickeyEncoding = 7;
+    export const LOCAL: PublickeyEncoding = 4;
 }
 
 /**

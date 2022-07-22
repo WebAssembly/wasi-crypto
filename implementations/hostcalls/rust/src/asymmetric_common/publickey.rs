@@ -7,7 +7,6 @@ pub enum PublicKeyEncoding {
     Pkcs8,
     Pem,
     Sec,
-    CompressedSec,
     Local,
 }
 

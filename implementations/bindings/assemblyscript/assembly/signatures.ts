@@ -71,10 +71,6 @@ export class SignaturePublicKey extends PublicKey {
         return changetype<SignaturePublicKey | null>(super._fromSec(crypto.AlgorithmType.SIGNATURES, alg, encoded));
     }
 
-    static fromCompressedSec(alg: string, encoded: ArrayBuffer): SignaturePublicKey | null {
-        return changetype<SignaturePublicKey | null>(super._fromCompressedSec(crypto.AlgorithmType.SIGNATURES, alg, encoded));
-    }
-
     static fromLocal(alg: string, encoded: ArrayBuffer): SignaturePublicKey | null {
         return changetype<SignaturePublicKey | null>(super._fromLocal(crypto.AlgorithmType.SIGNATURES, alg, encoded));
     }

@@ -1,5 +1,5 @@
-pub use pqcrypto::kem::kyber768;
-pub use pqcrypto::prelude::*;
+use pqcrypto_kyber::kyber768;
+use pqcrypto_traits::kem::*;
 
 use super::*;
 

@@ -7,7 +7,7 @@ use super::ecdsa::*;
 use super::eddsa::*;
 use super::keypair::*;
 use super::publickey::*;
-use super::rsa::*;
+use super::rsa_impl::*;
 use super::*;
 use crate::array_output::*;
 use crate::error::*;

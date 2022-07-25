@@ -2,7 +2,11 @@ mod ecdsa;
 mod eddsa;
 mod keypair;
 mod publickey;
-mod rsa;
+
+#[cfg_attr(feature = "boring", path = "rsa_boring.rs")]
+#[cfg_attr(feature = "rcrypto", path = "rsa_rcrypto.rs")]
+mod rsa_impl;
+
 mod secretkey;
 mod signature;
 

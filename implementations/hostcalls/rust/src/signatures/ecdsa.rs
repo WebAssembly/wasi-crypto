@@ -480,9 +480,7 @@ impl EcdsaSignaturePublicKey {
     ) -> Result<Self, CryptoError> {
         match encoding {
             PublicKeyEncoding::Raw => Self::from_raw(alg, encoded),
-            PublicKeyEncoding::Sec | PublicKeyEncoding::CompressedSec => {
-                Self::from_sec(alg, encoded)
-            }
+            PublicKeyEncoding::Sec => Self::from_sec(alg, encoded),
             PublicKeyEncoding::Pkcs8 => Self::from_pkcs8(alg, encoded),
             PublicKeyEncoding::Pem => Self::from_pem(alg, encoded),
             _ => bail!(CryptoError::UnsupportedEncoding),
@@ -493,7 +491,6 @@ impl EcdsaSignaturePublicKey {
         match encoding {
             PublicKeyEncoding::Raw => self.as_raw(),
             PublicKeyEncoding::Sec => self.as_sec(false),
-            PublicKeyEncoding::CompressedSec => self.as_sec(true),
             _ => bail!(CryptoError::UnsupportedEncoding),
         }
     }

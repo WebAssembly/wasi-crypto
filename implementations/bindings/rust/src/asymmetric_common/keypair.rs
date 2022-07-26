@@ -67,14 +67,6 @@ impl KeyPair {
         Self::decode_from(alg_type, alg, encoded, raw::KEYPAIR_ENCODING_PEM)
     }
 
-    pub fn from_compressed_pem(
-        alg_type: raw::AlgorithmType,
-        alg: &'static str,
-        encoded: impl AsRef<[u8]>,
-    ) -> Result<Self, Error> {
-        Self::decode_from(alg_type, alg, encoded, raw::KEYPAIR_ENCODING_COMPRESSED_PEM)
-    }
-
     pub fn from_local(
         alg_type: raw::AlgorithmType,
         alg: &'static str,

@@ -56,8 +56,8 @@ This document describes `wasi-crypto`, a set of APIs that a runtime can expose t
   - [Types](#types)
   - [Common functions](#common-functions)
   - [Common asymmetric functions](#common-asymmetric-functions)
-  - [Signature API](#signature-api)
   - [Symmetric operations API](#symmetric-operations-api)
+  - [Signature API](#signature-api)
   - [Key exchange API](#key-exchange-api)
   - [External secrets API](#external-secrets-api)
 
@@ -152,9 +152,6 @@ Applications never access these representations directly. Keys, group elements a
 * `pkcs8`: `PKCS#8`/`DER` encoding. Implementations MAY support encryption.
 * `pem`: `PEM`-encoded `PKCS#8`/`DER` format. Implementations MAY support encryption.
 * `sec`: Affine coordinates [`SEC-1`](https://www.secg.org/sec1-v2.pdf) scalar and elliptic curve point encoding.
-* `compressed_pkcs8`: `PKCS#8`/`DER` encoding with coordinates in compressed form. Implementations MAY support encryption.
-* `compressed_pem`: `PEM`-encoded `PKCS#8`/`DER` format with coordinates in compressed form. Implementations MAY support encryption.
-* `compressed_sec`: Single-coordinate [`SEC-1`](https://www.secg.org/sec1-v2.pdf) elliptic curve point encoding.
 * `local`: implemented-defined encoding. Such a representation can be more efficient than standard serialization formats, but is not defined not required by the `wasi-crypto` specification, and is thus not meant to be portable across implementations.
 
 Encodings are specified as constants, which are defined for individual key types:
@@ -201,7 +198,7 @@ In particular:
 * A Curve25519 point is represented as its X coordinate in little-endian format. The top bit must be cleared.
 * An Edwards25519 point is represented as its Y coordinate and the sign of the X coordinate.
 
-Points on NIST curves must be importable/exportable using the standard `SEC-1` encoding, both with and without compression. The `wasi-crypto` API defines the `sec` and `compressed_sec` encodings for that purpose.
+Points on NIST curves must be importable/exportable using the standard `SEC-1` encoding. Importation MUST support compressed and uncompressed representations, while exportation unconditionally uses the uncompressed representation.
 
 Finally, implementations MAY support a non-portable, optimized representation for public keys, referred to as `local` in the set of possible encodings for a public key.
 
@@ -232,14 +229,14 @@ In addition, an implementation MAY allow these signatures to be serialized using
 
 ## Required encodings and key types
 
-|           | Signature key pair                                                                                                   | Secret key                                                                  | Public key                                                                                                                                          |
-| --------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Ed25519   | raw (private key + secret key encoded as in RFC8032)                                                                 | raw (cf. RFC8032)                                                           | raw (cf. RFC8032)                                                                                                                                   |
-| X25519    | N/A                                                                                                                  | raw (cf. RFC7748)                                                           | raw (cf. RFC7748)                                                                                                                                   |
-| p256      | raw secret scalar encoded as big endian, SEC-1, compressed SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, compressed SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, compressed SEC-1, unencrypted PKCS#8 (compressed and uncompressed forms), PEM-encoded unencrypted PKCS#8 (compressed and uncompressed forms) |
-| p384      | raw secret scalar encoded as big endian, SEC-1, compressed SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, compressed SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, compressed SEC-1, unencrypted PKCS#8 (compressed and uncompressed forms), PEM-encoded unencrypted PKCS#8 (compressed and uncompressed forms) |
-| secp256k1 | raw secret scalar encoded as big endian, SEC-1, compressed SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, compressed SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, compressed SEC-1, unencrypted PKCS#8 (compressed and uncompressed forms), PEM-encoded unencrypted PKCS#8 (compressed and uncompressed forms) |
-| RSA       | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8                                                                   | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8                          | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8                                                                                                  |
+|           | Signature key pair                                                                                 | Secret key                                                | Public key                                                |
+| --------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | --------------------------------------------------------- |
+| Ed25519   | raw (private key + secret key encoded as in RFC8032)                                               | raw (cf. RFC8032)                                         | raw (cf. RFC8032)                                         |
+| X25519    | N/A                                                                                                | raw (cf. RFC7748)                                         | raw (cf. RFC7748)                                         |
+| p256      | raw secret scalar encoded as big endian, SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |
+| p384      | raw secret scalar encoded as big endian, SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |
+| secp256k1 | raw secret scalar encoded as big endian, SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |
+| RSA       | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8                                                 | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8        | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8        |
 
 ## Array outputs
 
@@ -605,7 +602,7 @@ Signature verifiction requires the following steps:
 States used for signature creation and verification are not interchangeable. An implementation MUST return the `invalid_handle` error if a verification function is called on a state originally opened for signature creation or the other way round.
 
 ```rust
-let pk_handle = publickey_import(AlgorithmType::Signatures, "ECDSA_P256_SHA256", encoded_pk, PublicKeyEncoding::CompressedSec)?;
+let pk_handle = publickey_import(AlgorithmType::Signatures, "ECDSA_P256_SHA256", encoded_pk, PublicKeyEncoding::Sec)?;
 let signature_handle = signature_import(AlgorithmType::Signatures, "ECDSA_P256_SHA256", encoded_sig, SignatureEncoding::Der)?;
 let state_handle = signature_verification_state_open(pk_handle)?;
 signature_verification_state_update(state_handle, "message")?;
@@ -1357,133 +1354,119 @@ The function MUST check the authentication tag and return `invalid_tag` if it do
 ## Types
 
 ```text
-crypto_errno: enum(u16)
-    - success = 0
-    - guest_error = 1
-    - not_implemented = 2
-    - unsupported_feature = 3
-    - prohibited_operation = 4
-    - unsupported_encoding = 5
-    - unsupported_algorithm = 6
-    - unsupported_option = 7
-    - invalid_key = 8
-    - invalid_length = 9
-    - verification_failed = 10
-    - rng_error = 11
-    - algorithm_failure = 12
-    - invalid_signature = 13
-    - closed = 14
-    - invalid_handle = 15
-    - overflow = 16
-    - internal_error = 17
-    - too_many_handles = 18
-    - key_not_supported = 19
-    - key_required = 20
-    - invalid_tag = 21
-    - invalid_operation = 22
-    - nonce_required = 23
-    - invalid_nonce = 24
-    - option_not_set = 25
-    - not_found = 26
-    - parameters_missing = 27
-    - in_progress = 28
-    - incompatible_keys = 29
-    - expired = 30
+enum crypto_errno: (tag: u16)
+    - success: 0
+    - guest_error: 1
+    - not_implemented: 2
+    - unsupported_feature: 3
+    - prohibited_operation: 4
+    - unsupported_encoding: 5
+    - unsupported_algorithm: 6
+    - unsupported_option: 7
+    - invalid_key: 8
+    - invalid_length: 9
+    - verification_failed: 10
+    - rng_error: 11
+    - algorithm_failure: 12
+    - invalid_signature: 13
+    - closed: 14
+    - invalid_handle: 15
+    - overflow: 16
+    - internal_error: 17
+    - too_many_handles: 18
+    - key_not_supported: 19
+    - key_required: 20
+    - invalid_tag: 21
+    - invalid_operation: 22
+    - nonce_required: 23
+    - invalid_nonce: 24
+    - option_not_set: 25
+    - not_found: 26
+    - parameters_missing: 27
+    - in_progress: 28
+    - incompatible_keys: 29
+    - expired: 30
 
-keypair_encoding: enum(u16)
-    - raw = 0
-    - pkcs8 = 1
-    - pem = 2
-    - compressed_pkcs8 = 3
-    - compressed_pem = 4
-    - local = 5
+enum keypair_encoding: (tag: u16)
+    - raw: 0
+    - pkcs8: 1
+    - pem: 2
+    - local: 3
 
-publickey_encoding: enum(u16)
-    - raw = 0
-    - pkcs8 = 1
-    - pem = 2
-    - sec = 3
-    - compressed_pkcs8 = 4
-    - compressed_pem = 5
-    - compressed_sec = 6
-    - local = 7
+enum publickey_encoding: (tag: u16)
+    - raw: 0
+    - pkcs8: 1
+    - pem: 2
+    - sec: 3
+    - local: 4
 
-secretkey_encoding: enum(u16)
-    - raw = 0
-    - pkcs8 = 1
-    - pem = 2
-    - sec = 3
-    - local = 4
+enum secretkey_encoding: (tag: u16)
+    - raw: 0
+    - pkcs8: 1
+    - pem: 2
+    - sec: 3
+    - local: 4
 
-signature_encoding: enum(u16)
-    - raw = 0
-    - der = 1
+enum signature_encoding: (tag: u16)
+    - raw: 0
+    - der: 1
 
-algorithm_type: enum(u16)
-    - signatures = 0
-    - symmetric = 1
-    - key_exchange = 2
+enum algorithm_type: (tag: u16)
+    - signatures: 0
+    - symmetric: 1
+    - key_exchange: 2
 
-version: int(u64)
-    - unspecified = 0
-    - latest = 1
-    - all = 2
+alias version = u64
+predefined constants for version:
+    - unspecified = 0xff00000000000000
+    - latest = 0xff00000000000001
+    - all = 0xff00000000000002
 
 alias size = usize
 
 alias timestamp = u64
 
-array_output: handle
+alias u64 = u64
 
-options: handle
+alias array_output = handle
 
-secrets_manager: handle
+alias options = handle
 
-keypair: handle
+alias secrets_manager = handle
 
-signature_state: handle
+alias keypair = handle
 
-signature: handle
+alias signature_state = handle
 
-publickey: handle
+alias signature = handle
 
-secretkey: handle
+alias publickey = handle
 
-signature_verification_state: handle
+alias secretkey = handle
 
-symmetric_state: handle
+alias signature_verification_state = handle
 
-symmetric_key: handle
+alias symmetric_state = handle
 
-symmetric_tag: handle
+alias symmetric_key = handle
 
-opt_options_u: enum(u8)
-    - some = 0
-    - none = 1
+alias symmetric_tag = handle
 
-union opt_options (tag: opt_options_u, padding: 8 bytes)
-    - some: options (if tag=0)
-    - none: void (if tag=1)
+enum opt_options_u: (tag: u8)
+    - some: 0
+    - none: 1
 
-opt_symmetric_key_u: enum(u8)
-    - some = 0
-    - none = 1
+union opt_options: (tag: u8)
+    - some: options
+    - none: (empty)
 
-union opt_symmetric_key (tag: opt_symmetric_key_u, padding: 8 bytes)
-    - some: symmetric_key (if tag=0)
-    - none: void (if tag=1)
+enum opt_symmetric_key_u: (tag: u8)
+    - some: 0
+    - none: 1
 
-signature_keypair: alias(keypair)
-
-signature_publickey: alias(publickey)
-
-signature_secretkey: alias(secretkey)
-
-kx_keypair: alias(keypair)
-
-kx_publickey: alias(publickey)
-
-kx_secretkey: alias(secretkey)
+union opt_symmetric_key: (tag: u8)
+    - some: symmetric_key
+    - none: (empty)
 ```
 
 ## Common functions
@@ -1493,40 +1476,41 @@ function options_open(): crypto_errno
     - Input:
         - algorithm_type: algorithm_type
     - Output:
-        - handle: mut_ptr<options>
+        - mut_ptr<options>
 
 function options_close(): crypto_errno
     - Input:
         - handle: options
+    - No output
 
 function options_set(): crypto_errno
     - Input:
         - handle: options
-        - name_ptr: wasi_string_ptr
-        - name_len: usize
+        - name: string
         - value: ptr<u8>
         - value_len: size
+    - No output
 
 function options_set_u64(): crypto_errno
     - Input:
         - handle: options
-        - name_ptr: wasi_string_ptr
-        - name_len: usize
+        - name: string
         - value: u64
+    - No output
 
 function options_set_guest_buffer(): crypto_errno
     - Input:
         - handle: options
-        - name_ptr: wasi_string_ptr
-        - name_len: usize
+        - name: string
         - buffer: mut_ptr<u8>
         - buffer_len: size
+    - No output
 
 function array_output_len(): crypto_errno
     - Input:
         - array_output: array_output
     - Output:
-        - len: mut_ptr<size>
+        - mut_ptr<size>
 
 function array_output_pull(): crypto_errno
     - Input:
@@ -1534,17 +1518,18 @@ function array_output_pull(): crypto_errno
         - buf: mut_ptr<u8>
         - buf_len: size
     - Output:
-        - len: mut_ptr<size>
+        - mut_ptr<size>
 
 function secrets_manager_open(): crypto_errno
     - Input:
         - options: opt_options
     - Output:
-        - handle: mut_ptr<secrets_manager>
+        - mut_ptr<secrets_manager>
 
 function secrets_manager_close(): crypto_errno
     - Input:
         - secrets_manager: secrets_manager
+    - No output
 
 function secrets_manager_invalidate(): crypto_errno
     - Input:
@@ -1552,6 +1537,7 @@ function secrets_manager_invalidate(): crypto_errno
         - key_id: ptr<u8>
         - key_id_len: size
         - key_version: version
+    - No output
 ```
 
 ## Common asymmetric functions
@@ -1560,32 +1546,29 @@ function secrets_manager_invalidate(): crypto_errno
 function keypair_generate(): crypto_errno
     - Input:
         - algorithm_type: algorithm_type
-        - algorithm_ptr: wasi_string_ptr
-        - algorithm_len: usize
+        - algorithm: string
         - options: opt_options
     - Output:
-        - handle: mut_ptr<keypair>
+        - mut_ptr<keypair>
 
 function keypair_import(): crypto_errno
     - Input:
         - algorithm_type: algorithm_type
-        - algorithm_ptr: wasi_string_ptr
-        - algorithm_len: usize
+        - algorithm: string
         - encoded: ptr<u8>
         - encoded_len: size
         - encoding: keypair_encoding
     - Output:
-        - handle: mut_ptr<keypair>
+        - mut_ptr<keypair>
 
 function keypair_generate_managed(): crypto_errno
     - Input:
         - secrets_manager: secrets_manager
         - algorithm_type: algorithm_type
-        - algorithm_ptr: wasi_string_ptr
-        - algorithm_len: usize
+        - algorithm: string
         - options: opt_options
     - Output:
-        - handle: mut_ptr<keypair>
+        - mut_ptr<keypair>
 
 function keypair_store_managed(): crypto_errno
     - Input:
@@ -1593,6 +1576,7 @@ function keypair_store_managed(): crypto_errno
         - kp: keypair
         - kp_id: mut_ptr<u8>
         - kp_id_max_len: size
+    - No output
 
 function keypair_replace_managed(): crypto_errno
     - Input:
@@ -1600,7 +1584,7 @@ function keypair_replace_managed(): crypto_errno
         - kp_old: keypair
         - kp_new: keypair
     - Output:
-        - version: mut_ptr<version>
+        - mut_ptr<version>
 
 function keypair_id(): crypto_errno
     - Input:
@@ -1608,8 +1592,8 @@ function keypair_id(): crypto_errno
         - kp_id: mut_ptr<u8>
         - kp_id_max_len: size
     - Output:
-        - kp_id_len: mut_ptr<size>
-        - version: mut_ptr<version>
+        - mut_ptr<size>
+        - mut_ptr<version>
 
 function keypair_from_id(): crypto_errno
     - Input:
@@ -1618,159 +1602,93 @@ function keypair_from_id(): crypto_errno
         - kp_id_len: size
         - kp_version: version
     - Output:
-        - handle: mut_ptr<keypair>
+        - mut_ptr<keypair>
 
 function keypair_from_pk_and_sk(): crypto_errno
     - Input:
         - publickey: publickey
         - secretkey: secretkey
     - Output:
-        - handle: mut_ptr<keypair>
+        - mut_ptr<keypair>
 
 function keypair_export(): crypto_errno
     - Input:
         - kp: keypair
         - encoding: keypair_encoding
     - Output:
-        - encoded: mut_ptr<array_output>
+        - mut_ptr<array_output>
 
 function keypair_publickey(): crypto_errno
     - Input:
         - kp: keypair
     - Output:
-        - pk: mut_ptr<publickey>
+        - mut_ptr<publickey>
 
 function keypair_secretkey(): crypto_errno
     - Input:
         - kp: keypair
     - Output:
-        - sk: mut_ptr<secretkey>
+        - mut_ptr<secretkey>
 
 function keypair_close(): crypto_errno
     - Input:
         - kp: keypair
+    - No output
 
 function publickey_import(): crypto_errno
     - Input:
         - algorithm_type: algorithm_type
-        - algorithm_ptr: wasi_string_ptr
-        - algorithm_len: usize
+        - algorithm: string
         - encoded: ptr<u8>
         - encoded_len: size
         - encoding: publickey_encoding
     - Output:
-        - pk: mut_ptr<publickey>
+        - mut_ptr<publickey>
 
 function publickey_export(): crypto_errno
     - Input:
         - pk: publickey
         - encoding: publickey_encoding
     - Output:
-        - encoded: mut_ptr<array_output>
+        - mut_ptr<array_output>
 
 function publickey_verify(): crypto_errno
     - Input:
         - pk: publickey
+    - No output
 
 function publickey_from_secretkey(): crypto_errno
     - Input:
         - sk: secretkey
     - Output:
-        - pk: mut_ptr<publickey>
+        - mut_ptr<publickey>
 
 function publickey_close(): crypto_errno
     - Input:
         - pk: publickey
+    - No output
 
 function secretkey_import(): crypto_errno
     - Input:
         - algorithm_type: algorithm_type
-        - algorithm_ptr: wasi_string_ptr
-        - algorithm_len: usize
+        - algorithm: string
         - encoded: ptr<u8>
         - encoded_len: size
         - encoding: secretkey_encoding
     - Output:
-        - sk: mut_ptr<secretkey>
+        - mut_ptr<secretkey>
 
 function secretkey_export(): crypto_errno
     - Input:
         - sk: secretkey
         - encoding: secretkey_encoding
     - Output:
-        - encoded: mut_ptr<array_output>
+        - mut_ptr<array_output>
 
 function secretkey_close(): crypto_errno
     - Input:
         - sk: secretkey
-```
-
-## Signature API
-
-```text
-function signature_export(): crypto_errno
-    - Input:
-        - signature: signature
-        - encoding: signature_encoding
-    - Output:
-        - encoded: mut_ptr<array_output>
-
-function signature_import(): crypto_errno
-    - Input:
-        - algorithm_ptr: wasi_string_ptr
-        - algorithm_len: usize
-        - encoded: ptr<u8>
-        - encoded_len: size
-        - encoding: signature_encoding
-    - Output:
-        - signature: mut_ptr<signature>
-
-function signature_state_open(): crypto_errno
-    - Input:
-        - kp: signature_keypair
-    - Output:
-        - state: mut_ptr<signature_state>
-
-function signature_state_update(): crypto_errno
-    - Input:
-        - state: signature_state
-        - input: ptr<u8>
-        - input_len: size
-
-function signature_state_sign(): crypto_errno
-    - Input:
-        - state: signature_state
-    - Output:
-        - signature: mut_ptr<array_output>
-
-function signature_state_close(): crypto_errno
-    - Input:
-        - state: signature_state
-
-function signature_verification_state_open(): crypto_errno
-    - Input:
-        - kp: signature_publickey
-    - Output:
-        - state: mut_ptr<signature_verification_state>
-
-function signature_verification_state_update(): crypto_errno
-    - Input:
-        - state: signature_verification_state
-        - input: ptr<u8>
-        - input_len: size
-
-function signature_verification_state_verify(): crypto_errno
-    - Input:
-        - state: signature_verification_state
-        - signature: signature
-
-function signature_verification_state_close(): crypto_errno
-    - Input:
-        - state: signature_verification_state
-
-function signature_close(): crypto_errno
-    - Input:
-        - signature: signature
+    - No output
 ```
 
 ## Symmetric operations API
@@ -1778,39 +1696,37 @@ function signature_close(): crypto_errno
 ```text
 function symmetric_key_generate(): crypto_errno
     - Input:
-        - algorithm_ptr: wasi_string_ptr
-        - algorithm_len: usize
+        - algorithm: string
         - options: opt_options
     - Output:
-        - handle: mut_ptr<symmetric_key>
+        - mut_ptr<symmetric_key>
 
 function symmetric_key_import(): crypto_errno
     - Input:
-        - algorithm_ptr: wasi_string_ptr
-        - algorithm_len: usize
+        - algorithm: string
         - raw: ptr<u8>
         - raw_len: size
     - Output:
-        - handle: mut_ptr<symmetric_key>
+        - mut_ptr<symmetric_key>
 
 function symmetric_key_export(): crypto_errno
     - Input:
         - symmetric_key: symmetric_key
     - Output:
-        - encoded: mut_ptr<array_output>
+        - mut_ptr<array_output>
 
 function symmetric_key_close(): crypto_errno
     - Input:
         - symmetric_key: symmetric_key
+    - No output
 
 function symmetric_key_generate_managed(): crypto_errno
     - Input:
         - secrets_manager: secrets_manager
-        - algorithm_ptr: wasi_string_ptr
-        - algorithm_len: usize
+        - algorithm: string
         - options: opt_options
     - Output:
-        - handle: mut_ptr<symmetric_key>
+        - mut_ptr<symmetric_key>
 
 function symmetric_key_store_managed(): crypto_errno
     - Input:
@@ -1818,6 +1734,7 @@ function symmetric_key_store_managed(): crypto_errno
         - symmetric_key: symmetric_key
         - symmetric_key_id: mut_ptr<u8>
         - symmetric_key_id_max_len: size
+    - No output
 
 function symmetric_key_replace_managed(): crypto_errno
     - Input:
@@ -1825,7 +1742,7 @@ function symmetric_key_replace_managed(): crypto_errno
         - symmetric_key_old: symmetric_key
         - symmetric_key_new: symmetric_key
     - Output:
-        - version: mut_ptr<version>
+        - mut_ptr<version>
 
 function symmetric_key_id(): crypto_errno
     - Input:
@@ -1833,8 +1750,8 @@ function symmetric_key_id(): crypto_errno
         - symmetric_key_id: mut_ptr<u8>
         - symmetric_key_id_max_len: size
     - Output:
-        - symmetric_key_id_len: mut_ptr<size>
-        - version: mut_ptr<version>
+        - mut_ptr<size>
+        - mut_ptr<version>
 
 function symmetric_key_from_id(): crypto_errno
     - Input:
@@ -1843,76 +1760,75 @@ function symmetric_key_from_id(): crypto_errno
         - symmetric_key_id_len: size
         - symmetric_key_version: version
     - Output:
-        - handle: mut_ptr<symmetric_key>
+        - mut_ptr<symmetric_key>
 
 function symmetric_state_open(): crypto_errno
     - Input:
-        - algorithm_ptr: wasi_string_ptr
-        - algorithm_len: usize
+        - algorithm: string
         - key: opt_symmetric_key
         - options: opt_options
     - Output:
-        - symmetric_state: mut_ptr<symmetric_state>
+        - mut_ptr<symmetric_state>
 
 function symmetric_state_options_get(): crypto_errno
     - Input:
         - handle: symmetric_state
-        - name_ptr: wasi_string_ptr
-        - name_len: usize
+        - name: string
         - value: mut_ptr<u8>
         - value_max_len: size
     - Output:
-        - value_len: mut_ptr<size>
+        - mut_ptr<size>
 
 function symmetric_state_options_get_u64(): crypto_errno
     - Input:
         - handle: symmetric_state
-        - name_ptr: wasi_string_ptr
-        - name_len: usize
+        - name: string
     - Output:
-        - value: mut_ptr<u64>
+        - mut_ptr<u64>
 
 function symmetric_state_clone(): crypto_errno
     - Input:
         - handle: symmetric_state
     - Output:
-        - symmetric_state: mut_ptr<symmetric_state>
+        - mut_ptr<symmetric_state>
 
 function symmetric_state_close(): crypto_errno
     - Input:
         - handle: symmetric_state
+    - No output
 
 function symmetric_state_absorb(): crypto_errno
     - Input:
         - handle: symmetric_state
         - data: ptr<u8>
         - data_len: size
+    - No output
 
 function symmetric_state_squeeze(): crypto_errno
     - Input:
         - handle: symmetric_state
         - out: mut_ptr<u8>
         - out_len: size
+    - No output
 
 function symmetric_state_squeeze_tag(): crypto_errno
     - Input:
         - handle: symmetric_state
     - Output:
-        - symmetric_tag: mut_ptr<symmetric_tag>
+        - mut_ptr<symmetric_tag>
 
 function symmetric_state_squeeze_key(): crypto_errno
     - Input:
         - handle: symmetric_state
-        - alg_str_ptr: wasi_string_ptr
-        - alg_str_len: usize
+        - alg_str: string
     - Output:
-        - symmetric_key: mut_ptr<symmetric_key>
+        - mut_ptr<symmetric_key>
 
 function symmetric_state_max_tag_len(): crypto_errno
     - Input:
         - handle: symmetric_state
     - Output:
-        - len: mut_ptr<size>
+        - mut_ptr<size>
 
 function symmetric_state_encrypt(): crypto_errno
     - Input:
@@ -1922,7 +1838,7 @@ function symmetric_state_encrypt(): crypto_errno
         - data: ptr<u8>
         - data_len: size
     - Output:
-        - actual_out_len: mut_ptr<size>
+        - mut_ptr<size>
 
 function symmetric_state_encrypt_detached(): crypto_errno
     - Input:
@@ -1932,7 +1848,7 @@ function symmetric_state_encrypt_detached(): crypto_errno
         - data: ptr<u8>
         - data_len: size
     - Output:
-        - symmetric_tag: mut_ptr<symmetric_tag>
+        - mut_ptr<symmetric_tag>
 
 function symmetric_state_decrypt(): crypto_errno
     - Input:
@@ -1942,7 +1858,7 @@ function symmetric_state_decrypt(): crypto_errno
         - data: ptr<u8>
         - data_len: size
     - Output:
-        - actual_out_len: mut_ptr<size>
+        - mut_ptr<size>
 
 function symmetric_state_decrypt_detached(): crypto_errno
     - Input:
@@ -1954,17 +1870,18 @@ function symmetric_state_decrypt_detached(): crypto_errno
         - raw_tag: ptr<u8>
         - raw_tag_len: size
     - Output:
-        - actual_out_len: mut_ptr<size>
+        - mut_ptr<size>
 
 function symmetric_state_ratchet(): crypto_errno
     - Input:
         - handle: symmetric_state
+    - No output
 
 function symmetric_tag_len(): crypto_errno
     - Input:
         - symmetric_tag: symmetric_tag
     - Output:
-        - len: mut_ptr<size>
+        - mut_ptr<size>
 
 function symmetric_tag_pull(): crypto_errno
     - Input:
@@ -1972,35 +1889,122 @@ function symmetric_tag_pull(): crypto_errno
         - buf: mut_ptr<u8>
         - buf_len: size
     - Output:
-        - len: mut_ptr<size>
+        - mut_ptr<size>
 
 function symmetric_tag_verify(): crypto_errno
     - Input:
         - symmetric_tag: symmetric_tag
         - expected_raw_tag_ptr: ptr<u8>
         - expected_raw_tag_len: size
+    - No output
 
 function symmetric_tag_close(): crypto_errno
     - Input:
         - symmetric_tag: symmetric_tag
+    - No output
+```
+
+## Signature API
+
+```text
+alias signature_keypair = handle
+
+alias signature_publickey = handle
+
+alias signature_secretkey = handle
+
+function signature_export(): crypto_errno
+    - Input:
+        - signature: signature
+        - encoding: signature_encoding
+    - Output:
+        - mut_ptr<array_output>
+
+function signature_import(): crypto_errno
+    - Input:
+        - algorithm: string
+        - encoded: ptr<u8>
+        - encoded_len: size
+        - encoding: signature_encoding
+    - Output:
+        - mut_ptr<signature>
+
+function signature_state_open(): crypto_errno
+    - Input:
+        - kp: signature_keypair
+    - Output:
+        - mut_ptr<signature_state>
+
+function signature_state_update(): crypto_errno
+    - Input:
+        - state: signature_state
+        - input: ptr<u8>
+        - input_len: size
+    - No output
+
+function signature_state_sign(): crypto_errno
+    - Input:
+        - state: signature_state
+    - Output:
+        - mut_ptr<array_output>
+
+function signature_state_close(): crypto_errno
+    - Input:
+        - state: signature_state
+    - No output
+
+function signature_verification_state_open(): crypto_errno
+    - Input:
+        - kp: signature_publickey
+    - Output:
+        - mut_ptr<signature_verification_state>
+
+function signature_verification_state_update(): crypto_errno
+    - Input:
+        - state: signature_verification_state
+        - input: ptr<u8>
+        - input_len: size
+    - No output
+
+function signature_verification_state_verify(): crypto_errno
+    - Input:
+        - state: signature_verification_state
+        - signature: signature
+    - No output
+
+function signature_verification_state_close(): crypto_errno
+    - Input:
+        - state: signature_verification_state
+    - No output
+
+function signature_close(): crypto_errno
+    - Input:
+        - signature: signature
+    - No output
 ```
 
 ## Key exchange API
 
 ```text
+alias kx_keypair = handle
+
+alias kx_publickey = handle
+
+alias kx_secretkey = handle
+
 function kx_dh(): crypto_errno
     - Input:
         - pk: publickey
         - sk: secretkey
     - Output:
-        - shared_secret: mut_ptr<array_output>
+        - mut_ptr<array_output>
 
 function kx_encapsulate(): crypto_errno
     - Input:
         - pk: publickey
     - Output:
-        - secret: mut_ptr<array_output>
-        - encapsulated_secret: mut_ptr<array_output>
+        - mut_ptr<array_output>
+        - mut_ptr<array_output>
 
 function kx_decapsulate(): crypto_errno
     - Input:
@@ -2008,7 +2012,7 @@ function kx_decapsulate(): crypto_errno
         - encapsulated_secret: ptr<u8>
         - encapsulated_secret_len: size
     - Output:
-        - secret: mut_ptr<array_output>
+        - mut_ptr<array_output>
 ```
 
 ## External secrets API
@@ -2022,6 +2026,7 @@ function external_secret_store(): crypto_errno
         - expiration: timestamp
         - secret_id: mut_ptr<u8>
         - secret_id_max_len: size
+    - No output
 
 function external_secret_replace(): crypto_errno
     - Input:
@@ -2032,7 +2037,7 @@ function external_secret_replace(): crypto_errno
         - secret_id: ptr<u8>
         - secret_id_len: size
     - Output:
-        - secret_version: mut_ptr<version>
+        - mut_ptr<version>
 
 function external_secret_from_id(): crypto_errno
     - Input:
@@ -2041,7 +2046,7 @@ function external_secret_from_id(): crypto_errno
         - secret_id_len: size
         - secret_version: version
     - Output:
-        - secret: mut_ptr<array_output>
+        - mut_ptr<array_output>
 
 function external_secret_invalidate(): crypto_errno
     - Input:
@@ -2049,6 +2054,7 @@ function external_secret_invalidate(): crypto_errno
         - secret_id: ptr<u8>
         - secret_id_len: size
         - secret_version: version
+    - No output
 
 function external_secret_encapsulate(): crypto_errno
     - Input:
@@ -2057,7 +2063,7 @@ function external_secret_encapsulate(): crypto_errno
         - secret_len: size
         - expiration: timestamp
     - Output:
-        - encrypted_secret: mut_ptr<array_output>
+        - mut_ptr<array_output>
 
 function external_secret_decapsulate(): crypto_errno
     - Input:
@@ -2065,5 +2071,5 @@ function external_secret_decapsulate(): crypto_errno
         - encrypted_secret: ptr<u8>
         - encrypted_secret_len: size
     - Output:
-        - secret: mut_ptr<array_output>
+        - mut_ptr<array_output>
 ```

@@ -52,38 +52,12 @@ impl PublicKey {
         Self::decode_from(alg_type, alg, encoded, raw::PUBLICKEY_ENCODING_PEM)
     }
 
-    pub fn from_compressed_pem(
-        alg_type: raw::AlgorithmType,
-        alg: &'static str,
-        encoded: impl AsRef<[u8]>,
-    ) -> Result<Self, Error> {
-        Self::decode_from(
-            alg_type,
-            alg,
-            encoded,
-            raw::PUBLICKEY_ENCODING_COMPRESSED_PEM,
-        )
-    }
-
     pub fn from_sec(
         alg_type: raw::AlgorithmType,
         alg: &'static str,
         encoded: impl AsRef<[u8]>,
     ) -> Result<Self, Error> {
         Self::decode_from(alg_type, alg, encoded, raw::PUBLICKEY_ENCODING_SEC)
-    }
-
-    pub fn from_compressed_sec(
-        alg_type: raw::AlgorithmType,
-        alg: &'static str,
-        encoded: impl AsRef<[u8]>,
-    ) -> Result<Self, Error> {
-        Self::decode_from(
-            alg_type,
-            alg,
-            encoded,
-            raw::PUBLICKEY_ENCODING_COMPRESSED_SEC,
-        )
     }
 
     pub fn from_local(

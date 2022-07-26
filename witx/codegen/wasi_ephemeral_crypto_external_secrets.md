@@ -61,8 +61,6 @@ Enumeration with tag type: `u16`, and the following members:
 * **`raw`**: _[`keypair_encoding`](#keypair_encoding)_
 * **`pkcs8`**: _[`keypair_encoding`](#keypair_encoding)_
 * **`pem`**: _[`keypair_encoding`](#keypair_encoding)_
-* **`compressed_pkcs8`**: _[`keypair_encoding`](#keypair_encoding)_
-* **`compressed_pem`**: _[`keypair_encoding`](#keypair_encoding)_
 * **`local`**: _[`keypair_encoding`](#keypair_encoding)_
 
 > Encoding to use for importing or exporting a key pair.
@@ -78,9 +76,6 @@ Enumeration with tag type: `u16`, and the following members:
 * **`pkcs8`**: _[`publickey_encoding`](#publickey_encoding)_
 * **`pem`**: _[`publickey_encoding`](#publickey_encoding)_
 * **`sec`**: _[`publickey_encoding`](#publickey_encoding)_
-* **`compressed_sec`**: _[`publickey_encoding`](#publickey_encoding)_
-* **`compressed_pkcs8`**: _[`publickey_encoding`](#publickey_encoding)_
-* **`compressed_pem`**: _[`publickey_encoding`](#publickey_encoding)_
 * **`local`**: _[`publickey_encoding`](#publickey_encoding)_
 
 > Encoding to use for importing or exporting a public key.

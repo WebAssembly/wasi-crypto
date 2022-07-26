@@ -31,10 +31,6 @@ export class PublicKey {
         return this.encode_as(crypto.PublickeyEncoding.SEC);
     }
 
-    compressedSec(): ArrayBuffer | null {
-        return this.encode_as(crypto.PublickeyEncoding.COMPRESSED_SEC);
-    }
-
     local(): ArrayBuffer | null {
         return this.encode_as(crypto.PublickeyEncoding.LOCAL);
     }
@@ -61,10 +57,6 @@ export class PublicKey {
 
     protected static _fromSec(algType: crypto.AlgorithmType, alg: string, encoded: ArrayBuffer): PublicKey | null {
         return this.decode_from(algType, alg, encoded, crypto.PublickeyEncoding.SEC);
-    }
-
-    protected static _fromCompressedSec(algType: crypto.AlgorithmType, alg: string, encoded: ArrayBuffer): PublicKey | null {
-        return this.decode_from(algType, alg, encoded, crypto.PublickeyEncoding.COMPRESSED_SEC);
     }
 
     protected static _fromLocal(algType: crypto.AlgorithmType, alg: string, encoded: ArrayBuffer): PublicKey | null {

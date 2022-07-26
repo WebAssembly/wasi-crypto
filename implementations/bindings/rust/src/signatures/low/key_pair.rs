@@ -43,17 +43,6 @@ impl SignatureKeyPair {
         )?))
     }
 
-    pub fn from_compressed_pem(
-        alg: &'static str,
-        encoded: impl AsRef<[u8]>,
-    ) -> Result<Self, Error> {
-        Ok(SignatureKeyPair(KeyPair::from_compressed_pem(
-            raw::ALGORITHM_TYPE_SIGNATURES,
-            alg,
-            encoded,
-        )?))
-    }
-
     pub fn from_local(alg: &'static str, encoded: impl AsRef<[u8]>) -> Result<Self, Error> {
         Ok(SignatureKeyPair(KeyPair::from_local(
             raw::ALGORITHM_TYPE_SIGNATURES,

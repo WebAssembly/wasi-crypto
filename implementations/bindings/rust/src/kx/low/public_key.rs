@@ -1,4 +1,5 @@
 use crate::asymmetric_common::*;
+use crate::common::ArrayOutput;
 use crate::error::*;
 use crate::raw;
 
@@ -64,5 +65,14 @@ impl KxPublicKey {
 
     pub fn local(&self) -> Result<Vec<u8>, Error> {
         self.0.local()
+    }
+
+    pub fn encapsulate(&self) -> Result<(Vec<u8>, Vec<u8>), Error> {
+        let (secret_handle, encapsulated_secret_handle) =
+            unsafe { raw::kx_encapsulate(self.0.handle) }?;
+        Ok((
+            ArrayOutput::new(secret_handle).into_vec()?,
+            ArrayOutput::new(encapsulated_secret_handle).into_vec()?,
+        ))
     }
 }

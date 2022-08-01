@@ -108,4 +108,18 @@ mod test {
 
         Ok(())
     }
+
+    #[test]
+    fn test_kem() -> Result<(), WasiCryptoError> {
+        let kp = KxKeyPair::generate("Kyber768")?;
+        let pk = kp.publickey()?;
+        let sk = kp.secretkey()?;
+
+        let (secret, encapsulated_secret) = pk.encapsulate()?;
+
+        let decapsulated_secret = sk.decapsulate(encapsulated_secret.as_slice())?;
+
+        assert_eq!(secret, decapsulated_secret);
+        Ok(())
+    }
 }

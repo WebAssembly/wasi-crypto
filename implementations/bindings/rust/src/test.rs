@@ -93,4 +93,33 @@ mod test {
 
         Ok(())
     }
+
+    #[test]
+    fn test_kx() -> Result<(), WasiCryptoError> {
+        let kp1 = KxKeyPair::generate("X25519")?;
+        let pk1 = kp1.publickey()?;
+        let sk1 = kp1.secretkey()?;
+
+        let kp2 = KxKeyPair::generate("X25519")?;
+        let pk2 = kp2.publickey()?;
+        let sk2 = kp2.secretkey()?;
+
+        assert_eq!(kx_dh(pk1, sk2)?, kx_dh(pk2, sk1)?);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_kem() -> Result<(), WasiCryptoError> {
+        let kp = KxKeyPair::generate("Kyber768")?;
+        let pk = kp.publickey()?;
+        let sk = kp.secretkey()?;
+
+        let (secret, encapsulated_secret) = pk.encapsulate()?;
+
+        let decapsulated_secret = sk.decapsulate(encapsulated_secret.as_slice())?;
+
+        assert_eq!(secret, decapsulated_secret);
+        Ok(())
+    }
 }

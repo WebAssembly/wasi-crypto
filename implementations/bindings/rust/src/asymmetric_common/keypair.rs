@@ -1,4 +1,5 @@
 use super::publickey::*;
+use super::secretkey::*;
 use crate::common::*;
 use crate::error::*;
 use crate::raw;
@@ -24,6 +25,14 @@ impl KeyPair {
     pub fn publickey(&self) -> Result<PublicKey, Error> {
         let handle = unsafe { raw::keypair_publickey(self.handle)? };
         Ok(PublicKey {
+            handle,
+            alg: self.alg,
+        })
+    }
+
+    pub fn secretkey(&self) -> Result<SecretKey, Error> {
+        let handle = unsafe { raw::keypair_secretkey(self.handle)? };
+        Ok(SecretKey {
             handle,
             alg: self.alg,
         })

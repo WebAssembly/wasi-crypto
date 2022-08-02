@@ -10,3 +10,8 @@ forced-target = "wasm32-wasi"
 
 [dependencies]
 num_enum = "0.5"
+digest = { version = "0.10.3", optional = true }
+
+[features]
+default = ["rust-crypto"]
+rust-crypto = ["digest"]

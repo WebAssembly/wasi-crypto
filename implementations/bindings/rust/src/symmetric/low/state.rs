@@ -40,7 +40,7 @@ impl SymmetricState {
             .map_err(|e| e.into())
     }
 
-    pub fn squeeze_into(&mut self, mut out: impl AsMut<[u8]>) -> Result<(), Error> {
+    pub fn squeeze_into(&self, mut out: impl AsMut<[u8]>) -> Result<(), Error> {
         let out = out.as_mut();
         unsafe { raw::symmetric_state_squeeze(self.handle, out.as_mut_ptr(), out.len()) }
             .map_err(|e| e.into())

@@ -54,6 +54,10 @@ impl Hash {
         self.state.squeeze(len)
     }
 
+    pub fn squeeze_into(&self, mut out: impl AsMut<[u8]>) -> Result<(), Error> {
+        self.state.squeeze_into(out)
+    }
+
     pub fn hash(
         alg: &'static str,
         data: impl AsRef<[u8]>,

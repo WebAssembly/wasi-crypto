@@ -1,6 +1,6 @@
 use super::ecdsa::*;
 use super::eddsa::*;
-use super::rsa::*;
+use super::rsa_impl::*;
 use super::*;
 use crate::asymmetric_common::*;
 use crate::error::*;

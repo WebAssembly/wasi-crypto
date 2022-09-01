@@ -1,5 +1,3 @@
-import "wasi";
-
 import {Console, Random} from "as-wasi/assembly";
 import {Auth, Hash, Hkdf, SymmetricKey, Aead, SignatureKeyPair, SignaturePublicKey} from "./crypto";
 

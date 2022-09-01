@@ -5,10 +5,10 @@
     "asbuild": "npm run asbuild:untouched && npm run asbuild:optimized"
   },
   "dependencies": {
-    "@assemblyscript/loader": "^0.20"
+    "@assemblyscript/loader": "^0.21"
   },
   "devDependencies": {
-    "as-wasi": "^0.4",
-    "assemblyscript": "^0.20"
+    "as-wasi": "^0.5.1",
+    "assemblyscript": "^0.21"
   }
 }

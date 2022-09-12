@@ -179,8 +179,8 @@ impl CryptoCtx {
 
     pub fn keypair_secretkey(&self, kp_handle: Handle) -> Result<Handle, CryptoError> {
         let kp = self.handles.keypair.get(kp_handle)?;
-        let pk = kp.secret_key()?;
-        let handle = self.handles.secretkey.register(pk)?;
+        let sk = kp.secret_key()?;
+        let handle = self.handles.secretkey.register(sk)?;
         Ok(handle)
     }
 

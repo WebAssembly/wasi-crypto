@@ -31,6 +31,14 @@ impl KxSecretKey {
         )?))
     }
 
+    pub fn from_sec(alg: &'static str, encoded: impl AsRef<[u8]>) -> Result<Self, Error> {
+        Ok(KxSecretKey(SecretKey::from_sec(
+            raw::ALGORITHM_TYPE_KEY_EXCHANGE,
+            alg,
+            encoded,
+        )?))
+    }
+
     pub fn from_local(alg: &'static str, encoded: impl AsRef<[u8]>) -> Result<Self, Error> {
         Ok(KxSecretKey(SecretKey::from_local(
             raw::ALGORITHM_TYPE_KEY_EXCHANGE,
@@ -51,11 +59,16 @@ impl KxSecretKey {
         self.0.pem()
     }
 
+    pub fn sec(&self) -> Result<Vec<u8>, Error> {
+        self.0.sec()
+    }
+
     pub fn local(&self) -> Result<Vec<u8>, Error> {
         self.0.local()
     }
 
-    pub fn decapsulate(&self, encapsulated_secret: &[u8]) -> Result<Vec<u8>, Error> {
+    pub fn decapsulate(&self, encapsulated_secret: impl AsRef<[u8]>) -> Result<Vec<u8>, Error> {
+        let encapsulated_secret = encapsulated_secret.as_ref();
         let secret_handle = unsafe {
             raw::kx_decapsulate(
                 self.0.handle,

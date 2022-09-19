@@ -1,3 +1,5 @@
+use super::secret_key::*;
+use super::EncapsulatedSecret;
 use crate::asymmetric_common::*;
 use crate::common::ArrayOutput;
 use crate::error::*;
@@ -67,12 +69,20 @@ impl KxPublicKey {
         self.0.local()
     }
 
-    pub fn encapsulate(&self) -> Result<(Vec<u8>, Vec<u8>), Error> {
+    pub fn dh(&self, secret_key: &KxSecretKey) -> Result<Vec<u8>, Error> {
+        if self.0.alg != secret_key.0.alg {
+            return Err(Error::IncompatibleKeys);
+        }
+        let shared_secret_handle = unsafe { raw::kx_dh(self.0.handle, secret_key.0.handle)? };
+        ArrayOutput::new(shared_secret_handle).into_vec()
+    }
+
+    pub fn encapsulate(&self) -> Result<EncapsulatedSecret, Error> {
         let (secret_handle, encapsulated_secret_handle) =
             unsafe { raw::kx_encapsulate(self.0.handle) }?;
-        Ok((
-            ArrayOutput::new(secret_handle).into_vec()?,
-            ArrayOutput::new(encapsulated_secret_handle).into_vec()?,
-        ))
+        Ok(EncapsulatedSecret {
+            secret: ArrayOutput::new(secret_handle).into_vec()?,
+            encapsulated_secret: ArrayOutput::new(encapsulated_secret_handle).into_vec()?,
+        })
     }
 }

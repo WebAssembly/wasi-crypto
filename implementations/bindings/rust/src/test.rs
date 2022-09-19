@@ -5,7 +5,7 @@ mod test {
     fn test_symmetric() -> Result<(), WasiCryptoError> {
         let mut options = SymmetricOptions::new();
         let nonce = [0u8; 12];
-        options.set("nonce", &nonce)?;
+        options.set("nonce", nonce)?;
         let key = SymmetricKey::generate("AES-128-GCM", Some(&options))?;
         let mut state = SymmetricState::new("AES-128-GCM", Some(&key), Some(&options))?;
         let ciphertext = state.encrypt(b"test")?;
@@ -37,7 +37,7 @@ mod test {
 
     #[test]
     fn test_signatures() -> Result<(), WasiCryptoError> {
-        let _ = SignaturePublicKey::from_raw("Ed25519", &[0; 32])?;
+        let _ = SignaturePublicKey::from_raw("Ed25519", [0; 32])?;
 
         let kp = SignatureKeyPair::generate("Ed25519")?;
         let signature = kp.sign("hello")?;
@@ -104,7 +104,7 @@ mod test {
         let pk2 = kp2.publickey()?;
         let sk2 = kp2.secretkey()?;
 
-        assert_eq!(kx_dh(pk1, sk2)?, kx_dh(pk2, sk1)?);
+        assert_eq!(pk1.dh(&sk2)?, pk2.dh(&sk1)?);
 
         Ok(())
     }
@@ -115,11 +115,10 @@ mod test {
         let pk = kp.publickey()?;
         let sk = kp.secretkey()?;
 
-        let (secret, encapsulated_secret) = pk.encapsulate()?;
+        let kem_output = pk.encapsulate()?;
+        let decapsulated_secret = sk.decapsulate(kem_output.encapsulated_secret.as_slice())?;
 
-        let decapsulated_secret = sk.decapsulate(encapsulated_secret.as_slice())?;
-
-        assert_eq!(secret, decapsulated_secret);
+        assert_eq!(kem_output.secret, decapsulated_secret);
         Ok(())
     }
 }

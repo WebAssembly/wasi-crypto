@@ -23,6 +23,7 @@ enum AesGcmVariant {
 pub struct AesGcmSymmetricState {
     pub alg: SymmetricAlgorithm,
     options: SymmetricOptions,
+    size_limit: Option<usize>,
     #[derivative(Debug = "ignore")]
     ctx: AesGcmVariant,
     ad: Vec<u8>,
@@ -107,6 +108,7 @@ impl AesGcmSymmetricState {
         alg: SymmetricAlgorithm,
         key: Option<SymmetricKey>,
         options: Option<SymmetricOptions>,
+        size_limit: Option<usize>,
     ) -> Result<Self, CryptoError> {
         let key = key.ok_or(CryptoError::KeyRequired)?;
         let key = key.inner();
@@ -132,6 +134,7 @@ impl AesGcmSymmetricState {
         let state = AesGcmSymmetricState {
             alg,
             options: options.clone(),
+            size_limit,
             ctx: aes_gcm_impl,
             ad: vec![],
             nonce: Some(nonce),
@@ -153,7 +156,11 @@ impl SymmetricStateLike for AesGcmSymmetricState {
         self.options.get_u64(name)
     }
 
-    fn absorb(&mut self, data: &[u8]) -> Result<(), CryptoError> {
+    fn size_limit(&self) -> Option<usize> {
+        self.size_limit
+    }
+
+    fn absorb_unchecked(&mut self, data: &[u8]) -> Result<(), CryptoError> {
         self.ad.extend_from_slice(data);
         Ok(())
     }

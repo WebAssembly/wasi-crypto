@@ -16,6 +16,7 @@ enum HashVariant {
 pub struct Sha2SymmetricState {
     pub alg: SymmetricAlgorithm,
     options: Option<SymmetricOptions>,
+    size_limit: Option<usize>,
     ctx: HashVariant,
 }
 
@@ -24,6 +25,7 @@ impl Sha2SymmetricState {
         alg: SymmetricAlgorithm,
         key: Option<&SymmetricKey>,
         options: Option<SymmetricOptions>,
+        size_limit: Option<usize>,
     ) -> Result<Self, CryptoError> {
         if key.is_some() {
             return Err(CryptoError::KeyNotSupported);
@@ -34,7 +36,12 @@ impl Sha2SymmetricState {
             SymmetricAlgorithm::Sha512_256 => HashVariant::Sha512_256(Sha512_256::new()),
             _ => bail!(CryptoError::UnsupportedAlgorithm),
         };
-        Ok(Sha2SymmetricState { alg, options, ctx })
+        Ok(Sha2SymmetricState {
+            alg,
+            options,
+            size_limit,
+            ctx,
+        })
     }
 }
 
@@ -57,7 +64,11 @@ impl SymmetricStateLike for Sha2SymmetricState {
             .get_u64(name)
     }
 
-    fn absorb(&mut self, data: &[u8]) -> Result<(), CryptoError> {
+    fn size_limit(&self) -> Option<usize> {
+        self.size_limit
+    }
+
+    fn absorb_unchecked(&mut self, data: &[u8]) -> Result<(), CryptoError> {
         match &mut self.ctx {
             HashVariant::Sha256(x) => x.update(data),
             HashVariant::Sha512(x) => x.update(data),
@@ -66,7 +77,7 @@ impl SymmetricStateLike for Sha2SymmetricState {
         Ok(())
     }
 
-    fn squeeze(&mut self, out: &mut [u8]) -> Result<(), CryptoError> {
+    fn squeeze_unchecked(&mut self, out: &mut [u8]) -> Result<(), CryptoError> {
         let raw = match &self.ctx {
             HashVariant::Sha256(x) => x.clone().finalize().to_vec(),
             HashVariant::Sha512(x) => x.clone().finalize().to_vec(),

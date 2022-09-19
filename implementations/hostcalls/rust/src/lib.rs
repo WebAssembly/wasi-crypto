@@ -61,8 +61,26 @@ pub enum AlgorithmType {
     KeyExchange,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
+pub struct Limits(HashMap<&'static str, usize>);
+
+impl Limits {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn set(&mut self, algorithm: &'static str, limit: usize) {
+        self.0.insert(algorithm, limit);
+    }
+
+    pub fn get(&self, algorithm: &'static str) -> Option<usize> {
+        self.0.get(algorithm).copied()
+    }
+}
+
 pub struct CryptoCtx {
     pub(crate) handles: HandleManagers,
+    pub(crate) limits: Limits,
 }
 
 impl CryptoCtx {
@@ -82,6 +100,17 @@ impl CryptoCtx {
                 symmetric_tag: HandlesManager::new(0x0a),
                 secrets_manager: HandlesManager::new(0x0b),
             },
+            limits: Limits::default(),
         }
+    }
+
+    pub fn set_limits(&mut self, limits: Limits) {
+        self.limits = limits;
+    }
+
+    pub fn new_with_limits(limits: Limits) -> Self {
+        let mut ctx = Self::new();
+        ctx.set_limits(limits);
+        ctx
     }
 }

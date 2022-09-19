@@ -11,6 +11,7 @@ use crate::rand::SecureRandom;
 pub struct HkdfSymmetricState {
     pub alg: SymmetricAlgorithm,
     options: Option<SymmetricOptions>,
+    size_limit: Option<usize>,
     key: Vec<u8>,
     data: Vec<u8>,
 }
@@ -99,6 +100,7 @@ impl HkdfSymmetricState {
         alg: SymmetricAlgorithm,
         key: Option<SymmetricKey>,
         options: Option<SymmetricOptions>,
+        size_limit: Option<usize>,
     ) -> Result<Self, CryptoError> {
         let key = key.ok_or(CryptoError::KeyRequired)?;
         let key = key.inner();
@@ -110,6 +112,7 @@ impl HkdfSymmetricState {
         Ok(HkdfSymmetricState {
             alg,
             options,
+            size_limit,
             key,
             data: vec![],
         })
@@ -135,7 +138,11 @@ impl SymmetricStateLike for HkdfSymmetricState {
             .get_u64(name)
     }
 
-    fn absorb(&mut self, data: &[u8]) -> Result<(), CryptoError> {
+    fn size_limit(&self) -> Option<usize> {
+        self.size_limit
+    }
+
+    fn absorb_unchecked(&mut self, data: &[u8]) -> Result<(), CryptoError> {
         self.data.extend_from_slice(data);
         Ok(())
     }
@@ -158,7 +165,7 @@ impl SymmetricStateLike for HkdfSymmetricState {
         builder.import(&raw_prk)
     }
 
-    fn squeeze(&mut self, out: &mut [u8]) -> Result<(), CryptoError> {
+    fn squeeze_unchecked(&mut self, out: &mut [u8]) -> Result<(), CryptoError> {
         match self.alg {
             SymmetricAlgorithm::HkdfSha256Expand => Hkdf::<Sha256>::from_prk(&self.key)
                 .map_err(|_| CryptoError::InvalidKey)?

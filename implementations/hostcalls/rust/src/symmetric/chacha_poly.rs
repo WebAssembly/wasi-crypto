@@ -22,6 +22,7 @@ enum ChaChaPolyVariant {
 pub struct ChaChaPolySymmetricState {
     pub alg: SymmetricAlgorithm,
     options: SymmetricOptions,
+    size_limit: Option<usize>,
     #[derivative(Debug = "ignore")]
     ctx: ChaChaPolyVariant,
     ad: Vec<u8>,
@@ -105,6 +106,7 @@ impl ChaChaPolySymmetricState {
         alg: SymmetricAlgorithm,
         key: Option<SymmetricKey>,
         options: Option<SymmetricOptions>,
+        size_limits: Option<usize>,
     ) -> Result<Self, CryptoError> {
         let key = key.ok_or(CryptoError::KeyRequired)?;
         let key = key.inner();
@@ -143,6 +145,7 @@ impl ChaChaPolySymmetricState {
         let state = ChaChaPolySymmetricState {
             alg,
             options: options.clone(),
+            size_limit: size_limits,
             ctx: chapoly_impl,
             ad: vec![],
             nonce: Some(nonce),
@@ -164,7 +167,11 @@ impl SymmetricStateLike for ChaChaPolySymmetricState {
         self.options.get_u64(name)
     }
 
-    fn absorb(&mut self, data: &[u8]) -> Result<(), CryptoError> {
+    fn size_limit(&self) -> Option<usize> {
+        self.size_limit
+    }
+
+    fn absorb_unchecked(&mut self, data: &[u8]) -> Result<(), CryptoError> {
         self.ad.extend_from_slice(data);
         Ok(())
     }

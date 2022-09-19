@@ -19,6 +19,7 @@ enum HmacVariant {
 pub struct HmacSha2SymmetricState {
     pub alg: SymmetricAlgorithm,
     options: Option<SymmetricOptions>,
+    size_limit: Option<usize>,
     ctx: HmacVariant,
 }
 
@@ -100,6 +101,7 @@ impl HmacSha2SymmetricState {
         alg: SymmetricAlgorithm,
         key: Option<SymmetricKey>,
         options: Option<SymmetricOptions>,
+        size_limit: Option<usize>,
     ) -> Result<Self, CryptoError> {
         let key = key.ok_or(CryptoError::KeyRequired)?;
         let key = key.inner();
@@ -118,7 +120,12 @@ impl HmacSha2SymmetricState {
             ),
             _ => bail!(CryptoError::UnsupportedAlgorithm),
         };
-        Ok(HmacSha2SymmetricState { alg, options, ctx })
+        Ok(HmacSha2SymmetricState {
+            alg,
+            options,
+            size_limit,
+            ctx,
+        })
     }
 }
 
@@ -141,7 +148,11 @@ impl SymmetricStateLike for HmacSha2SymmetricState {
             .get_u64(name)
     }
 
-    fn absorb(&mut self, data: &[u8]) -> Result<(), CryptoError> {
+    fn size_limit(&self) -> Option<usize> {
+        self.size_limit
+    }
+
+    fn absorb_unchecked(&mut self, data: &[u8]) -> Result<(), CryptoError> {
         match &mut self.ctx {
             HmacVariant::Sha256(x) => x.update(data),
             HmacVariant::Sha512(x) => x.update(data),

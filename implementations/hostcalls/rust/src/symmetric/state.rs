@@ -3,6 +3,7 @@ use std::sync::{Arc, Mutex, MutexGuard};
 
 use super::*;
 use crate::CryptoCtx;
+use crate::Limits;
 
 #[derive(Clone)]
 pub struct SymmetricState {
@@ -31,32 +32,40 @@ impl SymmetricState {
         alg_str: &str,
         key: Option<SymmetricKey>,
         options: Option<SymmetricOptions>,
+        limits: &Limits,
     ) -> Result<SymmetricState, CryptoError> {
         let alg = SymmetricAlgorithm::try_from(alg_str)?;
         if let Some(ref key) = key {
             ensure!(key.alg() == alg, CryptoError::InvalidKey);
         }
+        let size_limit = limits.0.get(alg_str).copied();
         let symmetric_state = match alg {
-            SymmetricAlgorithm::HmacSha256 | SymmetricAlgorithm::HmacSha512 => {
-                SymmetricState::new(Box::new(HmacSha2SymmetricState::new(alg, key, options)?))
-            }
+            SymmetricAlgorithm::HmacSha256 | SymmetricAlgorithm::HmacSha512 => SymmetricState::new(
+                Box::new(HmacSha2SymmetricState::new(alg, key, options, size_limit)?),
+            ),
             SymmetricAlgorithm::Sha256
             | SymmetricAlgorithm::Sha512
-            | SymmetricAlgorithm::Sha512_256 => {
-                SymmetricState::new(Box::new(Sha2SymmetricState::new(alg, None, options)?))
-            }
+            | SymmetricAlgorithm::Sha512_256 => SymmetricState::new(Box::new(
+                Sha2SymmetricState::new(alg, None, options, size_limit)?,
+            )),
             SymmetricAlgorithm::HkdfSha256Expand
             | SymmetricAlgorithm::HkdfSha512Expand
             | SymmetricAlgorithm::HkdfSha256Extract
-            | SymmetricAlgorithm::HkdfSha512Extract => {
-                SymmetricState::new(Box::new(HkdfSymmetricState::new(alg, key, options)?))
-            }
-            SymmetricAlgorithm::Aes128Gcm | SymmetricAlgorithm::Aes256Gcm => {
-                SymmetricState::new(Box::new(AesGcmSymmetricState::new(alg, key, options)?))
-            }
-            SymmetricAlgorithm::Xoodyak128 | SymmetricAlgorithm::Xoodyak160 => {
-                SymmetricState::new(Box::new(XoodyakSymmetricState::new(alg, key, options)?))
-            }
+            | SymmetricAlgorithm::HkdfSha512Extract => SymmetricState::new(Box::new(
+                HkdfSymmetricState::new(alg, key, options, size_limit)?,
+            )),
+            SymmetricAlgorithm::Aes128Gcm | SymmetricAlgorithm::Aes256Gcm => SymmetricState::new(
+                Box::new(AesGcmSymmetricState::new(alg, key, options, size_limit)?),
+            ),
+            SymmetricAlgorithm::ChaCha20Poly1305 => SymmetricState::new(Box::new(
+                ChaChaPolySymmetricState::new(alg, key, options, size_limit)?,
+            )),
+            SymmetricAlgorithm::XChaCha20Poly1305 => SymmetricState::new(Box::new(
+                ChaChaPolySymmetricState::new(alg, key, options, size_limit)?,
+            )),
+            SymmetricAlgorithm::Xoodyak128 | SymmetricAlgorithm::Xoodyak160 => SymmetricState::new(
+                Box::new(XoodyakSymmetricState::new(alg, key, options, size_limit)?),
+            ),
             _ => bail!(CryptoError::UnsupportedAlgorithm),
         };
         Ok(symmetric_state)
@@ -68,12 +77,30 @@ pub trait SymmetricStateLike: Sync + Send {
     fn options_get(&self, name: &str) -> Result<Vec<u8>, CryptoError>;
     fn options_get_u64(&self, name: &str) -> Result<u64, CryptoError>;
 
-    fn absorb(&mut self, _data: &[u8]) -> Result<(), CryptoError> {
+    fn size_limit(&self) -> Option<usize>;
+
+    fn absorb_unchecked(&mut self, _data: &[u8]) -> Result<(), CryptoError> {
         bail!(CryptoError::InvalidOperation)
     }
 
-    fn squeeze(&mut self, _out: &mut [u8]) -> Result<(), CryptoError> {
+    fn absorb(&mut self, data: &[u8]) -> Result<(), CryptoError> {
+        ensure!(
+            self.size_limit().map_or(true, |l| data.len() <= l),
+            CryptoError::Overflow
+        );
+        self.absorb_unchecked(data)
+    }
+
+    fn squeeze_unchecked(&mut self, _out: &mut [u8]) -> Result<(), CryptoError> {
         bail!(CryptoError::InvalidOperation)
+    }
+
+    fn squeeze(&mut self, out: &mut [u8]) -> Result<(), CryptoError> {
+        ensure!(
+            self.size_limit().map_or(true, |l| out.len() <= l),
+            CryptoError::Overflow
+        );
+        self.squeeze_unchecked(out)
     }
 
     fn squeeze_key(&mut self, _alg_str: &str) -> Result<SymmetricKey, CryptoError> {
@@ -101,6 +128,10 @@ pub trait SymmetricStateLike: Sync + Send {
                     .ok_or(CryptoError::Overflow)?,
             CryptoError::InvalidLength
         );
+        ensure!(
+            self.size_limit().map_or(true, |l| data.len() <= l),
+            CryptoError::Overflow
+        );
         self.encrypt_unchecked(out, data)
     }
 
@@ -118,6 +149,10 @@ pub trait SymmetricStateLike: Sync + Send {
         data: &[u8],
     ) -> Result<SymmetricTag, CryptoError> {
         ensure!(out.len() == data.len(), CryptoError::InvalidLength);
+        ensure!(
+            self.size_limit().map_or(true, |l| data.len() <= l),
+            CryptoError::Overflow
+        );
         self.encrypt_detached_unchecked(out, data)
     }
 
@@ -132,6 +167,10 @@ pub trait SymmetricStateLike: Sync + Send {
                     .len()
                     .checked_sub(self.max_tag_len()?)
                     .ok_or(CryptoError::Overflow)?,
+            CryptoError::Overflow
+        );
+        ensure!(
+            self.size_limit().map_or(true, |l| data.len() <= l),
             CryptoError::Overflow
         );
         match self.decrypt_unchecked(out, data) {
@@ -159,6 +198,10 @@ pub trait SymmetricStateLike: Sync + Send {
         raw_tag: &[u8],
     ) -> Result<usize, CryptoError> {
         ensure!(out.len() == data.len(), CryptoError::InvalidLength);
+        ensure!(
+            self.size_limit().map_or(true, |l| data.len() <= l),
+            CryptoError::Overflow
+        );
         match self.decrypt_detached_unchecked(out, data, raw_tag) {
             Ok(out_len) => Ok(out_len),
             Err(e) => {
@@ -192,7 +235,7 @@ impl CryptoCtx {
                 Some(self.handles.options.get(options_handle)?.into_symmetric()?)
             }
         };
-        let symmetric_state = SymmetricState::open(alg_str, key, options)?;
+        let symmetric_state = SymmetricState::open(alg_str, key, options, &self.limits)?;
         let handle = self.handles.symmetric_state.register(symmetric_state)?;
         Ok(handle)
     }
@@ -231,7 +274,7 @@ impl CryptoCtx {
         data: &[u8],
     ) -> Result<(), CryptoError> {
         let symmetric_state = self.handles.symmetric_state.get(symmetric_state_handle)?;
-        symmetric_state.locked(|mut state| state.absorb(data))
+        symmetric_state.locked(|mut state| state.absorb_unchecked(data))
     }
 
     pub fn symmetric_state_squeeze(
@@ -240,7 +283,7 @@ impl CryptoCtx {
         out: &mut [u8],
     ) -> Result<(), CryptoError> {
         let symmetric_state = self.handles.symmetric_state.get(symmetric_state_handle)?;
-        symmetric_state.locked(|mut state| state.squeeze(out))
+        symmetric_state.locked(|mut state| state.squeeze_unchecked(out))
     }
 
     pub fn symmetric_state_squeeze_tag(

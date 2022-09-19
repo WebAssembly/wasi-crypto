@@ -10,6 +10,7 @@ use crate::rand::SecureRandom;
 pub struct XoodyakSymmetricState {
     pub alg: SymmetricAlgorithm,
     options: Option<SymmetricOptions>,
+    size_limit: Option<usize>,
     xoodyak_state: XoodyakAny,
 }
 
@@ -91,6 +92,7 @@ impl XoodyakSymmetricState {
         alg: SymmetricAlgorithm,
         key: Option<SymmetricKey>,
         options: Option<SymmetricOptions>,
+        size_limit: Option<usize>,
     ) -> Result<Self, CryptoError> {
         let key = match key {
             None => None,
@@ -118,6 +120,7 @@ impl XoodyakSymmetricState {
         Ok(XoodyakSymmetricState {
             alg,
             options,
+            size_limit,
             xoodyak_state,
         })
     }
@@ -142,12 +145,16 @@ impl SymmetricStateLike for XoodyakSymmetricState {
             .get_u64(name)
     }
 
-    fn absorb(&mut self, data: &[u8]) -> Result<(), CryptoError> {
+    fn size_limit(&self) -> Option<usize> {
+        self.size_limit
+    }
+
+    fn absorb_unchecked(&mut self, data: &[u8]) -> Result<(), CryptoError> {
         self.xoodyak_state.absorb(data);
         Ok(())
     }
 
-    fn squeeze(&mut self, out: &mut [u8]) -> Result<(), CryptoError> {
+    fn squeeze_unchecked(&mut self, out: &mut [u8]) -> Result<(), CryptoError> {
         self.xoodyak_state.squeeze(out);
         Ok(())
     }

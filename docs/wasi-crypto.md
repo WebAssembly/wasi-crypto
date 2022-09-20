@@ -229,14 +229,41 @@ In addition, an implementation MAY allow these signatures to be serialized using
 
 ## Required encodings and key types
 
+### Required types
+|                   | Signature key pair                                 | Secret key                                         | Public key                                         |
+|-------------------|----------------------------------------------------|----------------------------------------------------|----------------------------------------------------|
+| rsa_*_2048_sha256 | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |
+| rsa_*_3072_sha384 | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |
+| rsa_*_4096_sha512 | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |
+| SHA-?             | ?                                                  |                                                    |                                                    |
+| AES-?             | ?                                                  |                                                    |                                                    |
+
+### Recommended types
 |           | Signature key pair                                                                                 | Secret key                                                | Public key                                                |
-| --------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | --------------------------------------------------------- |
-| Ed25519   | raw (private key + secret key encoded as in RFC8032)                                               | raw (cf. RFC8032)                                         | raw (cf. RFC8032)                                         |
-| X25519    | N/A                                                                                                | raw (cf. RFC7748)                                         | raw (cf. RFC7748)                                         |
+|-----------|----------------------------------------------------------------------------------------------------|-----------------------------------------------------------|-----------------------------------------------------------|
 | p256      | raw secret scalar encoded as big endian, SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |
 | p384      | raw secret scalar encoded as big endian, SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |
 | secp256k1 | raw secret scalar encoded as big endian, SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |
 | RSA       | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8                                                 | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8        | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8        |
+| Ed25519   | raw (private key + secret key encoded as in RFC8032)                                               | raw (cf. RFC8032)                                         | raw (cf. RFC8032)                                         |
+| X25519    | N/A                                                                                                | raw (cf. RFC7748)                                         | raw (cf. RFC7748)                                         |
+
+### Optional types
+|         | Signature key pair                                                                                 | Secret key                                                | Public key                                                |
+|---------|----------------------------------------------------------------------------------------------------|-----------------------------------------------------------|-----------------------------------------------------------|
+| Curve448| raw secret scalar encoded as big endian, SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |
+| Xoodyak | ?                                                                                                  |                                                           |                                                           |
+| Kyber   | ?                                                                                                  |                                                           |                                                           |
+
+### Reserved types
+|             | Signature key pair | Secret key | Public key |
+|-------------|--------------------|------------|------------|
+| xchachapoly | ?                  | ?          | ?          |
+| aegis       | ?                  | ?          | ?          |
+| AES-CBC     | ?                  | ?          | ?          |
+| AES-GCM-SIV | ?                  | ?          | ?          |
+| CShake      | ?                  | ?          | ?          |
+| KMAC        | ?                  | ?          | ?          |
 
 ## Array outputs
 

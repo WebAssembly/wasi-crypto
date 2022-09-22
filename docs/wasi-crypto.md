@@ -379,7 +379,7 @@ A `wasi-crypto` implementation MUST implement the following algorithms, and MUST
 | `CSHAKE-128`         | cSHAKE with a 128 bit security level                                                                                    |
 | `CSHAKE-256`         | cSHAKE with a 256 bit security level                                                                                    |
 
-Implementations are encouraged to include the `XOODYAK`, `XCHACHA20-POLY1305` and `KYBER1024` algorithms in order to exercise additional features of the API.
+Implementations are encouraged to include the `XOODYAK-128`, `XCHACHA20-POLY1305` and `KYBER1024` algorithms in order to exercise additional features of the API.
 
 ## Reserved algorithm identifiers
 
@@ -391,8 +391,10 @@ Implementations are encouraged to include the `XOODYAK`, `XCHACHA20-POLY1305` an
 | `AES-256-GCM-SIV` | AES-GCM-SIV authenticated cipher with a 256 bit key                           |
 | `AES-128-CMAC`    | AES-CMAC authenticated cipher with a 128 bit key                              |
 | `AES-256-CMAC`    | AES-CMAC authenticated cipher with a 256 bit key                              |
-| `AES-128-CBC`     | AES in CBC mode without authentication                                        |
-| `AES-CTR`         | AES in CTR mode without authentication                                        |
+| `AES-128-CBC`     | AES in CBC mode without authentication, using a 128 bit key                   |
+| `AES-256-CBC`     | AES in CBC mode without authentication, using a 256 bit key                   |
+| `AES-128-CTR`     | AES in CTR mode without authentication, using a 128 bit key                   |
+| `AES-256-CTR`     | AES in CTR mode without authentication, using a 256 bit key                   |
 | `X448`            | X448 ECDH as specified in RFC7748                                             |
 | `Ed448`           | Edwards Curve signatures over Edwards448 (pure EdDSA) as specified in RFC8032 |
 | `KMAC-128`        | KMAC with a 128 bit security level                                            |

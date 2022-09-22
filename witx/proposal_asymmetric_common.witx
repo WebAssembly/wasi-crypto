@@ -19,9 +19,11 @@
     ;;; Example usage:
     ;;;
     ;;; ```rust
-    ;;; let kp_handle = ctx.keypair_generate(AlgorithmType::Signatures, "RSA_PKCS1_2048_SHA256", None)?;
+    ;;; let policy = ctx.get_policy("Encryption_only_policy)?;"
+    ;;; let kp_handle = ctx.keypair_generate(policy, AlgorithmType::Signatures, "RSA_PKCS1_2048_SHA256", None)?;
     ;;; ```
     (@interface func (export "keypair_generate")
+        (param $policy $policy)
         (param $algorithm_type $algorithm_type)
         (param $algorithm string)
         (param $options $opt_options)
@@ -39,9 +41,11 @@
     ;;; Example usage:
     ;;;
     ;;; ```rust
-    ;;; let kp_handle = ctx.keypair_import(AlgorithmType::Signatures, "RSA_PKCS1_2048_SHA256", KeypairEncoding::PKCS8)?;
+    ;;; let policy = ctx.get_policy("Encryption_only_policy)?;"
+    ;;; let kp_handle = ctx.keypair_import(policy, AlgorithmType::Signatures, "RSA_PKCS1_2048_SHA256", KeypairEncoding::PKCS8)?;
     ;;; ```
     (@interface func (export "keypair_import")
+        (param $policy $policy)
         (param $algorithm_type $algorithm_type)
         (param $algorithm string)
         (param $encoded (@witx const_pointer u8))
@@ -193,9 +197,11 @@
     ;;; Example usage:
     ;;;
     ;;; ```rust
+    ;;; let policy = ctx.get_policy("Encryption_only_policy)?;"
     ;;; let pk_handle = ctx.publickey_import(AlgorithmType::Signatures, encoded, PublicKeyEncoding::Sec)?;
     ;;; ```
     (@interface func (export "publickey_import")
+        (param $policy $policy)
         (param $algorithm_type $algorithm_type)
         (param $algorithm string)
         (param $encoded (@witx const_pointer u8))
@@ -248,9 +254,11 @@
     ;;; Example usage:
     ;;;
     ;;; ```rust
-    ;;; let pk_handle = ctx.secretkey_import(AlgorithmType::KX, encoded, SecretKeyEncoding::Raw)?;
+    ;;; let policy = ctx.get_policy("Encryption_only_policy)?;"
+    ;;; let pk_handle = ctx.secretkey_import(policy, AlgorithmType::KX, encoded, SecretKeyEncoding::Raw)?;
     ;;; ```
     (@interface func (export "secretkey_import")
+        (param $policy $policy)
         (param $algorithm_type $algorithm_type)
         (param $algorithm string)
         (param $encoded (@witx const_pointer u8))

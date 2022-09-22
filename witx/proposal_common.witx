@@ -144,6 +144,12 @@
 
         ;;; A managed key or secret expired and cannot be used any more.
         $expired
+
+        ;;; Invalid policy handle
+        $policy_invalid
+
+        ;;; Not allowed by policy
+        $policy_unallowed
     )
 )
 
@@ -252,6 +258,11 @@
 ;;;
 ;;; An `array_output` handle is automatically closed after its full content has been consumed.
 (typename $array_output (handle))
+
+;;; Key policy document
+;;;
+;;; This type is used to represent a policy to control how a keypair may be used.
+(typename $policy (handle))
 
 ;;; A set of options.
 ;;;
@@ -390,6 +401,14 @@
         (param $buffer (@witx pointer u8))
         (param $buffer_len $size)
         (result $error (expected (error $crypto_errno)))
+    )
+
+    ;;; Get a policy handle
+    ;;;
+    ;;; This function returns a handle for a policy, or an error if the policy does not exist.
+    (@interface func (export "get_policy")
+        (param $name string)
+        (result $error (expected $policy (error $crypto_errno)))
     )
 
     ;;; Return the length of an `array_output` object.

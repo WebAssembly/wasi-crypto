@@ -19,6 +19,10 @@ This document describes `wasi-crypto`, a set of APIs that a runtime can expose t
   - [Array outputs](#array-outputs)
   - [Options](#options)
 - [Algorithms](#algorithms)
+  - [Required algorithms](#required-algorithms)
+  - [Recommended algorithms](#recommended-algorithms)
+  - [Optional algorithms](#optional-algorithms)
+  - [Reserved algorithm identifiers](#reserved-algorithm-identifiers)
 - [Asymmetric operations](#asymmetric-operations)
   - [Secret keys](#secret-keys-1)
   - [Public keys](#public-keys-1)
@@ -229,41 +233,14 @@ In addition, an implementation MAY allow these signatures to be serialized using
 
 ## Required encodings and key types
 
-### Required types
-|                   | Signature key pair                                 | Secret key                                         | Public key                                         |
-|-------------------|----------------------------------------------------|----------------------------------------------------|----------------------------------------------------|
-| rsa_*_2048_sha256 | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |
-| rsa_*_3072_sha384 | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |
-| rsa_*_4096_sha512 | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |
-| SHA-?             | ?                                                  |                                                    |                                                    |
-| AES-?             | ?                                                  |                                                    |                                                    |
-
-### Recommended types
 |           | Signature key pair                                                                                 | Secret key                                                | Public key                                                |
-|-----------|----------------------------------------------------------------------------------------------------|-----------------------------------------------------------|-----------------------------------------------------------|
+| --------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | --------------------------------------------------------- |
+| Ed25519   | raw (private key + secret key encoded as in RFC8032)                                               | raw (cf. RFC8032)                                         | raw (cf. RFC8032)                                         |
+| X25519    | N/A                                                                                                | raw (cf. RFC7748)                                         | raw (cf. RFC7748)                                         |
 | p256      | raw secret scalar encoded as big endian, SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |
 | p384      | raw secret scalar encoded as big endian, SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |
 | secp256k1 | raw secret scalar encoded as big endian, SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |
 | RSA       | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8                                                 | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8        | unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8        |
-| Ed25519   | raw (private key + secret key encoded as in RFC8032)                                               | raw (cf. RFC8032)                                         | raw (cf. RFC8032)                                         |
-| X25519    | N/A                                                                                                | raw (cf. RFC7748)                                         | raw (cf. RFC7748)                                         |
-
-### Optional types
-|         | Signature key pair                                                                                 | Secret key                                                | Public key                                                |
-|---------|----------------------------------------------------------------------------------------------------|-----------------------------------------------------------|-----------------------------------------------------------|
-| Curve448| raw secret scalar encoded as big endian, SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |
-| Xoodyak | ?                                                                                                  |                                                           |                                                           |
-| Kyber   | ?                                                                                                  |                                                           |                                                           |
-
-### Reserved types
-|             | Signature key pair | Secret key | Public key |
-|-------------|--------------------|------------|------------|
-| xchachapoly | ?                  | ?          | ?          |
-| aegis       | ?                  | ?          | ?          |
-| AES-CBC     | ?                  | ?          | ?          |
-| AES-GCM-SIV | ?                  | ?          | ?          |
-| CShake      | ?                  | ?          | ?          |
-| KMAC        | ?                  | ?          | ?          |
 
 ## Array outputs
 
@@ -349,26 +326,15 @@ let state_handle = symmetric_state_open("ARGON2-ID-13", None, Some(options))?;
 
 All the APIs represent an algorithm and its public parameters as a unique string.
 
-A `wasi-crypto` implementation MUST implement the following algorithms, and MUST represent them with the following string identifiers:
+A `wasi-crypto` implementation MUST implement the following algorithms, and MUST represent them with the string identifiers documented below.
+
+## Required algorithms
 
 | Identifier              | Algorithm                                                                           |
 | ----------------------- | ----------------------------------------------------------------------------------- |
-| `ECDSA_P256_SHA256`     | ECDSA over the NIST p256 curve with the SHA-256 hash function                       |
-| `ECDSA_P384_SHA384`     | ECDSA over the NIST p384 curve with the SHA-384 hash function                       |
-| `ECDSA_K256_SHA256`     | ECDSA over the secp256k1 curve with the SHA-256 hash function                       |
-| `Ed25519`               | Edwards Curve signatures over Edwards25519 (pure EdDSA) as specified in RFC8032     |
 | `RSA_PKCS1_2048_SHA256` | RSA signatures with a 2048 bit modulus, PKCS1 padding and the SHA-256 hash function |
-| `RSA_PKCS1_2048_SHA384` | RSA signatures with a 2048 bit modulus, PKCS1 padding and the SHA-384 hash function |
-| `RSA_PKCS1_2048_SHA512` | RSA signatures with a 2048 bit modulus, PKCS1 padding and the SHA-512 hash function |
 | `RSA_PKCS1_3072_SHA384` | RSA signatures with a 3072 bit modulus, PKCS1 padding and the SHA-384 hash function |
-| `RSA_PKCS1_3072_SHA512` | RSA signatures with a 3072 bit modulus, PKCS1 padding and the SHA-512 hash function |
 | `RSA_PKCS1_4096_SHA512` | RSA signatures with a 4096 bit modulus, PKCS1 padding and the SHA-512 hash function |
-| `RSA_PSS_2048_SHA256`   | RSA signatures with a 2048 bit modulus, PSS padding and the SHA-256 hash function   |
-| `RSA_PSS_2048_SHA384`   | RSA signatures with a 2048 bit modulus, PSS padding and the SHA-384 hash function   |
-| `RSA_PSS_2048_SHA512`   | RSA signatures with a 2048 bit modulus, PSS padding and the SHA-512 hash function   |
-| `RSA_PSS_3072_SHA384`   | RSA signatures with a 2048 bit modulus, PSS padding and the SHA-384 hash function   |
-| `RSA_PSS_3072_SHA512`   | RSA signatures with a 3072 bit modulus, PSS padding and the SHA-512 hash function   |
-| `RSA_PSS_4096_SHA512`   | RSA signatures with a 4096 bit modulus, PSS padding and the SHA-512 hash function   |
 | `HKDF-EXTRACT/SHA-256`  | RFC5869 `EXTRACT` function using the SHA-256 hash function                          |
 | `HKDF-EXTRACT/SHA-512`  | RFC5869 `EXTRACT` function using the SHA-512 hash function                          |
 | `HKDF-EXPAND/SHA-256`   | RFC5869 `EXPAND` function using the SHA-256 hash function                           |
@@ -380,10 +346,57 @@ A `wasi-crypto` implementation MUST implement the following algorithms, and MUST
 | `SHA-512/256`           | SHA-512/256 hash function with a specific IV                                        |
 | `AES-128-GCM`           | AES-128-GCM AEAD cipher                                                             |
 | `AES-256-GCM`           | AES-256-GCM AEAD cipher                                                             |
-| `CHACHA20-POLY1305`     | ChaCha20-Poly1305 AEAD cipher as specified in RFC8439                               |
+
+## Recommended algorithms
+
+| Identifier              | Algorithm                                                                           |
+| ----------------------- | ----------------------------------------------------------------------------------- |
+| `ECDSA_P256_SHA256`     | ECDSA over the NIST p256 curve with the SHA-256 hash function                       |
+| `ECDSA_P384_SHA384`     | ECDSA over the NIST p384 curve with the SHA-384 hash function                       |
+| `ECDSA_K256_SHA256`     | ECDSA over the secp256k1 curve with the SHA-256 hash function                       |
+| `Ed25519`               | Edwards Curve signatures over Edwards25519 (pure EdDSA) as specified in RFC8032     |
+| `RSA_PKCS1_2048_SHA384` | RSA signatures with a 2048 bit modulus, PKCS1 padding and the SHA-384 hash function |
+| `RSA_PKCS1_2048_SHA512` | RSA signatures with a 2048 bit modulus, PKCS1 padding and the SHA-512 hash function |
+| `RSA_PKCS1_3072_SHA512` | RSA signatures with a 3072 bit modulus, PKCS1 padding and the SHA-512 hash function |
+| `RSA_PSS_2048_SHA256`   | RSA signatures with a 2048 bit modulus, PSS padding and the SHA-256 hash function   |
+| `RSA_PSS_2048_SHA384`   | RSA signatures with a 2048 bit modulus, PSS padding and the SHA-384 hash function   |
+| `RSA_PSS_2048_SHA512`   | RSA signatures with a 2048 bit modulus, PSS padding and the SHA-512 hash function   |
+| `RSA_PSS_3072_SHA384`   | RSA signatures with a 2048 bit modulus, PSS padding and the SHA-384 hash function   |
+| `RSA_PSS_3072_SHA512`   | RSA signatures with a 3072 bit modulus, PSS padding and the SHA-512 hash function   |
+| `RSA_PSS_4096_SHA512`   | RSA signatures with a 4096 bit modulus, PSS padding and the SHA-512 hash function   |
 | `P256-SHA256`           | NIST p256 ECDH with the SHA-256 hash function                                       |
 | `P384-SHA384`           | NIST p384 ECDH with the SHA-384 hash function                                       |
+| `CHACHA20-POLY1305`     | ChaCha20-Poly1305 AEAD cipher as specified in RFC8439                               |
 | `X25519`                | X25519 ECDH as specified in RFC7748                                                 |
+
+## Optional algorithms
+
+| Identifier           | Algorithm                                                                                                               |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `XOODYAK-128`        | XOODYAK lightweight scheme, as specified in the most recent submission to NIST competition for lightweight cryptography |
+| `XCHACHA20-POLY1305` | ChaCha20-Poly1305 AEAD with an extended nonce, as specified in the most recent `draft-irtf-cfrg-xchacha` CFRG draft     |
+| `KYBER1024`          | KYBER-1024 post-quantum key encapsulation mechanism, as standardized by NIST                                            |
+| `CSHAKE-128`         | cSHAKE with a 128 bit security level                                                                                    |
+| `CSHAKE-256`         | cSHAKE with a 256 bit security level                                                                                    |
+
+Implementations are encouraged to include the `XOODYAK`, `XCHACHA20-POLY1305` and `KYBER1024` algorithms in order to exercise additional features of the API.
+
+## Reserved algorithm identifiers
+
+| Identifier        | Algorithm                                                                     |
+| ----------------- | ----------------------------------------------------------------------------- |
+| `AEGIS-128L`      | AEGIS128L authenticated cipher                                                |
+| `AEGIS-256`       | AEGIS256 authenticated cipher                                                 |
+| `AES-128-GCM-SIV` | AES-GCM-SIV authenticated cipher with a 128 bit key                           |
+| `AES-256-GCM-SIV` | AES-GCM-SIV authenticated cipher with a 256 bit key                           |
+| `AES-128-CMAC`    | AES-CMAC authenticated cipher with a 128 bit key                              |
+| `AES-256-CMAC`    | AES-CMAC authenticated cipher with a 256 bit key                              |
+| `AES-128-CBC`     | AES in CBC mode without authentication                                        |
+| `AES-CTR`         | AES in CTR mode without authentication                                        |
+| `X448`            | X448 ECDH as specified in RFC7748                                             |
+| `Ed448`           | Edwards Curve signatures over Edwards448 (pure EdDSA) as specified in RFC8032 |
+| `KMAC-128`        | KMAC with a 128 bit security level                                            |
+| `KMAC-256`        | KMAC with a 256 bit security level                                            |
 
 Each algorithm belongs to one of these categories, represented by the `algorithm_type` type:
 
@@ -391,15 +404,7 @@ Each algorithm belongs to one of these categories, represented by the `algorithm
 * `symmetric` for any symmetric primitive or construction
 * `key_exhange` for key exchange mechanisms, including DH-based systems and KEMs.
 
-Implementations are also encouraged to include the following algorithms in order to exercise additional features of the API:
-
-| Identifier           | Algorithm                                                                                                                                        |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `XOODYAK-128`        | XOODYAK lightweight scheme, as specified in the most recent submission to NIST competition for lightweight cryptography                          |
-| `XCHACHA20-POLY1305` | ChaCha20-Poly1305 AEAD with an extended nonce, as specified in the most recent `draft-irtf-cfrg-xchacha` CFRG draft                              |
-| `KYBER768`           | KYBER-768 post-quantum key encapsulation mechanism, as specified in the most recent submission to NIST competition for post-quantum cryptography |
-
-Implementations are not limited to these algorithms. An implementation can include additional algorithms, and the set of required algorithms will be revisited in every revision of the specification.
+Implementations are not limited to the algorithms listed above. An implementation can include additional algorithms, and the set of required algorithms will be revisited in every revision of the specification.
 
 # Asymmetric operations
 

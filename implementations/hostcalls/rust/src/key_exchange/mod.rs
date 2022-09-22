@@ -46,7 +46,7 @@ impl OptionsLike for KxOptions {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum KxAlgorithm {
     X25519,
-    Kyber768,
+    Kyber1024,
 }
 
 impl TryFrom<&str> for KxAlgorithm {
@@ -55,7 +55,7 @@ impl TryFrom<&str> for KxAlgorithm {
     fn try_from(alg_str: &str) -> Result<Self, CryptoError> {
         match alg_str.to_uppercase().as_str() {
             "X25519" => Ok(KxAlgorithm::X25519),
-            "KYBER768" => Ok(KxAlgorithm::Kyber768),
+            "KYBER1024" => Ok(KxAlgorithm::Kyber1024),
             _ => bail!(CryptoError::UnsupportedAlgorithm),
         }
     }
@@ -110,7 +110,7 @@ fn test_key_encapsulation() {
     let ctx = CryptoCtx::new();
 
     let kx_kp_handle = ctx
-        .keypair_generate(AlgorithmType::KeyExchange, "Kyber768", None)
+        .keypair_generate(AlgorithmType::KeyExchange, "Kyber1024", None)
         .unwrap();
     let pk = ctx.keypair_publickey(kx_kp_handle).unwrap();
     let sk = ctx.keypair_secretkey(kx_kp_handle).unwrap();

@@ -44,6 +44,7 @@ impl SymmetricState {
                 Box::new(HmacSha2SymmetricState::new(alg, key, options, size_limit)?),
             ),
             SymmetricAlgorithm::Sha256
+            | SymmetricAlgorithm::Sha384
             | SymmetricAlgorithm::Sha512
             | SymmetricAlgorithm::Sha512_256 => SymmetricState::new(Box::new(
                 Sha2SymmetricState::new(alg, None, options, size_limit)?,

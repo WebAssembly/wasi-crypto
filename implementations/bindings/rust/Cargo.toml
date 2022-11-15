@@ -1,12 +1,9 @@
-cargo-features = ["per-package-target"]
-
 [package]
 name = "wasi-crypto-guest"
 version = "0.1.2"
 authors = ["Frank Denis <github@pureftpd.org>"]
 edition = "2018"
 publish = false
-forced-target = "wasm32-wasi"
 license = "Apache-2.0 WITH LLVM-exception"
 license-file = "LICENSE"
 

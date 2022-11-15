@@ -111,7 +111,7 @@ mod test {
 
     #[test]
     fn test_kem() -> Result<(), WasiCryptoError> {
-        let kp = KxKeyPair::generate("Kyber768")?;
+        let kp = KxKeyPair::generate("Kyber-1024")?;
         let pk = kp.publickey()?;
         let sk = kp.secretkey()?;
 

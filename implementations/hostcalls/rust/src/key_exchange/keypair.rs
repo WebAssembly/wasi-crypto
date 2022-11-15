@@ -41,6 +41,10 @@ impl KxKeyPair {
             KxAlgorithm::Kyber768 => Kyber768KeyPairBuilder::new(alg),
             #[cfg(not(feature = "pqcrypto"))]
             KxAlgorithm::Kyber768 => bail!(CryptoError::NotImplemented),
+            #[cfg(feature = "pqcrypto")]
+            KxAlgorithm::Kyber1024 => Kyber1024KeyPairBuilder::new(alg),
+            #[cfg(not(feature = "pqcrypto"))]
+            KxAlgorithm::Kyber1024 => bail!(CryptoError::NotImplemented),
         };
         Ok(builder)
     }

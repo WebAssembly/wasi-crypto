@@ -38,17 +38,9 @@ pub struct SymmetricOptionsInner {
     guest_buffer: Option<&'static mut [u8]>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct SymmetricOptions {
     inner: Arc<Mutex<SymmetricOptionsInner>>,
-}
-
-impl Default for SymmetricOptions {
-    fn default() -> Self {
-        SymmetricOptions {
-            inner: Default::default(),
-        }
-    }
 }
 
 impl SymmetricOptions {
@@ -140,6 +132,7 @@ pub enum SymmetricAlgorithm {
     HkdfSha256Expand,
     HkdfSha512Expand,
     Sha256,
+    Sha384,
     Sha512,
     Sha512_256,
     Aes128Gcm,
@@ -162,6 +155,7 @@ impl TryFrom<&str> for SymmetricAlgorithm {
             "HMAC/SHA-256" => Ok(SymmetricAlgorithm::HmacSha256),
             "HMAC/SHA-512" => Ok(SymmetricAlgorithm::HmacSha512),
             "SHA-256" => Ok(SymmetricAlgorithm::Sha256),
+            "SHA-384" => Ok(SymmetricAlgorithm::Sha384),
             "SHA-512" => Ok(SymmetricAlgorithm::Sha512),
             "SHA-512/256" => Ok(SymmetricAlgorithm::Sha512_256),
             "AES-128-GCM" => Ok(SymmetricAlgorithm::Aes128Gcm),

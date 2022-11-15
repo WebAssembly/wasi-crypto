@@ -1,4 +1,4 @@
-use ::sha2::{Digest, Sha256, Sha512, Sha512_256};
+use ::sha2::{Digest, Sha256, Sha384, Sha512, Sha512_256};
 
 use super::state::*;
 use super::*;
@@ -7,6 +7,7 @@ use super::*;
 #[derive(Debug, Clone)]
 enum HashVariant {
     Sha256(Sha256),
+    Sha384(Sha384),
     Sha512(Sha512),
     Sha512_256(Sha512_256),
 }
@@ -32,6 +33,7 @@ impl Sha2SymmetricState {
         }
         let ctx = match alg {
             SymmetricAlgorithm::Sha256 => HashVariant::Sha256(Sha256::new()),
+            SymmetricAlgorithm::Sha384 => HashVariant::Sha384(Sha384::new()),
             SymmetricAlgorithm::Sha512 => HashVariant::Sha512(Sha512::new()),
             SymmetricAlgorithm::Sha512_256 => HashVariant::Sha512_256(Sha512_256::new()),
             _ => bail!(CryptoError::UnsupportedAlgorithm),
@@ -71,6 +73,7 @@ impl SymmetricStateLike for Sha2SymmetricState {
     fn absorb_unchecked(&mut self, data: &[u8]) -> Result<(), CryptoError> {
         match &mut self.ctx {
             HashVariant::Sha256(x) => x.update(data),
+            HashVariant::Sha384(x) => x.update(data),
             HashVariant::Sha512(x) => x.update(data),
             HashVariant::Sha512_256(x) => x.update(data),
         };
@@ -80,6 +83,7 @@ impl SymmetricStateLike for Sha2SymmetricState {
     fn squeeze_unchecked(&mut self, out: &mut [u8]) -> Result<(), CryptoError> {
         let raw = match &self.ctx {
             HashVariant::Sha256(x) => x.clone().finalize().to_vec(),
+            HashVariant::Sha384(x) => x.clone().finalize().to_vec(),
             HashVariant::Sha512(x) => x.clone().finalize().to_vec(),
             HashVariant::Sha512_256(x) => x.clone().finalize().to_vec(),
         };

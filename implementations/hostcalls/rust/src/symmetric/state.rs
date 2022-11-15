@@ -44,6 +44,7 @@ impl SymmetricState {
                 Box::new(HmacSha2SymmetricState::new(alg, key, options, size_limit)?),
             ),
             SymmetricAlgorithm::Sha256
+            | SymmetricAlgorithm::Sha384
             | SymmetricAlgorithm::Sha512
             | SymmetricAlgorithm::Sha512_256 => SymmetricState::new(Box::new(
                 Sha2SymmetricState::new(alg, None, options, size_limit)?,
@@ -266,6 +267,13 @@ impl CryptoCtx {
 
     pub fn symmetric_state_close(&self, symmetric_state_handle: Handle) -> Result<(), CryptoError> {
         self.handles.symmetric_state.close(symmetric_state_handle)
+    }
+
+    pub fn symmetric_state_clone(&self, symmetric_state_handle: Handle) -> Result<Handle, CryptoError> {
+        let symmetric_state = self.handles.symmetric_state.get(symmetric_state_handle)?;
+        let symmetric_state = symmetric_state.clone();
+        let handle = self.handles.symmetric_state.register(symmetric_state)?;
+        Ok(handle)
     }
 
     pub fn symmetric_state_absorb(

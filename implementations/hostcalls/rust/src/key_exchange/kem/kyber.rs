@@ -212,7 +212,6 @@ impl KxSecretKeyLike for Kyber768SecretKey {
 
 //
 
-
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
 pub struct Kyber1024PublicKey {

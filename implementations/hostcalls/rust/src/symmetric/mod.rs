@@ -38,17 +38,9 @@ pub struct SymmetricOptionsInner {
     guest_buffer: Option<&'static mut [u8]>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct SymmetricOptions {
     inner: Arc<Mutex<SymmetricOptionsInner>>,
-}
-
-impl Default for SymmetricOptions {
-    fn default() -> Self {
-        SymmetricOptions {
-            inner: Default::default(),
-        }
-    }
 }
 
 impl SymmetricOptions {

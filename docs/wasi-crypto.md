@@ -375,11 +375,12 @@ A `wasi-crypto` implementation MUST implement the following algorithms, and MUST
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | `XOODYAK-128`        | XOODYAK lightweight scheme, as specified in the most recent submission to NIST competition for lightweight cryptography |
 | `XCHACHA20-POLY1305` | ChaCha20-Poly1305 AEAD with an extended nonce, as specified in the most recent `draft-irtf-cfrg-xchacha` CFRG draft     |
-| `KYBER1024`          | KYBER-1024 post-quantum key encapsulation mechanism, as standardized by NIST                                            |
+| `KYBER-1024`         | KYBER-1024 post-quantum key encapsulation mechanism, as standardized by NIST                                            |
+| `KYBER-768`          | KYBER-768 post-quantum key encapsulation mechanism, as standardized by NIST                                             |
 | `CSHAKE-128`         | cSHAKE with a 128 bit security level                                                                                    |
 | `CSHAKE-256`         | cSHAKE with a 256 bit security level                                                                                    |
 
-Implementations are encouraged to include the `XOODYAK-128`, `XCHACHA20-POLY1305` and `KYBER1024` algorithms in order to exercise additional features of the API.
+Implementations are encouraged to include the `XOODYAK-128`, `XCHACHA20-POLY1305` and `KYBER-1024` (or `KYBER-768`) algorithms in order to exercise additional features of the API.
 
 ## Reserved algorithm identifiers
 

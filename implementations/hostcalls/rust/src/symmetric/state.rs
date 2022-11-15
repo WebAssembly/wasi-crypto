@@ -269,7 +269,10 @@ impl CryptoCtx {
         self.handles.symmetric_state.close(symmetric_state_handle)
     }
 
-    pub fn symmetric_state_clone(&self, symmetric_state_handle: Handle) -> Result<Handle, CryptoError> {
+    pub fn symmetric_state_clone(
+        &self,
+        symmetric_state_handle: Handle,
+    ) -> Result<Handle, CryptoError> {
         let symmetric_state = self.handles.symmetric_state.get(symmetric_state_handle)?;
         let symmetric_state = symmetric_state.clone();
         let handle = self.handles.symmetric_state.register(symmetric_state)?;

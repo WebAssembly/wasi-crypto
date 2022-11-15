@@ -1,6 +1,6 @@
 [package]
 name = "wasi-crypto"
-version = "0.1.6"
+version = "0.1.7"
 authors = ["Frank Denis <github@pureftpd.org>"]
 edition = "2018"
 description = "Experimental implementation of the WASI cryptography APIs"

@@ -8,4 +8,4 @@ description = "Example WASI-Crypto guest bindings for Rust"
 license-file = "LICENSE"
 
 [dependencies]
-num_enum = "0.5.7"
+num_enum = "=0.5.7"

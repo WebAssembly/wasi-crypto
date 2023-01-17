@@ -178,9 +178,9 @@ impl EcdsaSignatureKeyPair {
 
     pub fn public_key(&self) -> Result<EcdsaSignaturePublicKey, CryptoError> {
         let ctx = match self.ctx.as_ref() {
-            EcdsaSigningKeyVariant::P256(x) => EcdsaVerifyingKeyVariant::P256(x.verifying_key()),
-            EcdsaSigningKeyVariant::K256(x) => EcdsaVerifyingKeyVariant::K256(x.verifying_key()),
-            EcdsaSigningKeyVariant::P384(x) => EcdsaVerifyingKeyVariant::P384(x.verifying_key()),
+            EcdsaSigningKeyVariant::P256(x) => EcdsaVerifyingKeyVariant::P256(*x.verifying_key()),
+            EcdsaSigningKeyVariant::K256(x) => EcdsaVerifyingKeyVariant::K256(*x.verifying_key()),
+            EcdsaSigningKeyVariant::P384(x) => EcdsaVerifyingKeyVariant::P384(*x.verifying_key()),
         };
         Ok(EcdsaSignaturePublicKey {
             alg: self.alg,
@@ -264,7 +264,7 @@ impl SignatureStateLike for EcdsaSignatureState {
                 };
                 let encoded_signature: ecdsa_p256::Signature =
                     x.sign_digest_with_rng(&mut rng, digest);
-                encoded_signature.as_ref().to_vec()
+                encoded_signature.to_vec()
             }
             EcdsaSigningKeyVariant::K256(x) => {
                 let digest = match &self.h {
@@ -275,7 +275,7 @@ impl SignatureStateLike for EcdsaSignatureState {
                 };
                 let encoded_signature: ecdsa_k256::Signature =
                     x.sign_digest_with_rng(&mut rng, digest);
-                encoded_signature.as_ref().to_vec()
+                encoded_signature.to_vec()
             }
             EcdsaSigningKeyVariant::P384(x) => {
                 let digest = match &self.h {
@@ -286,7 +286,7 @@ impl SignatureStateLike for EcdsaSignatureState {
                 };
                 let encoded_signature: ecdsa_p384::Signature =
                     x.sign_digest_with_rng(&mut rng, digest);
-                encoded_signature.as_ref().to_vec()
+                encoded_signature.to_vec()
             }
         };
         let signature = EcdsaSignature::new(encoded_signature);

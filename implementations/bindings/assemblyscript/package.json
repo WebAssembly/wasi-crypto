@@ -1,14 +1,15 @@
 {
   "scripts": {
-    "asbuild:untouched": "asc assembly/index.ts -b build/untouched.wasm -t build/untouched.wat --sourceMap --debug --use abort=wasi_abort",
-    "asbuild:optimized": "asc assembly/index.ts -b build/optimized.wasm -t build/optimized.wat --sourceMap --optimize",
+    "asbuild:untouched": "asc assembly/index.ts -b build/untouched.wasm -t build/untouched.wat --sourceMap --debug --config ./node_modules/@assemblyscript/wasi-shim/asconfig.json",
+    "asbuild:optimized": "asc assembly/index.ts -b build/optimized.wasm -t build/optimized.wat --sourceMap --optimize --config ./node_modules/@assemblyscript/wasi-shim/asconfig.json",
     "asbuild": "npm run asbuild:untouched && npm run asbuild:optimized"
   },
   "dependencies": {
-    "@assemblyscript/loader": "^0.21"
+    "@assemblyscript/loader": "^0.27"
   },
   "devDependencies": {
-    "as-wasi": "^0.5.1",
-    "assemblyscript": "^0.21"
+    "@assemblyscript/wasi-shim": "^0.1.0",
+    "as-wasi": "^0.6.0",
+    "assemblyscript": "^0.27"
   }
 }

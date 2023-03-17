@@ -23,3 +23,8 @@ processes, goals, scope, and deliverables.
 * [Implementation for the WasmEdge runtime](https://wasmedge.org/book/en/dev/rust/wasicrypto.html)
 * [Example AssemblyScript bindings](implementations/bindings/assemblyscript)
 * [Example Rust bindings](implementations/bindings/rust)
+
+Interested parties are welcome to join the working group meeting every 2 weeks on Tuesday.
+
+* [Google Meet link](https://meet.google.com/yeh-kbzo-pfx)
+* [Google calendar](https://calendar.google.com/calendar/event?action=TEMPLATE&tmeid=N3BwZTZuMW02NzI4MTM3MjFkcXVnOThlN25fMjAyMzAzMjFUMTcwMDAwWiBmZGVuaXNAZmFzdGx5LmNvbQ&tmsrc=fdenis%40fastly.com&scp=ALL)

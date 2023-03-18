@@ -27,4 +27,4 @@ processes, goals, scope, and deliverables.
 Interested parties are welcome to join the working group meeting every 2 weeks on Tuesday.
 
 * [Google Meet link](https://meet.google.com/yeh-kbzo-pfx)
-* [Google calendar](https://calendar.google.com/calendar/event?action=TEMPLATE&tmeid=N3BwZTZuMW02NzI4MTM3MjFkcXVnOThlN25fMjAyMzAzMjFUMTcwMDAwWiBmZGVuaXNAZmFzdGx5LmNvbQ&tmsrc=fdenis%40fastly.com&scp=ALL)
+* [Google calendar](https://calendar.google.com/calendar/u/0/embed?src=f67fde02694963243f5dafb70d61c64e715dacbcf1abba17824e672635f90f3e@group.calendar.google.com)

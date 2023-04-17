@@ -1,0 +1,56 @@
+;;; Symmetric Batch Operations
+(module $wasi_ephemeral_crypto_symmetric_batch
+    (use * from $wasi_ephemeral_crypto_common)
+
+    ;;; An output buffer
+    (typename $output (out-buffer u8))
+    (typename $output_len $size)
+
+    ;;; An input buffer
+    (typename $input_data (in-buffer u8))
+    (typename $input_data_len $size)
+
+    ;;; A tuple of parameters for an encryption operation.
+    (typename $encrypt_params (tuple $symmetric_state $output $output_len $input_data $input_data_len))
+
+    (typename $encrypt_result (tuple $size $crypto_errno))
+    (typename $batch_encrypt_results (list $encrypt_result))
+
+    ;;; Perform a batch of symmetric encrypt operations.
+    ;;;
+    ;;; This is a batch version of the symmetric_state_encrypto operation and
+    ;;; is an extension of the wasi_empemeral_crypto_symmetric module.
+    ;;;
+    ;;; Each entry in the batch corresponds to an individual encrypt operation.
+    ;;; The parameters associated with each encrypt operation are grouped into a
+    ;;; tuple.
+    ;;;
+    ;;; If the entire batch could not be processed an error code of type
+    ;;; $crypto_errno is returned. If part of the batch was successfully
+    ;;; processed and part (one or more) resulted in a failure, each result
+    ;;; is a pair of an error code and a size. The size is only valid
+    ;;; if the error code indicates success.
+    ;;;
+    ;;; The size corresponds to the actual size of the ciphertext and the tag
+    ;;; in the ouput buffer.
+    ;;;
+    ;;; Example usage:
+    ;;;
+    ;;; ```rust
+    ;;; let mut batch = Vec::new();
+    ;;;
+    ;;; let state_handle = ctx.symmetric_state_open("AES-256-GCM", Some(key_handle1), Some(options_handle1))?;
+    ;;; let mut ciphertext = vec![0u8; message.len() + ctx.symmetric_state_max_tag_len(state_handle)?];
+    ;;; batch.push((batch, state_handle, ciphertext, ciphertext.len(), message, message.len()));
+    ;;;
+    ;;; let state_handle = ctx.symmetric_state_open("AES-256-GCM", Some(key_handle2), Some(options_handle2))?;
+    ;;; let mut ciphertext = vec![0u8; message2.len() + ctx.symmetric_state_max_tag_len(state_handle)?];
+    ;;; batch.push((batch, state_handle, ciphertext, ciphertext.len(), message2, message2.len()));
+    ;;;
+    ;;; let results = ctx.batch_symmetric_state_encrypt(batch)?;
+    ;;; ```
+    (@interface func (export "batch_symmetric_state_encrypt")
+        (param $batch (list $encrypt_params))
+        (result $error (expected $batch_encrypt_results (error $crypto_errno)))
+    )
+)

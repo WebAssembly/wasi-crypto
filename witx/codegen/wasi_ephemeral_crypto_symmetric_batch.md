@@ -5,11 +5,11 @@
 
 ### Types list:
 
-[**[All](#types)**] - [_[`crypto_errno`](#crypto_errno)_] - [_[`keypair_encoding`](#keypair_encoding)_] - [_[`publickey_encoding`](#publickey_encoding)_] - [_[`secretkey_encoding`](#secretkey_encoding)_] - [_[`signature_encoding`](#signature_encoding)_] - [_[`algorithm_type`](#algorithm_type)_] - [_[`version`](#version)_] - [_[`size`](#size)_] - [_[`timestamp`](#timestamp)_] - [_[`u64`](#u64)_] - [_[`array_output`](#array_output)_] - [_[`options`](#options)_] - [_[`secrets_manager`](#secrets_manager)_] - [_[`keypair`](#keypair)_] - [_[`signature_state`](#signature_state)_] - [_[`signature`](#signature)_] - [_[`publickey`](#publickey)_] - [_[`secretkey`](#secretkey)_] - [_[`signature_verification_state`](#signature_verification_state)_] - [_[`symmetric_state`](#symmetric_state)_] - [_[`symmetric_key`](#symmetric_key)_] - [_[`symmetric_tag`](#symmetric_tag)_] - [_[`opt_options_u`](#opt_options_u)_] - [_[`opt_options`](#opt_options)_] - [_[`opt_symmetric_key_u`](#opt_symmetric_key_u)_] - [_[`opt_symmetric_key`](#opt_symmetric_key)_] - [_[`output`](#output)_] - [_[`output_len`](#output_len)_] - [_[`input_data`](#input_data)_] - [_[`input_data_len`](#input_data_len)_] - [_[`encrypt_params`](#encrypt_params)_] - [_[`encrypt_result`](#encrypt_result)_] - [_[`batch_encrypt_results`](#batch_encrypt_results)_]
+[**[All](#types)**] - [_[`crypto_errno`](#crypto_errno)_] - [_[`keypair_encoding`](#keypair_encoding)_] - [_[`publickey_encoding`](#publickey_encoding)_] - [_[`secretkey_encoding`](#secretkey_encoding)_] - [_[`signature_encoding`](#signature_encoding)_] - [_[`algorithm_type`](#algorithm_type)_] - [_[`version`](#version)_] - [_[`size`](#size)_] - [_[`timestamp`](#timestamp)_] - [_[`u64`](#u64)_] - [_[`array_output`](#array_output)_] - [_[`options`](#options)_] - [_[`secrets_manager`](#secrets_manager)_] - [_[`keypair`](#keypair)_] - [_[`signature_state`](#signature_state)_] - [_[`signature`](#signature)_] - [_[`publickey`](#publickey)_] - [_[`secretkey`](#secretkey)_] - [_[`signature_verification_state`](#signature_verification_state)_] - [_[`symmetric_state`](#symmetric_state)_] - [_[`symmetric_key`](#symmetric_key)_] - [_[`symmetric_tag`](#symmetric_tag)_] - [_[`opt_options_u`](#opt_options_u)_] - [_[`opt_options`](#opt_options)_] - [_[`opt_symmetric_key_u`](#opt_symmetric_key_u)_] - [_[`opt_symmetric_key`](#opt_symmetric_key)_] - [_[`output`](#output)_] - [_[`output_len`](#output_len)_] - [_[`data`](#data)_] - [_[`data_len`](#data_len)_] - [_[`raw_tag`](#raw_tag)_] - [_[`raw_tag_len`](#raw_tag_len)_] - [_[`encrypt_params`](#encrypt_params)_] - [_[`decrypt_detached_params`](#decrypt_detached_params)_] - [_[`encrypt_result`](#encrypt_result)_] - [_[`batch_encrypt_results`](#batch_encrypt_results)_] - [_[`encrypt_detached_result`](#encrypt_detached_result)_] - [_[`batch_encrypt_detached_results`](#batch_encrypt_detached_results)_] - [_[`squeeze_params`](#squeeze_params)_] - [_[`squeeze_results`](#squeeze_results)_]
 
 ### Functions list:
 
-[**[All](#functions)**] - [[`batch_symmetric_state_encrypt()`](#batch_symmetric_state_encrypt)]
+[**[All](#functions)**] - [[`batch_symmetric_state_squeeze()`](#batch_symmetric_state_squeeze)] - [[`batch_symmetric_state_encrypt()`](#batch_symmetric_state_encrypt)] - [[`batch_symmetric_state_encrypt_detached()`](#batch_symmetric_state_encrypt_detached)] - [[`batch_symmetric_state_decrypt()`](#batch_symmetric_state_decrypt)] - [[`batch_symmetric_state_decrypt_detached()`](#batch_symmetric_state_decrypt_detached)]
 
 ## Types
 
@@ -367,16 +367,32 @@ Alias for `usize`.
 
 ---
 
-### _[`input_data`](#input_data)_
+### _[`data`](#data)_
 Alias for `u8` slice.
 
 
-> An input buffer
+> A non-mutable data buffer
 
 
 ---
 
-### _[`input_data_len`](#input_data_len)_
+### _[`data_len`](#data_len)_
+
+Alias for `usize`.
+
+
+---
+
+### _[`raw_tag`](#raw_tag)_
+Alias for `u8` slice.
+
+
+> An raw tag buffer
+
+
+---
+
+### _[`raw_tag_len`](#raw_tag_len)_
 
 Alias for `usize`.
 
@@ -384,10 +400,19 @@ Alias for `usize`.
 ---
 
 ### _[`encrypt_params`](#encrypt_params)_
-Tuple, representing (_[`symmetric_state`](#symmetric_state)_, _[`output`](#output)_, _[`output_len`](#output_len)_, _[`input_data`](#input_data)_, _[`input_data_len`](#input_data_len)_).
+Tuple, representing (_[`symmetric_state`](#symmetric_state)_, _[`output`](#output)_, _[`output_len`](#output_len)_, _[`data`](#data)_, _[`data_len`](#data_len)_).
 
 
 > A tuple of parameters for an encryption operation.
+
+
+---
+
+### _[`decrypt_detached_params`](#decrypt_detached_params)_
+Tuple, representing (_[`symmetric_state`](#symmetric_state)_, _[`output`](#output)_, _[`output_len`](#output_len)_, _[`data`](#data)_, _[`data_len`](#data_len)_, _[`raw_tag`](#raw_tag)_, _[`raw_tag_len`](#raw_tag_len)_).
+
+
+> A tuple of parameters for a detached decryption operation.
 
 
 ---
@@ -404,7 +429,57 @@ Alias for _[`encrypt_result`](#encrypt_result)_ mutable slice.
 
 ---
 
+### _[`encrypt_detached_result`](#encrypt_detached_result)_
+Tuple, representing (_[`symmetric_tag`](#symmetric_tag)_, _[`crypto_errno`](#crypto_errno)_).
+
+
+---
+
+### _[`batch_encrypt_detached_results`](#batch_encrypt_detached_results)_
+Alias for _[`encrypt_detached_result`](#encrypt_detached_result)_ mutable slice.
+
+
+---
+
+### _[`squeeze_params`](#squeeze_params)_
+Tuple, representing (_[`symmetric_state`](#symmetric_state)_, _[`data`](#data)_, _[`data_len`](#data_len)_).
+
+
+---
+
+### _[`squeeze_results`](#squeeze_results)_
+Alias for _[`crypto_errno`](#crypto_errno)_ mutable slice.
+
+
+---
+
 ## Functions
+
+### [`batch_symmetric_state_squeeze()`](#batch_symmetric_state_squeeze)
+Returned error type: _[`crypto_errno`](#crypto_errno)_
+
+#### Input:
+
+* **`params`**: _[`squeeze_params`](#squeeze_params)_ mutable slice
+
+#### Output:
+
+* _[`squeeze_results`](#squeeze_results)_ mutable pointer
+
+> Batch of operations to squeeze bytes from the state.
+> 
+> - **Hash functions:** this tries to output an `out_len` bytes digest from the absorbed data. The hash function output will be truncated if necessary. If the requested size is too large, the `invalid_len` error code is returned.
+> - **Key derivation functions:** : outputs an arbitrary-long derived key.
+> - **RNGs, DRBGs, stream ciphers:**: outputs arbitrary-long data.
+> - **Stateful hash objects, permutation-based constructions:** squeeze.
+> 
+> Other kinds of algorithms may return `invalid_operation` instead.
+> 
+> For password-stretching functions, the function may return `in_progress`.
+> In that case, the guest should retry with the same parameters until the function completes.
+
+
+---
 
 ### [`batch_symmetric_state_encrypt()`](#batch_symmetric_state_encrypt)
 Returned error type: _[`crypto_errno`](#crypto_errno)_
@@ -450,6 +525,56 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > 
 > let results = ctx.batch_symmetric_state_encrypt(batch)?;
 > ```
+
+
+---
+
+### [`batch_symmetric_state_encrypt_detached()`](#batch_symmetric_state_encrypt_detached)
+Returned error type: _[`crypto_errno`](#crypto_errno)_
+
+#### Input:
+
+* **`batch`**: _[`encrypt_params`](#encrypt_params)_ mutable slice
+
+#### Output:
+
+* _[`batch_encrypt_detached_results`](#batch_encrypt_detached_results)_ mutable pointer
+
+> Perform a batch of symmetric encrypt operations with detached tags.
+
+
+---
+
+### [`batch_symmetric_state_decrypt()`](#batch_symmetric_state_decrypt)
+Returned error type: _[`crypto_errno`](#crypto_errno)_
+
+#### Input:
+
+* **`batch`**: _[`encrypt_params`](#encrypt_params)_ mutable slice
+
+#### Output:
+
+* _[`batch_encrypt_results`](#batch_encrypt_results)_ mutable pointer
+
+> TODO: Replace the encrypt_params type with something more generic that
+> that works for both encrypt and decrypt.
+
+
+---
+
+### [`batch_symmetric_state_decrypt_detached()`](#batch_symmetric_state_decrypt_detached)
+Returned error type: _[`crypto_errno`](#crypto_errno)_
+
+#### Input:
+
+* **`batch`**: _[`decrypt_detached_params`](#decrypt_detached_params)_ mutable slice
+
+#### Output:
+
+* _[`batch_encrypt_results`](#batch_encrypt_results)_ mutable pointer
+
+> TODO: Replace the encrypt_params type with something more generic that
+> that works for both encrypt and decrypt.
 
 
 ---

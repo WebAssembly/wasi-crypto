@@ -6,15 +6,44 @@
     (typename $output (out-buffer u8))
     (typename $output_len $size)
 
-    ;;; An input buffer
-    (typename $input_data (in-buffer u8))
-    (typename $input_data_len $size)
+    ;;; A non-mutable data buffer
+    (typename $data (in-buffer u8))
+    (typename $data_len $size)
+
+    ;;; An raw tag buffer
+    (typename $raw_tag (in-buffer u8))
+    (typename $raw_tag_len $size)
 
     ;;; A tuple of parameters for an encryption operation.
-    (typename $encrypt_params (tuple $symmetric_state $output $output_len $input_data $input_data_len))
+    (typename $encrypt_params (tuple $symmetric_state $output $output_len $data $data_len))
+
+    ;;; A tuple of parameters for a detached decryption operation.
+    (typename $decrypt_detached_params (tuple $symmetric_state $output $output_len $data $data_len $raw_tag $raw_tag_len))
 
     (typename $encrypt_result (tuple $size $crypto_errno))
     (typename $batch_encrypt_results (list $encrypt_result))
+
+    (typename $encrypt_detached_result (tuple $symmetric_tag $crypto_errno))
+    (typename $batch_encrypt_detached_results (list $encrypt_detached_result))
+
+    (typename $squeeze_params (tuple $symmetric_state $data $data_len))
+    (typename $squeeze_results (list $crypto_errno))
+
+    ;;; Batch of operations to squeeze bytes from the state.
+    ;;;
+    ;;; - **Hash functions:** this tries to output an `out_len` bytes digest from the absorbed data. The hash function output will be truncated if necessary. If the requested size is too large, the `invalid_len` error code is returned.
+    ;;; - **Key derivation functions:** : outputs an arbitrary-long derived key.
+    ;;; - **RNGs, DRBGs, stream ciphers:**: outputs arbitrary-long data.
+    ;;; - **Stateful hash objects, permutation-based constructions:** squeeze.
+    ;;;
+    ;;; Other kinds of algorithms may return `invalid_operation` instead.
+    ;;;
+    ;;; For password-stretching functions, the function may return `in_progress`.
+    ;;; In that case, the guest should retry with the same parameters until the function completes.
+    (@interface func (export "batch_symmetric_state_squeeze")
+        (param $params (list $squeeze_params))
+        (result $error (expected $squeeze_results (error $crypto_errno)))
+    )
 
     ;;; Perform a batch of symmetric encrypt operations.
     ;;;
@@ -53,4 +82,25 @@
         (param $batch (list $encrypt_params))
         (result $error (expected $batch_encrypt_results (error $crypto_errno)))
     )
+
+    ;;; Perform a batch of symmetric encrypt operations with detached tags.
+    (@interface func (export "batch_symmetric_state_encrypt_detached")
+        (param $batch (list $encrypt_params))
+        (result $error (expected $batch_encrypt_detached_results (error $crypto_errno)))
+    )
+
+    ;;; TODO: Replace the encrypt_params type with something more generic that
+    ;;; that works for both encrypt and decrypt.
+    (@interface func (export "batch_symmetric_state_decrypt")
+        (param $batch (list $encrypt_params))
+        (result $error (expected $batch_encrypt_results (error $crypto_errno)))
+    )
+
+    ;;; TODO: Replace the encrypt_params type with something more generic that
+    ;;; that works for both encrypt and decrypt.
+    (@interface func (export "batch_symmetric_state_decrypt_detached")
+        (param $batch (list $decrypt_detached_params))
+        (result $error (expected $batch_encrypt_results (error $crypto_errno)))
+    )
+
 )

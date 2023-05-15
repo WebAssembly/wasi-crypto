@@ -9,7 +9,7 @@
 
 ### Functions list:
 
-[**[All](#functions)**] - [[`batch_symmetric_state_squeeze()`](#batch_symmetric_state_squeeze)] - [[`batch_symmetric_state_encrypt()`](#batch_symmetric_state_encrypt)] - [[`batch_symmetric_state_encrypt_detached()`](#batch_symmetric_state_encrypt_detached)] - [[`batch_symmetric_state_decrypt()`](#batch_symmetric_state_decrypt)] - [[`batch_symmetric_state_decrypt_detached()`](#batch_symmetric_state_decrypt_detached)]
+[**[All](#functions)**] - [[`batch_symmetric_state_squeeze()`](#batch_symmetric_state_squeeze)] - [[`batch_symmetric_state_squeeze_tag()`](#batch_symmetric_state_squeeze_tag)] - [[`batch_symmetric_state_encrypt()`](#batch_symmetric_state_encrypt)] - [[`batch_symmetric_state_encrypt_detached()`](#batch_symmetric_state_encrypt_detached)] - [[`batch_symmetric_state_decrypt()`](#batch_symmetric_state_decrypt)] - [[`batch_symmetric_state_decrypt_detached()`](#batch_symmetric_state_decrypt_detached)]
 
 ## Types
 
@@ -481,12 +481,40 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 ---
 
+### [`batch_symmetric_state_squeeze_tag()`](#batch_symmetric_state_squeeze_tag)
+Returned error type: _[`crypto_errno`](#crypto_errno)_
+
+#### Input:
+
+* **`states`**: _[`symmetric_state`](#symmetric_state)_ mutable slice
+
+#### Output:
+
+* _[`batch_encrypt_detached_results`](#batch_encrypt_detached_results)_ mutable pointer
+
+> Batch of operations to compute and return a tag for all the data
+> injected into the state so far.
+> 
+> - **MAC functions**: returns a tag authenticating the absorbed data.
+> - **Tuplehash-like constructions:** returns a tag authenticating all the absorbed tuples.
+> - **Password-hashing functions:** returns a standard string containing all the required parameters for password verification.
+> 
+> Other kinds of algorithms may return `invalid_operation` instead.
+> 
+> For password-stretching functions, the function may return `in_progress`.
+> In that case, the guest should retry with the same parameters until the function completes.
+> 
+> TODO: Refactor return type to share a more generic common type with encrypt detached results
+
+
+---
+
 ### [`batch_symmetric_state_encrypt()`](#batch_symmetric_state_encrypt)
 Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 #### Input:
 
-* **`batch`**: _[`encrypt_params`](#encrypt_params)_ mutable slice
+* **`batch`**: (_[`symmetric_state`](#symmetric_state)_, _[`output`](#output)_, _[`output_len`](#output_len)_, _[`data`](#data)_, _[`data_len`](#data_len)_) mutable slice
 
 #### Output:
 
@@ -534,7 +562,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 #### Input:
 
-* **`batch`**: _[`encrypt_params`](#encrypt_params)_ mutable slice
+* **`batch`**: (_[`symmetric_state`](#symmetric_state)_, _[`output`](#output)_, _[`output_len`](#output_len)_, _[`data`](#data)_, _[`data_len`](#data_len)_) mutable slice
 
 #### Output:
 
@@ -550,14 +578,13 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 #### Input:
 
-* **`batch`**: _[`encrypt_params`](#encrypt_params)_ mutable slice
+* **`batch`**: (_[`symmetric_state`](#symmetric_state)_, _[`output`](#output)_, _[`output_len`](#output_len)_, _[`data`](#data)_, _[`data_len`](#data_len)_) mutable slice
 
 #### Output:
 
 * _[`batch_encrypt_results`](#batch_encrypt_results)_ mutable pointer
 
-> TODO: Replace the encrypt_params type with something more generic that
-> that works for both encrypt and decrypt.
+> Perform a batch of symmetric decrypt operations.
 
 
 ---
@@ -567,12 +594,14 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 #### Input:
 
-* **`batch`**: _[`decrypt_detached_params`](#decrypt_detached_params)_ mutable slice
+* **`batch`**: (_[`symmetric_state`](#symmetric_state)_, _[`output`](#output)_, _[`output_len`](#output_len)_, _[`data`](#data)_, _[`data_len`](#data_len)_, _[`raw_tag`](#raw_tag)_, _[`raw_tag_len`](#raw_tag_len)_) mutable slice
 
 #### Output:
 
 * _[`batch_encrypt_results`](#batch_encrypt_results)_ mutable pointer
 
+> Perform a batch of symmetric decrypt operations with detached tags.
+> 
 > TODO: Replace the encrypt_params type with something more generic that
 > that works for both encrypt and decrypt.
 

@@ -23,13 +23,21 @@
 
     ;;; Compute a batch of signatures.
     ;;;
-    ;;; This is a batch version of the signature_state_sign operation and is an extension of the wasi_empemeral_crypto_signatures module.
+    ;;; This is a batch version of the signature_state_sign operation and is an extension of the wasi_emphemeral_crypto_signatures module.
     ;;;
-    ;;; If the entire batch could not be processed an error code of type
-    ;;; $crypto_errno is returned. If part of the batch was successfully
-    ;;; processed and part (one or more) resulted in a failure, each result
-    ;;; is a pair of an error code and a signature. The signature is only valid
-    ;;; if the error code indicates success.
+    ;;; The batch operation returns an error code of type $crypto_errno that
+    ;;; indicates if the batch was processed or if the batch could not be
+    ;;; processed.
+    ;;;
+    ;;; Batch processing error codes:
+    ;;;  - `success`: Batch was processed. The status of each operation is indicated in the results list.
+    ;;;  - `not_implemented`: Batch functionality is not supported.
+    ;;;  - `unsupported_feature`: Inconsistent operations within the batch, e.g. not all operations in the batch use the same algorithm.
+    ;;;
+    ;;; If the batch was processed, the result of each operation in the batch
+    ;;; is a pair of a $crypto_errno error code and a signature. The error code
+    ;;; indicates if that operation succeeded or failed. The signature is only
+    ;;; valid if the error code indicates success.
     ;;;
     ;;; Example usage:
     ;;;
@@ -63,12 +71,18 @@
     ;;; This is a batch version of the signature_state_verify operation and is
     ;;; an extension of the wasi_empemeral_crypto_signatures module.
     ;;;
+    ;;; The batch operation returns an error code of type $crypto_errno that
+    ;;; indicates if the batch was processed (`success`) or if the batch could
+    ;;; not be processed.
+    ;;;
+    ;;; Batch processing failure cases are:
+    ;;;  - `not_implemented`: Batch functionality is not supported.
+    ;;;  - `unsupported_feature`: Inconsistent operations within the batch, e.g. not all operations in the batch use the same algorithm.
+    ;;;
+    ;;; If the batch was processed, a list of verification results is produced.
     ;;; Each entry in the input list has a corresponding error state returned
-    ;;; to indicate if the verification succeeded or encountered and error.
-    ;;; If the batch could not be processed an error code is returned,
-    ;;; otherwise a list of verification results is produced.
-    ;;; Each entry in the list is an error code that indicates the verification
-    ;;; result for the corresponding entry in the verification input list.
+    ;;; in the verification results list to indicate if the verification
+    ;;; succeeded or encountered and error.
     ;;;
     ;;; Example usage:
     ;;;

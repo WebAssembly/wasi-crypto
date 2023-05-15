@@ -14,54 +14,106 @@
     (typename $raw_tag (in-buffer u8))
     (typename $raw_tag_len $size)
 
-    ;;; A tuple of parameters for an encryption operation.
-    (typename $encrypt_params (tuple $symmetric_state $output $output_len $data $data_len))
+    ;;; Tuple representing results and size produced by an encrypt/decrypt operation.
+    (typename $crypt_result (tuple $size $crypto_errno))
 
-    ;;; A tuple of parameters for a detached decryption operation.
-    (typename $decrypt_detached_params (tuple $symmetric_state $output $output_len $data $data_len $raw_tag $raw_tag_len))
+    ;;; A list of results from the individual encrypt/decrypt operations within a batch operation.
+    (typename $batch_crypt_results (list $crypt_result))
 
-    (typename $encrypt_result (tuple $size $crypto_errno))
-    (typename $batch_encrypt_results (list $encrypt_result))
-
+    ;;; Tuple representing results and size produced by a detached encrypt operation.
     (typename $encrypt_detached_result (tuple $symmetric_tag $crypto_errno))
+
+    ;;; A list of results from the individual encrypt/decrypt operations within a batch operation.
     (typename $batch_encrypt_detached_results (list $encrypt_detached_result))
 
-    (typename $squeeze_params (tuple $symmetric_state $data $data_len))
-    (typename $squeeze_results (list $crypto_errno))
+    ;;; A list of results from squeeze operation within a batch operation.
+    (typename $batch_squeeze_results (list $crypto_errno))
 
-    ;;; Batch of operations to squeeze bytes from the state.
+    ;;; Tuple representing results and tag and error produced by a detached squeeze operation.
+    (typename $squeeze_detached_result (tuple $symmetric_tag $crypto_errno))
+
+    ;;; A list of results from the individual detached squeeze operations within a batch operation.
+    (typename $batch_squeeze_detached_results (list $squeeze_detached_result))
+
+    ;;; Batch of operations to squeeze bytes from a batch of states.
     ;;;
-    ;;; - **Hash functions:** this tries to output an `out_len` bytes digest from the absorbed data. The hash function output will be truncated if necessary. If the requested size is too large, the `invalid_len` error code is returned.
-    ;;; - **Key derivation functions:** : outputs an arbitrary-long derived key.
-    ;;; - **RNGs, DRBGs, stream ciphers:**: outputs arbitrary-long data.
-    ;;; - **Stateful hash objects, permutation-based constructions:** squeeze.
+    ;;; This is a batch version of the $symmetric_state_squeeze operation.
     ;;;
-    ;;; Other kinds of algorithms may return `invalid_operation` instead.
+    ;;; Each entry in the batch corresponds to an individual squeeze operation.
+    ;;; The parameters associated with each operation are grouped into a tuple.
     ;;;
-    ;;; For password-stretching functions, the function may return `in_progress`.
-    ;;; In that case, the guest should retry with the same parameters until the function completes.
+    ;;; The batch operation returns an error code of type $crypto_errno that
+    ;;; indicates if the batch was processed or if the batch could not be
+    ;;; processed.
+    ;;;
+    ;;; Batch processing error codes:
+    ;;;  - `success`: Batch was processed. The status of each operation is indicated in the results list.
+    ;;;  - `not_implemented`: Batch functionality is not supported.
+    ;;;  - `unsupported_feature`: Inconsistent operations within the batch, e.g. not all operations in the batch use the same algorithm.
+    ;;;
+    ;;; If the batch was processed, the result is a list of $crypto_errno error
+    ;;; codes that represent the status of the operation in the input list at
+    ;;; the same list offset.
+    ;;;
     (@interface func (export "batch_symmetric_state_squeeze")
-        (param $params (list $squeeze_params))
-        (result $error (expected $squeeze_results (error $crypto_errno)))
+        (param $batch (list (tuple $symmetric_state $data $data_len)))
+        (result $error (expected $batch_squeeze_results (error $crypto_errno)))
+    )
+
+    ;;; Batch of operations to compute and return a tag for all the data
+    ;;; injected into the state so far.
+    ;;;
+    ;;; This is a batch version of the $symmetric_state_squeeze_tag operation.
+    ;;;
+    ;;; Each entry in the batch corresponds to an individual squeeze_tag
+    ;;; operation. The parameters associated with each operation are grouped
+    ;;; into a tuple.
+    ;;;
+    ;;; The batch operation returns an error code of type $crypto_errno that
+    ;;; indicates if the batch was processed or if the batch could not be
+    ;;; processed.
+    ;;;
+    ;;; Batch processing error codes:
+    ;;;  - `success`: Batch was processed. The status of each operation is indicated in the results list.
+    ;;;  - `not_implemented`: Batch functionality is not supported.
+    ;;;  - `unsupported_feature`: Inconsistent operations within the batch, e.g. not all operations in the batch use the same algorithm.
+    ;;;
+    ;;; If the batch was processed, the result is a list of tuples, with each
+    ;;; list entry corresponding to the operation in the input list at the same
+    ;;; list offset. Each tuple contains a $crypto_errno error code and a tag.
+    ;;; The error code represents the status of the operation and the tag is the
+    ;;; tag generated from the squeeze operation. The tag is only valid if the
+    ;;; tuple's error code is `success`.
+    ;;;
+    (@interface func (export "batch_symmetric_state_squeeze_tag")
+        (param $states (list $symmetric_state))
+        (result $error (expected $batch_squeeze_detached_results (error $crypto_errno)))
     )
 
     ;;; Perform a batch of symmetric encrypt operations.
     ;;;
-    ;;; This is a batch version of the symmetric_state_encrypto operation and
-    ;;; is an extension of the wasi_empemeral_crypto_symmetric module.
+    ;;; This is a batch version of the symmetric_state_encrypt operation.
     ;;;
     ;;; Each entry in the batch corresponds to an individual encrypt operation.
     ;;; The parameters associated with each encrypt operation are grouped into a
     ;;; tuple.
     ;;;
-    ;;; If the entire batch could not be processed an error code of type
-    ;;; $crypto_errno is returned. If part of the batch was successfully
-    ;;; processed and part (one or more) resulted in a failure, each result
-    ;;; is a pair of an error code and a size. The size is only valid
-    ;;; if the error code indicates success.
+    ;;; The batch operation returns an error code of type $crypto_errno that
+    ;;; indicates if the batch was processed or if the batch could not be
+    ;;; processed.
     ;;;
-    ;;; The size corresponds to the actual size of the ciphertext and the tag
-    ;;; in the ouput buffer.
+    ;;; Batch processing error codes:
+    ;;;  - `success`: Batch was processed. The status of each operation is indicated in the results list.
+    ;;;  - `not_implemented`: Batch functionality is not supported.
+    ;;;  - `unsupported_feature`: Inconsistent operations within the batch, e.g. not all operations in the batch use the same algorithm.
+    ;;;
+    ;;; If the batch was processed, the result is a list of tuples, with each
+    ;;; list entry corresponding to the operation in the input list at the same
+    ;;; list offset.
+    ;;; Each tuple contains a size and a $crypto_errno error code.
+    ;;; The error code represents the status of the operation and the size is
+    ;;; the actual size of the ciphertext and the tag in the ouput buffer. The
+    ;;; size value is only valid if the tuple's error code is `success`.
     ;;;
     ;;; Example usage:
     ;;;
@@ -79,28 +131,113 @@
     ;;; let results = ctx.batch_symmetric_state_encrypt(batch)?;
     ;;; ```
     (@interface func (export "batch_symmetric_state_encrypt")
-        (param $batch (list $encrypt_params))
-        (result $error (expected $batch_encrypt_results (error $crypto_errno)))
+        (param $batch (list (tuple $symmetric_state $output $output_len $data $data_len)))
+        (result $error (expected $batch_crypt_results (error $crypto_errno)))
     )
 
     ;;; Perform a batch of symmetric encrypt operations with detached tags.
+    ;;;
+    ;;; This is a batch version of the symmetric_state_encrypt_detached
+    ;;; operation.
+    ;;;
+    ;;; Each entry in the batch corresponds to an individual encrypt operation.
+    ;;; The parameters associated with each encrypt operation are grouped into a
+    ;;; tuple.
+    ;;;
+    ;;; The batch operation returns an error code of type $crypto_errno that
+    ;;; indicates if the batch was processed or if the batch could not be
+    ;;; processed.
+    ;;;
+    ;;; Batch processing error codes:
+    ;;;  - `success`: Batch was processed. The status of each operation is indicated in the results list.
+    ;;;  - `not_implemented`: Batch functionality is not supported.
+    ;;;  - `unsupported_feature`: Inconsistent operations within the batch, e.g. not all operations in the batch use the same algorithm.
+    ;;;
+    ;;; If the batch was processed, the result is a list of tuples, with each
+    ;;; list entry corresponding to the operation in the input list at the same
+    ;;; list offset.
+    ;;; Each tuple contains a tag and a $crypto_errno error code.
+    ;;; The error code represents the status of the operation and the tag is
+    ;;; the tag generated by the operation. The tag is only valid if the tuple's
+    ;;; error code is `success`.
+    ;;;
+    ;;; Example usage:
+    ;;;
+    ;;; ```rust
+    ;;; let mut batch = Vec::new();
+    ;;;
+    ;;; let state_handle = ctx.symmetric_state_open("AES-256-GCM", Some(key_handle1), Some(options_handle1))?;
+    ;;; let mut ciphertext = vec![0u8; message.len() + ctx.symmetric_state_max_tag_len(state_handle)?];
+    ;;; batch.push((batch, state_handle, ciphertext, ciphertext.len(), message, message.len()));
+    ;;;
+    ;;; let state_handle = ctx.symmetric_state_open("AES-256-GCM", Some(key_handle2), Some(options_handle2))?;
+    ;;; let mut ciphertext = vec![0u8; message2.len() + ctx.symmetric_state_max_tag_len(state_handle)?];
+    ;;; batch.push((batch, state_handle, ciphertext, ciphertext.len(), message2, message2.len()));
+    ;;;
+    ;;; let results = ctx.batch_symmetric_state_encrypt_detached(batch)?;
+    ;;; ```
     (@interface func (export "batch_symmetric_state_encrypt_detached")
-        (param $batch (list $encrypt_params))
+        (param $batch (list (tuple $symmetric_state $output $output_len $data $data_len)))
         (result $error (expected $batch_encrypt_detached_results (error $crypto_errno)))
     )
 
-    ;;; TODO: Replace the encrypt_params type with something more generic that
-    ;;; that works for both encrypt and decrypt.
+    ;;; Perform a batch of symmetric decrypt operations.
+    ;;;
+    ;;; This is a batch version of the symmetric_state_decrypt operation.
+    ;;;
+    ;;; Each entry in the batch corresponds to an individual decrypt operation.
+    ;;; The parameters associated with each decrypt operation are grouped into a
+    ;;; tuple.
+    ;;;
+    ;;; The batch operation returns an error code of type $crypto_errno that
+    ;;; indicates if the batch was processed or if the batch could not be
+    ;;; processed.
+    ;;;
+    ;;; Batch processing error codes:
+    ;;;  - `success`: Batch was processed. The status of each operation is indicated in the results list.
+    ;;;  - `not_implemented`: Batch functionality is not supported.
+    ;;;  - `unsupported_feature`: Inconsistent operations within the batch, e.g. not all operations in the batch use the same algorithm.
+    ;;;
+    ;;; If the batch was processed, the result is a list of tuples, with each
+    ;;; list entry corresponding to the operation in the input list at the same
+    ;;; list offset.
+    ;;; Each tuple contains a size and a $crypto_errno error code.
+    ;;; The error code represents the status of the operation and the size is
+    ;;; the actual size of the decrypted data in the ouput buffer. The size
+    ;;; value is only valid if the tuple's error code is `success`.
+    ;;;
     (@interface func (export "batch_symmetric_state_decrypt")
-        (param $batch (list $encrypt_params))
-        (result $error (expected $batch_encrypt_results (error $crypto_errno)))
+        (param $batch (list (tuple $symmetric_state $output $output_len $data $data_len)))
+        (result $error (expected $batch_crypt_results (error $crypto_errno)))
     )
 
-    ;;; TODO: Replace the encrypt_params type with something more generic that
-    ;;; that works for both encrypt and decrypt.
+    ;;; Perform a batch of symmetric decrypt operations with detached tags.
+    ;;;
+    ;;; This is a batch version of the symmetric_state_decrypt_detached operation.
+    ;;;
+    ;;; Each entry in the batch corresponds to an individual decrypt operation.
+    ;;; The parameters associated with each decrypt operation are grouped into a
+    ;;; tuple.
+    ;;;
+    ;;; The batch operation returns an error code of type $crypto_errno that
+    ;;; indicates if the batch was processed or if the batch could not be
+    ;;; processed.
+    ;;;
+    ;;; Batch processing error codes:
+    ;;;  - `success`: Batch was processed. The status of each operation is indicated in the results list.
+    ;;;  - `not_implemented`: Batch functionality is not supported.
+    ;;;  - `unsupported_feature`: Inconsistent operations within the batch, e.g. not all operations in the batch use the same algorithm.
+    ;;;
+    ;;; If the batch was processed, the result is a list of tuples, with each
+    ;;; list entry corresponding to the operation in the input list at the same
+    ;;; list offset.
+    ;;; Each tuple contains a size and a $crypto_errno error code.
+    ;;; The error code represents the status of the operation and the size is
+    ;;; the actual size of the decrypted data in the ouput buffer. The size
+    ;;; value is only valid if the tuple's error code is `success`.
+    ;;;
     (@interface func (export "batch_symmetric_state_decrypt_detached")
-        (param $batch (list $decrypt_detached_params))
-        (result $error (expected $batch_encrypt_results (error $crypto_errno)))
+        (param $batch (list (tuple $symmetric_state $output $output_len $data $data_len $raw_tag $raw_tag_len)))
+        (result $error (expected $batch_crypt_results (error $crypto_errno)))
     )
-
 )

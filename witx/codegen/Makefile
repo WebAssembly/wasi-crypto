@@ -1,4 +1,4 @@
-all: wasi_ephemeral_crypto.txt wasi_ephemeral_crypto.md wasi_ephemeral_crypto_common.md wasi_ephemeral_crypto_asymmetric_common.md wasi_ephemeral_crypto_symmetric.md wasi_ephemeral_crypto_signatures.md wasi_ephemeral_crypto_kx.md wasi_ephemeral_crypto_external_secrets.md
+all: wasi_ephemeral_crypto.txt wasi_ephemeral_crypto.md wasi_ephemeral_crypto_common.md wasi_ephemeral_crypto_asymmetric_common.md wasi_ephemeral_crypto_symmetric.md wasi_ephemeral_crypto_signatures.md wasi_ephemeral_crypto_kx.md wasi_ephemeral_crypto_external_secrets.md wasi_ephemeral_crypto_symmetric_batch.md wasi_ephemeral_crypto_signatures_batch.md
 
 wasi_ephemeral_crypto.txt: wasi_ephemeral_crypto_common.witx wasi_ephemeral_crypto_asymmetric_common.witx wasi_ephemeral_crypto_symmetric.witx wasi_ephemeral_crypto_signatures.witx wasi_ephemeral_crypto_kx.witx wasi_ephemeral_crypto_external_secrets.witx
 	witx-codegen --output-type overview -o $@ wasi_ephemeral_crypto_common.witx wasi_ephemeral_crypto_asymmetric_common.witx wasi_ephemeral_crypto_symmetric.witx wasi_ephemeral_crypto_signatures.witx wasi_ephemeral_crypto_kx.witx wasi_ephemeral_crypto_external_secrets.witx
@@ -23,6 +23,12 @@ wasi_ephemeral_crypto_kx.md: wasi_ephemeral_crypto_common.witx wasi_ephemeral_cr
 
 wasi_ephemeral_crypto_external_secrets.md: wasi_ephemeral_crypto_common.witx wasi_ephemeral_crypto_external_secrets.witx
 	witx-codegen --output-type markdown -o $@ wasi_ephemeral_crypto_external_secrets.witx
+
+wasi_ephemeral_crypto_symmetric_batch.md: wasi_ephemeral_crypto_common.witx wasi_ephemeral_crypto_symmetric.witx wasi_ephemeral_crypto_symmetric_batch.witx
+	witx-codegen --output-type markdown -o $@ wasi_ephemeral_crypto_symmetric_batch.witx
+
+wasi_ephemeral_crypto_signatures_batch.md: wasi_ephemeral_crypto_common.witx wasi_ephemeral_crypto_asymmetric_common.witx wasi_ephemeral_crypto_signatures.witx wasi_ephemeral_crypto_signatures_batch.witx
+	witx-codegen --output-type markdown -o $@ wasi_ephemeral_crypto_signatures_batch.witx
 
 clean:
 	-rm -f *.md *.txt

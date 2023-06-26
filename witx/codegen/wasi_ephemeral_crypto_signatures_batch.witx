@@ -1,0 +1,110 @@
+;;; Digital Signature Batch Operations
+(module $wasi_ephemeral_crypto_signatures_batch
+    (use $crypto_errno from $wasi_ephemeral_crypto_common)
+    (use $array_output from $wasi_ephemeral_crypto_common)
+    (use $signature from $wasi_ephemeral_crypto_signatures)
+    (use $signature_state from $wasi_ephemeral_crypto_signatures)
+    (use $signature_verification_state from $wasi_ephemeral_crypto_signatures)
+
+    ;;; The result pf a signature sign operation. A pair of the signature and an error code.
+    (typename $signature_sign_result (tuple $array_output $crypto_errno))
+
+    ;;; A list of signature_sign results.
+    (typename $signature_results (list $signature_sign_result))
+
+    ;;; A tuple of a signature verification state and the signature to verify.
+    ;;;
+    ;;; Used for grouping signature verification state to be verified with the signature to verify.
+    ;;; Used with batch_signature_state_verify().
+    (typename $signature_verification_input (tuple $signature_verification_state $signature))
+
+    (typename $signature_verification_results (list $crypto_errno))
+
+
+    ;;; Compute a batch of signatures.
+    ;;;
+    ;;; This is a batch version of the signature_state_sign operation and is an extension of the wasi_emphemeral_crypto_signatures module.
+    ;;;
+    ;;; The batch operation returns an error code of type $crypto_errno that
+    ;;; indicates if the batch was processed or if the batch could not be
+    ;;; processed.
+    ;;;
+    ;;; Batch processing error codes:
+    ;;;  - `success`: Batch was processed. The status of each operation is indicated in the results list.
+    ;;;  - `not_implemented`: Batch functionality is not supported.
+    ;;;  - `unsupported_feature`: Inconsistent operations within the batch, e.g. not all operations in the batch use the same algorithm.
+    ;;;
+    ;;; If the batch was processed, the result of each operation in the batch
+    ;;; is a pair of a $crypto_errno error code and a signature. The error code
+    ;;; indicates if that operation succeeded or failed. The signature is only
+    ;;; valid if the error code indicates success.
+    ;;;
+    ;;; Example usage:
+    ;;;
+    ;;; ```rust
+    ;;; let kp_handle = keypair_import(AlgorithmType::Signatures, "Ed25519", encoded, KeypairEncoding::Raw)?;
+    ;;;
+    ;;; let mut state_handles = Vec::new();
+    ;;;
+    ;;; let state_handle = signature_state_open(kp_handle)?;
+    ;;; signature_state_update(state_handle, b"message part 1")?;
+    ;;; signature_state_update(state_handle, b"message part 2")?;
+    ;;; state_handles.push(state_handle);
+    ;;;
+    ;;; let state_handle = signature_state_open(kp_handle)?;
+    ;;; signature_state_update(state_handle, b"message part 1")?;
+    ;;; signature_state_update(state_handle, b"message part 2")?;
+    ;;; state_handles.push(state_handle);
+    ;;;
+    ;;; let sig_handles = batch_signature_state_sign(state_handles)?;
+    ;;;
+    ;;; let raw_sig1 = signature_export(sig_handle[0], SignatureEncoding::Raw)?;
+    ;;; let raw_sig2 = signature_export(sig_handle[1], SignatureEncoding::Raw)?;
+    ;;; ```
+    (@interface func (export "batch_signature_state_sign")
+        (param $states (list $signature_state))
+        (result $error (expected $signature_results (error $crypto_errno)))
+    )
+
+    ;;; Verify a batch of signatures.
+    ;;;
+    ;;; This is a batch version of the signature_state_verify operation and is
+    ;;; an extension of the wasi_empemeral_crypto_signatures module.
+    ;;;
+    ;;; The batch operation returns an error code of type $crypto_errno that
+    ;;; indicates if the batch was processed (`success`) or if the batch could
+    ;;; not be processed.
+    ;;;
+    ;;; Batch processing failure cases are:
+    ;;;  - `not_implemented`: Batch functionality is not supported.
+    ;;;  - `unsupported_feature`: Inconsistent operations within the batch, e.g. not all operations in the batch use the same algorithm.
+    ;;;
+    ;;; If the batch was processed, a list of verification results is produced.
+    ;;; Each entry in the input list has a corresponding error state returned
+    ;;; in the verification results list to indicate if the verification
+    ;;; succeeded or encountered and error.
+    ;;;
+    ;;; Example usage:
+    ;;;
+    ;;; ```rust
+    ;;; let kp_handle = keypair_import(AlgorithmType::Signatures, "Ed25519", encoded, KeypairEncoding::Raw)?;
+    ;;;
+    ;;; let mut batch = Vec::new();
+    ;;;
+    ;;; let state_handle = signature_verification_state_open(kp_handle)?;
+    ;;; signature_verification_state_update(state_handle, b"message part 1")?;
+    ;;; signature_verification_state_update(state_handle, b"message part 2")?;
+    ;;; state_handles.push((state_handle, signature1));
+    ;;;
+    ;;; let state_handle = signature_state_open(kp_handle)?;
+    ;;; signature_state_update(state_handle, b"message part 1")?;
+    ;;; signature_state_update(state_handle, b"message part 2")?;
+    ;;; state_handles.push((state_handle, signature2));
+    ;;;
+    ;;; let results = batch_signature_state_verify(state_handles)?;
+    ;;; ```
+    (@interface func (export "batch_signature_state_verify")
+        (param $states (list $signature_verification_input))
+        (result $error (expected $signature_verification_results (error $crypto_errno)))
+    )
+)

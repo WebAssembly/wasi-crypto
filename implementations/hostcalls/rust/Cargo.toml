@@ -21,9 +21,9 @@ derivative = "2.2.0"
 ed25519-compact = { version = "2.0.4", features = ["x25519"] }
 hkdf = "0.12.3"
 hmac = "0.12.1"
-k256 = { version = "0.12.0", features = ["ecdsa", "std", "pkcs8", "pem"] }
-p256 = { version = "0.12.0", features = ["ecdsa", "std", "pkcs8", "pem"] }
-p384 = { version = "0.12.0", features = ["ecdsa", "std", "pkcs8", "pem"] }
+k256 = { version = "0.13.1", features = ["ecdsa", "std", "pkcs8", "pem"] }
+p256 = { version = "0.13.2", features = ["ecdsa", "std", "pkcs8", "pem"] }
+p384 = { version = "0.13.0", features = ["ecdsa", "std", "pkcs8", "pem"] }
 pqcrypto-traits = { version = "0.3.4", optional = true }
 pqcrypto-kyber = { version = "0.7.6", optional = true }
 

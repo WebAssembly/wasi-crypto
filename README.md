@@ -27,5 +27,4 @@ processes, goals, scope, and deliverables.
 Interested parties are welcome to join the working group meeting every 2 weeks on Tuesday 17:00 UTC.
 
 * [Google Meet link](https://meet.google.com/yeh-kbzo-pfx)
-* [Google calendar](https://calendar.google.com/calendar/embed?src=f67fde02694963243f5dafb70d61c64e715dacbcf1abba17824e672635f90f3e%40group.calendar.google.com&ctz=Europe%2FParis)
-* [iCal](https://calendar.google.com/calendar/ical/f67fde02694963243f5dafb70d61c64e715dacbcf1abba17824e672635f90f3e%40group.calendar.google.com/public/basic.ics)
+* [Google calendar](https://calendar.google.com/calendar/u/0/embed?src=f67fde02694963243f5dafb70d61c64e715dacbcf1abba17824e672635f90f3e@group.calendar.google.com)

@@ -54,17 +54,17 @@ impl EcdsaSignatureKeyPair {
         let ctx = match alg {
             SignatureAlgorithm::ECDSA_P256_SHA256 => {
                 let ecdsa_sk =
-                    ecdsa_p256::SigningKey::from_bytes(raw).map_err(|_| CryptoError::InvalidKey)?;
+                    ecdsa_p256::SigningKey::from_bytes(raw.into()).map_err(|_| CryptoError::InvalidKey)?;
                 EcdsaSigningKeyVariant::P256(ecdsa_sk)
             }
             SignatureAlgorithm::ECDSA_K256_SHA256 => {
                 let ecdsa_sk =
-                    ecdsa_k256::SigningKey::from_bytes(raw).map_err(|_| CryptoError::InvalidKey)?;
+                    ecdsa_k256::SigningKey::from_bytes(raw.into()).map_err(|_| CryptoError::InvalidKey)?;
                 EcdsaSigningKeyVariant::K256(ecdsa_sk)
             }
             SignatureAlgorithm::ECDSA_P384_SHA384 => {
                 let ecdsa_sk =
-                    ecdsa_p384::SigningKey::from_bytes(raw).map_err(|_| CryptoError::InvalidKey)?;
+                    ecdsa_p384::SigningKey::from_bytes(raw.into()).map_err(|_| CryptoError::InvalidKey)?;
                 EcdsaSigningKeyVariant::P384(ecdsa_sk)
             }
             _ => bail!(CryptoError::UnsupportedAlgorithm),

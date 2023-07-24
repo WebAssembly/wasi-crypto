@@ -1,3 +1,0 @@
-[toolchain]
-targets = ["wasm32-wasi"]
-profile = "minimal"

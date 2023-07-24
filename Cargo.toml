@@ -1,6 +1,0 @@
-[workspace]
-resolver = "2"
-members = [
-    "implementations/bindings/rust",
-    "implementations/hostcalls/rust"
-]

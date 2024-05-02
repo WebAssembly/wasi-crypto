@@ -6,7 +6,7 @@
     (use $signature_state from $wasi_ephemeral_crypto_signatures)
     (use $signature_verification_state from $wasi_ephemeral_crypto_signatures)
 
-    ;;; The result pf a signature sign operation. A pair of the signature and an error code.
+    ;;; The result of a signature sign operation. A pair of the signature and an error code.
     (typename $signature_sign_result (tuple $array_output $crypto_errno))
 
     ;;; A list of signature_sign results.

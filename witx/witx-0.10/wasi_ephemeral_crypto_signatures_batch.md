@@ -105,7 +105,7 @@ Alias for `handle`.
 Tuple, representing (_[`array_output`](#array_output)_, _[`crypto_errno`](#crypto_errno)_).
 
 
-> The result pf a signature sign operation. A pair of the signature and an error code.
+> The result of a signature sign operation. A pair of the signature and an error code.
 
 
 ---

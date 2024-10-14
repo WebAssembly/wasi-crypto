@@ -375,19 +375,24 @@ A `wasi-crypto` implementation MUST implement the following algorithms, and MUST
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | `XOODYAK-128`        | XOODYAK lightweight scheme, as specified in the most recent submission to NIST competition for lightweight cryptography |
 | `XCHACHA20-POLY1305` | ChaCha20-Poly1305 AEAD with an extended nonce, as specified in the most recent `draft-irtf-cfrg-xchacha` CFRG draft     |
-| `KYBER-1024`         | KYBER-1024 post-quantum key encapsulation mechanism, as standardized by NIST                                            |
-| `KYBER-768`          | KYBER-768 post-quantum key encapsulation mechanism, as standardized by NIST                                             |
+| `ML-KEM-1024`        | ML-KEM-1024 post-quantum key encapsulation mechanism, as standardized by NIST                                           |
+| `ML-KEM-768`         | ML-KEM-768 post-quantum key encapsulation mechanism, as standardized by NIST                                            |
+| `ML-KEM-512`         | ML-KEM-512 post-quantum key encapsulation mechanism, as standardized by NIST                                            |
 | `CSHAKE-128`         | cSHAKE with a 128 bit security level                                                                                    |
 | `CSHAKE-256`         | cSHAKE with a 256 bit security level                                                                                    |
 
-Implementations are encouraged to include the `XOODYAK-128`, `XCHACHA20-POLY1305` and `KYBER-1024` (or `KYBER-768`) algorithms in order to exercise additional features of the API.
+Implementations are encouraged to include the `XOODYAK-128`, `XCHACHA20-POLY1305` and `ML-KEM-1024` (or `ML-KEM-768`) algorithms in order to exercise additional features of the API.
 
 ## Reserved algorithm identifiers
 
 | Identifier        | Algorithm                                                                     |
 | ----------------- | ----------------------------------------------------------------------------- |
 | `AEGIS-128L`      | AEGIS128L authenticated cipher                                                |
+| `AEGIS-128X2`     | AEGIS128X2 authenticated cipher                                               |
+| `AEGIS-128X4`     | AEGIS128X4 authenticated cipher                                               |
 | `AEGIS-256`       | AEGIS256 authenticated cipher                                                 |
+| `AEGIS-256X2`     | AEGIS256X2 authenticated cipher                                               |
+| `AEGIS-256X4`     | AEGIS256X4 authenticated cipher                                               |
 | `AES-128-GCM-SIV` | AES-GCM-SIV authenticated cipher with a 128 bit key                           |
 | `AES-256-GCM-SIV` | AES-GCM-SIV authenticated cipher with a 256 bit key                           |
 | `AES-128-CMAC`    | AES-CMAC authenticated cipher with a 128 bit key                              |

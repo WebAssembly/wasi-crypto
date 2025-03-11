@@ -373,11 +373,12 @@ A `wasi-crypto` implementation MUST implement the following algorithms, and MUST
 
 | Identifier           | Algorithm                                                                                                               |
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `XOODYAK-128`        | XOODYAK lightweight scheme, as specified in the most recent submission to NIST competition for lightweight cryptography |
-| `XCHACHA20-POLY1305` | ChaCha20-Poly1305 AEAD with an extended nonce, as specified in the most recent `draft-irtf-cfrg-xchacha` CFRG draft     |
 | `ML-KEM-1024`        | ML-KEM-1024 post-quantum key encapsulation mechanism, as standardized by NIST                                           |
 | `ML-KEM-768`         | ML-KEM-768 post-quantum key encapsulation mechanism, as standardized by NIST                                            |
 | `ML-KEM-512`         | ML-KEM-512 post-quantum key encapsulation mechanism, as standardized by NIST                                            |
+| `X-WING`             | X-WING hybrid post-quantum key exchange mechanism                                                                       |
+| `XOODYAK-128`        | XOODYAK lightweight scheme, as specified in the most recent submission to NIST competition for lightweight cryptography |
+| `XCHACHA20-POLY1305` | ChaCha20-Poly1305 AEAD with an extended nonce, as specified in the most recent `draft-irtf-cfrg-xchacha` CFRG draft     |
 | `CSHAKE-128`         | cSHAKE with a 128 bit security level                                                                                    |
 | `CSHAKE-256`         | cSHAKE with a 256 bit security level                                                                                    |
 

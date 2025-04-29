@@ -129,7 +129,7 @@ Alias for `u64`.
 
 > Version of a managed key.
 > 
-> A version can be an arbitrary `u64` integer, with the expection of some reserved values.
+> A version can be an arbitrary `u64` integer, with the exception of some reserved values.
 
 
 ---
@@ -296,7 +296,7 @@ Alias for `handle`.
 > 
 > This object type can't be directly created from raw bytes. They are only returned by functions computing MACs.
 > 
-> The host is reponsible for securely wiping them from memory on close.
+> The host is responsible for securely wiping them from memory on close.
 
 
 ---
@@ -367,7 +367,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 > Generate a new symmetric key for a given algorithm.
 > 
-> `options` can be `None` to use the default parameters, or an algoritm-specific set of parameters to override.
+> `options` can be `None` to use the default parameters, or an algorithm-specific set of parameters to override.
 > 
 > This function may return `unsupported_feature` if key generation is not supported by the host for the chosen algorithm, or `unsupported_algorithm` if the algorithm is not supported by the host.
 
@@ -501,7 +501,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > __(optional)__
 > Replace a managed symmetric key.
 > 
-> This function crates a new version of a managed symmetric key, by replacing `$kp_old` with `$kp_new`.
+> This function creates a new version of a managed symmetric key, by replacing `$kp_old` with `$kp_new`.
 > 
 > It does several things:
 > 
@@ -586,7 +586,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 * _[`symmetric_state`](#symmetric_state)_ mutable pointer
 
-> Create a new state to aborb and produce data using symmetric operations.
+> Create a new state to absorb and produce data using symmetric operations.
 > 
 > The state remains valid after every operation in order to support incremental updates.
 > 
@@ -705,7 +705,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > ctx.symmetric_options_set_u64(options_handle, "parallelism", 8)?;
 > 
 > let state_handle = ctx.symmetric_state_open("ARGON2-ID-13", None, Some(options))?;
-> ctx.symmtric_state_absorb(state_handle, b"password")?;
+> ctx.symmetric_state_absorb(state_handle, b"password")?;
 > 
 > let pw_str_handle = ctx.symmetric_state_squeeze_tag(state_handle)?;
 > let mut pw_str = vec![0u8; ctx.symmetric_tag_len(pw_str_handle)?];
@@ -781,7 +781,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 > Retrieve a parameter from the current state.
 > 
-> In particular, `symmetric_state_options_get("nonce")` can be used to get a nonce that as automatically generated.
+> In particular, `symmetric_state_options_get("nonce")` can be used to get a nonce that was automatically generated.
 > 
 > The function may return `options_not_set` if an option was not set, which is different from an empty value.
 > 
@@ -938,7 +938,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > Use the current state to produce a key for a target algorithm.
 > 
 > For extract-then-expand constructions, this returns the PRK.
-> For session-base authentication encryption, this returns a key that can be used to resume a session without storing a nonce.
+> For session-based authentication encryption, this returns a key that can be used to resume a session without storing a nonce.
 > 
 > `invalid_operation` is returned for algorithms not supporting this operation.
 
@@ -1046,7 +1046,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 > - **Stream cipher:** adds the input to the stream cipher output. `out_len` and `data_len` can be equal, as no authentication tags will be added.
 > - **AEAD:** decrypts `data` into `out`. Additional data must have been previously absorbed using `symmetric_state_absorb()`.
-> - **SHOE, Xoodyak, Strobe:** decrypts data, squeezes a tag and verify that it matches the one that was appended to the ciphertext.
+> - **SHOE, Xoodyak, Strobe:** decrypts data, squeezes a tag and verifies that it matches the one that was appended to the ciphertext.
 > 
 > If `out` and `data` are the same address, decryption may happen in-place.
 > 
@@ -1080,11 +1080,11 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 > - **Stream cipher:** returns `invalid_operation` since stream ciphers do not include authentication tags.
 > - **AEAD:** decrypts `data` into `out`. Additional data must have been previously absorbed using `symmetric_state_absorb()`.
-> - **SHOE, Xoodyak, Strobe:** decrypts data, squeezes a tag and verify that it matches the expected one.
+> - **SHOE, Xoodyak, Strobe:** decrypts data, squeezes a tag and verifies that it matches the expected one.
 > 
 > `raw_tag` is the expected tag, as raw bytes.
 > 
-> `out` and `data` be must have the same length.
+> `out` and `data` must have the same length.
 > If they also share the same address, decryption may happen in-place.
 > 
 > The function returns the actual size of the decrypted message.

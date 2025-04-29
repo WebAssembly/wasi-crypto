@@ -134,7 +134,7 @@ Predefined constants for _[`version`](#version)_:
 
 > Version of a managed key.
 > 
-> A version can be an arbitrary `u64` integer, with the expection of some reserved values.
+> A version can be an arbitrary `u64` integer, with the exception of some reserved values.
 
 
 ---
@@ -301,7 +301,7 @@ Alias for `handle`.
 > 
 > This object type can't be directly created from raw bytes. They are only returned by functions computing MACs.
 > 
-> The host is reponsible for securely wiping them from memory on close.
+> The host is responsible for securely wiping them from memory on close.
 
 
 ---

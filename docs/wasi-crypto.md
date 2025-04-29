@@ -103,18 +103,18 @@ external_secrets
 
 The `wasi-crypto` APIs share a unique error set, represented as the `crypto_errno` error type.
 
-| Value                   | Descrpition                                                                                                                                                                                                                       |
+| Value                   | Description                                                                                                                                                                                                                       |
 | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `success`               | Operation succeeded.                                                                                                                                                                                                              |
-| `guest_error`           | An error occurred when trying to during a conversion from a host type to a guest type. Only an internal bug can throw this error.                                                                                                 |
+| `guest_error`           | An error occurred during a conversion from a host type to a guest type. Only an internal bug can throw this error.                                                                                                                |
 | `not_implemented`       | The requested operation is valid, but not implemented by the host.                                                                                                                                                                |
 | `unsupported_feature`   | The requested feature is not supported by the chosen algorithm.                                                                                                                                                                   |
 | `prohibited_operation`  | The requested operation is valid, but was administratively prohibited.                                                                                                                                                            |
 | `unsupported_encoding`  | Unsupported encoding for an import or export operation.                                                                                                                                                                           |
 | `unsupported_algorithm` | The requested algorithm is not supported by the host.                                                                                                                                                                             |
-| `unsupported_option`    | The requested option is not supported by the currently selected algorithm                                                                                                                                                         |
+| `unsupported_option`    | The requested option is not supported by the currently selected algorithm.                                                                                                                                                        |
 | `invalid_key`           | An invalid or incompatible key was supplied. The key may not be valid, or was generated for a different algorithm or parameters set.                                                                                              |
-| `invalid_length`        | The currently selected algorithm doesn't support the requested output length. This error is thrown by non-extensible hash functions, when requesting an output size larger than they produce out of a single block.               |
+| `invalid_length`        | The currently selected algorithm doesn't support the requested output length. This error is thrown by non-extensible hash functions when requesting an output size larger than they produce out of a single block.                |
 | `verification_failed`   | A signature or authentication tag verification failed.                                                                                                                                                                            |
 | `rng_error`             | A secure random numbers generator is not available. The requested operation requires random numbers, but the host cannot securely generate them at the moment.                                                                    |
 | `algorithm_failure`     | An error was returned by the underlying cryptography library. The host may be running out of memory, parameters may be incompatible with the chosen implementation of an algorithm or another unexpected error may have happened. |
@@ -122,8 +122,8 @@ The `wasi-crypto` APIs share a unique error set, represented as the `crypto_errn
 | `closed`                | An attempt was made to close a handle that was already closed.                                                                                                                                                                    |
 | `invalid_handle`        | A function was called with an unassigned handle, a closed handle, or handle of an unexpected type.                                                                                                                                |
 | `overflow`              | The host needs to copy data to a guest-allocated buffer, but that buffer is too small.                                                                                                                                            |
-| `internal_error`        | An internal error occurred. This error is reserved to internal consistency checks, and must only be sent if the internal state of the host remains safe after an inconsistency was detected.                                      |
-| `too_many_handles`      | Too many handles are currently open, and a new one cannot be created. Implementations are free to represent handles as they want, and to enforce limits to limit resources usage.                                                 |
+| `internal_error`        | An internal error occurred. This error is reserved for internal consistency checks, and must only be sent if the internal state of the host remains safe after an inconsistency was detected.                                     |
+| `too_many_handles`      | Too many handles are currently open, and a new one cannot be created. Implementations are free to represent handles as they want, and to enforce limits to limit resource usage.                                                  |
 | `key_not_supported`     | A key was provided, but the chosen algorithm doesn't support keys. This is returned by symmetric operations such as hash functions.                                                                                               |
 | `key_required`          | A key is required for the chosen algorithm, but none was given.                                                                                                                                                                   |
 | `invalid_tag`           | The provided authentication tag is invalid or incompatible with the current algorithm. Unlike `verification_failed`, this error code is returned when the tag cannot possibly verify for any input.                               |
@@ -179,7 +179,7 @@ Symmetric primitives have unique, well-defined representations of their input an
 
 A secret key may be representable as a fixed-size scalar. In that case, the `wasi-crypto` API requires a `raw` encoding type to be available both to import and export these keys.
 
-`raw` encoding is the scalar encoded as simple a bit string. Some primitives traditionally use big-endian encoding, while others use little-end Ian. `wasi-crypto` defines a single `raw` encoding, corresponding to the most common representation.
+`raw` encoding is the scalar encoded as a simple bit string. Some primitives traditionally use big-endian encoding, while others use little-endian. `wasi-crypto` defines a single `raw` encoding, corresponding to the most common representation.
 In particular, for the curves currently required by the API:
 
 * Scalars and field elements must be encoded using big-endian for NIST curves
@@ -191,7 +191,7 @@ For convenience, `PEM` encoding MUST be also available whenever `PKCS#8` encodin
 
 An implementation MAY also support the `SEC-1` encoding if an elliptic curve point is used as a secret key.
 
-In addition to these standard encodings, implementations MAY support an implemented-defined `local` encoding.
+In addition to these standard encodings, implementations MAY support an implementation-defined `local` encoding.
 
 #### Public keys
 
@@ -819,7 +819,7 @@ In that case, the guest SHOULD retry with the same parameters until the function
 
 For extract-then-expand constructions, this returns the PRK.
 
-For session-base authentication encryption, this returns a key that can be used to resume a session without storing a nonce.
+For session-based authentication encryption, this returns a key that can be used to resume a session without storing a nonce.
 
 The output of this function is a `symmetric_key` handle.
 

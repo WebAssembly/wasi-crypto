@@ -1,0 +1,480 @@
+package wasi:crypto@0.0.1;
+
+interface wasi-ephemeral-crypto-symmetric-batch {
+  resource handle {
+  }
+  /// Error codes.
+  variant crypto-errno {
+    /// Operation succeeded.
+    success,
+    /// An error occurred during a conversion from a host type to a guest type.
+    /// 
+    /// Only an internal bug can throw this error.
+    guest-error,
+    /// The requested operation is valid, but not implemented by the host.
+    not-implemented,
+    /// The requested feature is not supported by the chosen algorithm.
+    unsupported-feature,
+    /// The requested operation is valid, but was administratively prohibited.
+    prohibited-operation,
+    /// Unsupported encoding for an import or export operation.
+    unsupported-encoding,
+    /// The requested algorithm is not supported by the host.
+    unsupported-algorithm,
+    /// The requested option is not supported by the currently selected algorithm.
+    unsupported-option,
+    /// An invalid or incompatible key was supplied.
+    /// 
+    /// The key may not be valid, or was generated for a different algorithm or parameters set.
+    invalid-key,
+    /// The currently selected algorithm doesn't support the requested output length.
+    /// 
+    /// This error is thrown by non-extensible hash functions, when requesting an output size larger than they produce out of a single block.
+    invalid-length,
+    /// A signature or authentication tag verification failed.
+    verification-failed,
+    /// A secure random numbers generator is not available.
+    /// 
+    /// The requested operation requires random numbers, but the host cannot securely generate them at the moment.
+    rng-error,
+    /// An error was returned by the underlying cryptography library.
+    /// 
+    /// The host may be running out of memory, parameters may be incompatible with the chosen implementation of an algorithm or another unexpected error may have happened.
+    /// 
+    /// Ideally, the specification should provide enough details and guidance to make this error impossible to ever be thrown.
+    /// 
+    /// Realistically, the WASI crypto module cannot possibly cover all possible error types implementations can return, especially since some of these may be language-specific.
+    /// This error can thus be thrown when other error types are not suitable, and when the original error comes from the cryptographic primitives themselves and not from the WASI module.
+    algorithm-failure,
+    /// The supplied signature is invalid, or incompatible with the chosen algorithm.
+    invalid-signature,
+    /// An attempt was made to close a handle that was already closed.
+    closed,
+    /// A function was called with an unassigned handle, a closed handle, or handle of an unexpected type.
+    invalid-handle,
+    /// The host needs to copy data to a guest-allocated buffer, but that buffer is too small.
+    overflow,
+    /// An internal error occurred.
+    /// 
+    /// This error is reserved to internal consistency checks, and must only be sent if the internal state of the host remains safe after an inconsistency was detected.
+    internal-error,
+    /// Too many handles are currently open, and a new one cannot be created.
+    /// 
+    /// Implementations are free to represent handles as they want, and to enforce limits to limit resources usage.
+    too-many-handles,
+    /// A key was provided, but the chosen algorithm doesn't support keys.
+    /// 
+    /// This is returned by symmetric operations.
+    /// 
+    /// Many hash functions, in particular, do not support keys without being used in particular constructions.
+    /// Blindly ignoring a key provided by mistake while trying to open a context for such as function could cause serious security vulnerabilities.
+    /// 
+    /// These functions must refuse to create the context and return this error instead.
+    key-not-supported,
+    /// A key is required for the chosen algorithm, but none was given.
+    key-required,
+    /// The provided authentication tag is invalid or incompatible with the current algorithm.
+    /// 
+    /// This error is returned by decryption functions and tag verification functions.
+    /// 
+    /// Unlike `verification_failed`, this error code is returned when the tag cannot possibly verify for any input.
+    invalid-tag,
+    /// The requested operation is incompatible with the current scheme.
+    /// 
+    /// For example, the `symmetric_state_encrypt()` function cannot complete if the selected construction is a key derivation function.
+    /// This error code will be returned instead.
+    invalid-operation,
+    /// A nonce is required.
+    /// 
+    /// Most encryption schemes require a nonce.
+    /// 
+    /// In the absence of a nonce, the WASI cryptography module can automatically generate one, if that can be done safely. The nonce can be retrieved later with the `symmetric_state_option_get()` function using the `nonce` parameter.
+    /// If automatically generating a nonce cannot be done safely, the module never falls back to an insecure option and requests an explicit nonce by throwing that error.
+    nonce-required,
+    /// The provided nonce doesn't have a correct size for the given cipher.
+    invalid-nonce,
+    /// The named option was not set.
+    /// 
+    /// The caller tried to read the value of an option that was not set.
+    /// This error is used to make the distinction between an empty option, and an option that was not set and left to its default value.
+    option-not-set,
+    /// A key or key pair matching the requested identifier cannot be found using the supplied information.
+    /// 
+    /// This error is returned by a secrets manager via the `keypair_from_id()` function.
+    not-found,
+    /// The algorithm requires parameters that haven't been set.
+    /// 
+    /// Non-generic options are required and must be given by building an `options` set and giving that object to functions instantiating that algorithm.
+    parameters-missing,
+    /// A requested computation is not done yet, and additional calls to the function are required.
+    /// 
+    /// Some functions, such as functions generating key pairs and password stretching functions, can take a long time to complete.
+    /// 
+    /// In order to avoid a host call to be blocked for too long, these functions can return prematurely, requiring additional calls with the same parameters until they complete.
+    in-progress,
+    /// Multiple keys have been provided, but they do not share the same type.
+    /// 
+    /// This error is returned when trying to build a key pair from a public key and a secret key that were created for different and incompatible algorithms.
+    incompatible-keys,
+    /// A managed key or secret expired and cannot be used any more.
+    expired,
+  }
+  /// Encoding to use for importing or exporting a key pair.
+  variant keypair-encoding {
+    /// Raw bytes.
+    raw,
+    /// PKCS8/DER encoding.
+    pkcs8,
+    /// PEM encoding.
+    pem,
+    /// Implementation-defined encoding.
+    local,
+  }
+  /// Encoding to use for importing or exporting a public key.
+  variant publickey-encoding {
+    /// Raw bytes.
+    raw,
+    /// PKCS8/DER encoding.
+    pkcs8,
+    /// PEM encoding.
+    pem,
+    /// SEC-1 encoding.
+    sec,
+    /// Implementation-defined encoding.
+    local,
+  }
+  /// Encoding to use for importing or exporting a secret key.
+  variant secretkey-encoding {
+    /// Raw bytes.
+    raw,
+    /// PKCS8/DER encoding.
+    pkcs8,
+    /// PEM encoding.
+    pem,
+    /// SEC encoding.
+    sec,
+    /// Implementation-defined encoding.
+    local,
+  }
+  /// Encoding to use for importing or exporting a signature.
+  variant signature-encoding {
+    /// Raw bytes.
+    raw,
+    /// DER encoding.
+    der,
+  }
+  /// An algorithm category.
+  variant algorithm-type {
+    signatures,
+    symmetric,
+    key-exchange,
+  }
+  /// Version of a managed key.
+  /// 
+  /// A version can be an arbitrary `u64` integer, with the exception of some reserved values.
+  type version = u64;
+  /// Size of a value.
+  type size = u32;
+  /// A UNIX timestamp, in seconds since 01/01/1970.
+  type timestamp = u64;
+  /// A 64-bit value
+  type %u64 = u64;
+  /// Handle for functions returning output whose size may be large or not known in advance.
+  /// 
+  /// An `array_output` object contains a host-allocated byte array.
+  /// 
+  /// A guest can get the size of that array after a function returns in order to then allocate a buffer of the correct size.
+  /// In addition, the content of such an object can be consumed by a guest in a streaming fashion.
+  /// 
+  /// An `array_output` handle is automatically closed after its full content has been consumed.
+  type array-output = handle;
+  /// A set of options.
+  /// 
+  /// This type is used to set non-default parameters.
+  /// 
+  /// The exact set of allowed options depends on the algorithm being used.
+  type options = handle;
+  /// A handle to the optional secrets management facilities offered by a host.
+  /// 
+  /// This is used to generate, retrieve and invalidate managed keys.
+  type secrets-manager = handle;
+  /// A key pair.
+  type keypair = handle;
+  /// A state to absorb data to be signed.
+  /// 
+  /// After a signature has been computed or verified, the state remains valid for further operations.
+  /// 
+  /// A subsequent signature would sign all the data accumulated since the creation of the state object.
+  type signature-state = handle;
+  /// A signature.
+  type signature = handle;
+  /// A public key, for key exchange and signature verification.
+  type publickey = handle;
+  /// A secret key, for key exchange mechanisms.
+  type secretkey = handle;
+  /// A state to absorb signed data to be verified.
+  type signature-verification-state = handle;
+  /// A state to perform symmetric operations.
+  /// 
+  /// The state is not reset nor invalidated after an option has been performed.
+  /// Incremental updates and sessions are thus supported.
+  type symmetric-state = handle;
+  /// A symmetric key.
+  /// 
+  /// The key can be imported from raw bytes, or can be a reference to a managed key.
+  /// 
+  /// If it was imported, the host will wipe it from memory as soon as the handle is closed.
+  type symmetric-key = handle;
+  /// An authentication tag.
+  /// 
+  /// This is an object returned by functions computing authentication tags.
+  /// 
+  /// A tag can be compared against another tag (directly supplied as raw bytes) in constant time with the `symmetric_tag_verify()` function.
+  /// 
+  /// This object type can't be directly created from raw bytes. They are only returned by functions computing MACs.
+  /// 
+  /// The host is responsible for securely wiping them from memory on close.
+  type symmetric-tag = handle;
+  /// Options index, only required by the Interface Types translation layer.
+  variant opt-options-u {
+    some,
+    none,
+  }
+  /// An optional options set.
+  /// 
+  /// This union simulates an `Option<Options>` type to make the `options` parameter of some functions optional.
+  type opt-options = option<options>;
+  /// Symmetric key index, only required by the Interface Types translation layer.
+  variant opt-symmetric-key-u {
+    some,
+    none,
+  }
+  /// An optional symmetric key.
+  /// 
+  /// This union simulates an `Option<SymmetricKey>` type to make the `symmetric_key` parameter of some functions optional.
+  type opt-symmetric-key = option<symmetric-key>;
+  type temp = todo-from-witx-namedtype--name-id-output--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-value-buffer-buffer--out-true-tref-value-builtin-u8--lang-c-char-false-----docs--an-output-buffer-n;
+  type output-len = size;
+  type temp = todo-from-witx-namedtype--name-id-data--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-value-buffer-buffer--out-false-tref-value-builtin-u8--lang-c-char-false-----docs--a-non-mutable-data-buffer-n;
+  type data-len = size;
+  type temp = todo-from-witx-namedtype--name-id-raw-tag--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-value-buffer-buffer--out-false-tref-value-builtin-u8--lang-c-char-false-----docs--an-raw-tag-buffer-n;
+  type raw-tag-len = size;
+  type temp = todo-from-witx-namedtype--name-id-crypt-result--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-value-record-recorddatatype--kind-tuple-members--recordmember--name-id-0--tref-name-namedtype--name-id-size--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-builtin-u32--lang-ptr-size-true---docs--size-of-a-value-n---docs----recordmember--name-id-1--tref-name-namedtype--name-id-crypto-errno--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-variant-variant--tag-repr-u16-cases--case--name-id-success--tref-none-docs--operation-succeeded-n---case--name-id-guest-error--tref-none-docs--an-error-occurred-during-a-conversion-from-a-host-type-to-a-guest-type-n-nonly-an-internal-bug-can-throw-this-error-n---case--name-id-not-implemented--tref-none-docs--the-requested-operation-is-valid-but-not-implemented-by-the-host-n---case--name-id-unsupported-feature--tref-none-docs--the-requested-feature-is-not-supported-by-the-chosen-algorithm-n---case--name-id-prohibited-operation--tref-none-docs--the-requested-operation-is-valid-but-was-administratively-prohibited-n---case--name-id-unsupported-encoding--tref-none-docs--unsupported-encoding-for-an-import-or-export-operation-n---case--name-id-unsupported-algorithm--tref-none-docs--the-requested-algorithm-is-not-supported-by-the-host-n---case--name-id-unsupported-option--tref-none-docs--the-requested-option-is-not-supported-by-the-currently-selected-algorithm-n---case--name-id-invalid-key--tref-none-docs--an-invalid-or-incompatible-key-was-supplied-n-nthe-key-may-not-be-valid-or-was-generated-for-a-different-algorithm-or-parameters-set-n---case--name-id-invalid-length--tref-none-docs--the-currently-selected-algorithm-doesn-t-support-the-requested-output-length-n-nthis-error-is-thrown-by-non-extensible-hash-functions-when-requesting-an-output-size-larger-than-they-produce-out-of-a-single-block-n---case--name-id-verification-failed--tref-none-docs--a-signature-or-authentication-tag-verification-failed-n---case--name-id-rng-error--tref-none-docs--a-secure-random-numbers-generator-is-not-available-n-nthe-requested-operation-requires-random-numbers-but-the-host-cannot-securely-generate-them-at-the-moment-n---case--name-id-algorithm-failure--tref-none-docs--an-error-was-returned-by-the-underlying-cryptography-library-n-nthe-host-may-be-running-out-of-memory-parameters-may-be-incompatible-with-the-chosen-implementation-of-an-algorithm-or-another-unexpected-error-may-have-happened-n-nideally-the-specification-should-provide-enough-details-and-guidance-to-make-this-error-impossible-to-ever-be-thrown-n-nrealistically-the-wasi-crypto-module-cannot-possibly-cover-all-possible-error-types-implementations-can-return-especially-since-some-of-these-may-be-language-specific-nthis-error-can-thus-be-thrown-when-other-error-types-are-not-suitable-and-when-the-original-error-comes-from-the-cryptographic-primitives-themselves-and-not-from-the-wasi-module-n---case--name-id-invalid-signature--tref-none-docs--the-supplied-signature-is-invalid-or-incompatible-with-the-chosen-algorithm-n---case--name-id-closed--tref-none-docs--an-attempt-was-made-to-close-a-handle-that-was-already-closed-n---case--name-id-invalid-handle--tref-none-docs--a-function-was-called-with-an-unassigned-handle-a-closed-handle-or-handle-of-an-unexpected-type-n---case--name-id-overflow--tref-none-docs--the-host-needs-to-copy-data-to-a-guest-allocated-buffer-but-that-buffer-is-too-small-n---case--name-id-internal-error--tref-none-docs--an-internal-error-occurred-n-nthis-error-is-reserved-to-internal-consistency-checks-and-must-only-be-sent-if-the-internal-state-of-the-host-remains-safe-after-an-inconsistency-was-detected-n---case--name-id-too-many-handles--tref-none-docs--too-many-handles-are-currently-open-and-a-new-one-cannot-be-created-n-nimplementations-are-free-to-represent-handles-as-they-want-and-to-enforce-limits-to-limit-resources-usage-n---case--name-id-key-not-supported--tref-none-docs--a-key-was-provided-but-the-chosen-algorithm-doesn-t-support-keys-n-nthis-is-returned-by-symmetric-operations-n-nmany-hash-functions-in-particular-do-not-support-keys-without-being-used-in-particular-constructions-nblindly-ignoring-a-key-provided-by-mistake-while-trying-to-open-a-context-for-such-as-function-could-cause-serious-security-vulnerabilities-n-nthese-functions-must-refuse-to-create-the-context-and-return-this-error-instead-n---case--name-id-key-required--tref-none-docs--a-key-is-required-for-the-chosen-algorithm-but-none-was-given-n---case--name-id-invalid-tag--tref-none-docs--the-provided-authentication-tag-is-invalid-or-incompatible-with-the-current-algorithm-n-nthis-error-is-returned-by-decryption-functions-and-tag-verification-functions-n-nunlike-verification-failed--this-error-code-is-returned-when-the-tag-cannot-possibly-verify-for-any-input-n---case--name-id-invalid-operation--tref-none-docs--the-requested-operation-is-incompatible-with-the-current-scheme-n-nfor-example-the-symmetric-state-encrypt--function-cannot-complete-if-the-selected-construction-is-a-key-derivation-function-nthis-error-code-will-be-returned-instead-n---case--name-id-nonce-required--tref-none-docs--a-nonce-is-required-n-nmost-encryption-schemes-require-a-nonce-n-nin-the-absence-of-a-nonce-the-wasi-cryptography-module-can-automatically-generate-one-if-that-can-be-done-safely-the-nonce-can-be-retrieved-later-with-the-symmetric-state-option-get--function-using-the-nonce-parameter-nif-automatically-generating-a-nonce-cannot-be-done-safely-the-module-never-falls-back-to-an-insecure-option-and-requests-an-explicit-nonce-by-throwing-that-error-n---case--name-id-invalid-nonce--tref-none-docs--the-provided-nonce-doesn-t-have-a-correct-size-for-the-given-cipher-n---case--name-id-option-not-set--tref-none-docs--the-named-option-was-not-set-n-nthe-caller-tried-to-read-the-value-of-an-option-that-was-not-set-nthis-error-is-used-to-make-the-distinction-between-an-empty-option-and-an-option-that-was-not-set-and-left-to-its-default-value-n---case--name-id-not-found--tref-none-docs--a-key-or-key-pair-matching-the-requested-identifier-cannot-be-found-using-the-supplied-information-n-nthis-error-is-returned-by-a-secrets-manager-via-the-keypair-from-id--function-n---case--name-id-parameters-missing--tref-none-docs--the-algorithm-requires-parameters-that-haven-t-been-set-n-nnon-generic-options-are-required-and-must-be-given-by-building-an-options-set-and-giving-that-object-to-functions-instantiating-that-algorithm-n---case--name-id-in-progress--tref-none-docs--a-requested-computation-is-not-done-yet-and-additional-calls-to-the-function-are-required-n-nsome-functions-such-as-functions-generating-key-pairs-and-password-stretching-functions-can-take-a-long-time-to-complete-n-nin-order-to-avoid-a-host-call-to-be-blocked-for-too-long-these-functions-can-return-prematurely-requiring-additional-calls-with-the-same-parameters-until-they-complete-n---case--name-id-incompatible-keys--tref-none-docs--multiple-keys-have-been-provided-but-they-do-not-share-the-same-type-n-nthis-error-is-returned-when-trying-to-build-a-key-pair-from-a-public-key-and-a-secret-key-that-were-created-for-different-and-incompatible-algorithms-n---case--name-id-expired--tref-none-docs--a-managed-key-or-secret-expired-and-cannot-be-used-any-more-n-----docs--error-codes-n---docs-------docs--tuple-representing-results-and-size-produced-by-an-encrypt-decrypt-operation-n;
+  /// A list of results from the individual encrypt/decrypt operations within a batch operation.
+  type batch-crypt-results = list<crypt-result>;
+  type temp = todo-from-witx-namedtype--name-id-encrypt-detached-result--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-value-record-recorddatatype--kind-tuple-members--recordmember--name-id-0--tref-name-namedtype--name-id-symmetric-tag--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-handle-handledatatype--resource-id-resourceid--name-id-handle--module-id-moduleid-witx-wasi-ephemeral-crypto-common-witx-----docs--an-authentication-tag-n-nthis-is-an-object-returned-by-functions-computing-authentication-tags-n-na-tag-can-be-compared-against-another-tag-directly-supplied-as-raw-bytes-in-constant-time-with-the-symmetric-tag-verify--function-n-nthis-object-type-can-t-be-directly-created-from-raw-bytes-they-are-only-returned-by-functions-computing-macs-n-nthe-host-is-responsible-for-securely-wiping-them-from-memory-on-close-n---docs----recordmember--name-id-1--tref-name-namedtype--name-id-crypto-errno--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-variant-variant--tag-repr-u16-cases--case--name-id-success--tref-none-docs--operation-succeeded-n---case--name-id-guest-error--tref-none-docs--an-error-occurred-during-a-conversion-from-a-host-type-to-a-guest-type-n-nonly-an-internal-bug-can-throw-this-error-n---case--name-id-not-implemented--tref-none-docs--the-requested-operation-is-valid-but-not-implemented-by-the-host-n---case--name-id-unsupported-feature--tref-none-docs--the-requested-feature-is-not-supported-by-the-chosen-algorithm-n---case--name-id-prohibited-operation--tref-none-docs--the-requested-operation-is-valid-but-was-administratively-prohibited-n---case--name-id-unsupported-encoding--tref-none-docs--unsupported-encoding-for-an-import-or-export-operation-n---case--name-id-unsupported-algorithm--tref-none-docs--the-requested-algorithm-is-not-supported-by-the-host-n---case--name-id-unsupported-option--tref-none-docs--the-requested-option-is-not-supported-by-the-currently-selected-algorithm-n---case--name-id-invalid-key--tref-none-docs--an-invalid-or-incompatible-key-was-supplied-n-nthe-key-may-not-be-valid-or-was-generated-for-a-different-algorithm-or-parameters-set-n---case--name-id-invalid-length--tref-none-docs--the-currently-selected-algorithm-doesn-t-support-the-requested-output-length-n-nthis-error-is-thrown-by-non-extensible-hash-functions-when-requesting-an-output-size-larger-than-they-produce-out-of-a-single-block-n---case--name-id-verification-failed--tref-none-docs--a-signature-or-authentication-tag-verification-failed-n---case--name-id-rng-error--tref-none-docs--a-secure-random-numbers-generator-is-not-available-n-nthe-requested-operation-requires-random-numbers-but-the-host-cannot-securely-generate-them-at-the-moment-n---case--name-id-algorithm-failure--tref-none-docs--an-error-was-returned-by-the-underlying-cryptography-library-n-nthe-host-may-be-running-out-of-memory-parameters-may-be-incompatible-with-the-chosen-implementation-of-an-algorithm-or-another-unexpected-error-may-have-happened-n-nideally-the-specification-should-provide-enough-details-and-guidance-to-make-this-error-impossible-to-ever-be-thrown-n-nrealistically-the-wasi-crypto-module-cannot-possibly-cover-all-possible-error-types-implementations-can-return-especially-since-some-of-these-may-be-language-specific-nthis-error-can-thus-be-thrown-when-other-error-types-are-not-suitable-and-when-the-original-error-comes-from-the-cryptographic-primitives-themselves-and-not-from-the-wasi-module-n---case--name-id-invalid-signature--tref-none-docs--the-supplied-signature-is-invalid-or-incompatible-with-the-chosen-algorithm-n---case--name-id-closed--tref-none-docs--an-attempt-was-made-to-close-a-handle-that-was-already-closed-n---case--name-id-invalid-handle--tref-none-docs--a-function-was-called-with-an-unassigned-handle-a-closed-handle-or-handle-of-an-unexpected-type-n---case--name-id-overflow--tref-none-docs--the-host-needs-to-copy-data-to-a-guest-allocated-buffer-but-that-buffer-is-too-small-n---case--name-id-internal-error--tref-none-docs--an-internal-error-occurred-n-nthis-error-is-reserved-to-internal-consistency-checks-and-must-only-be-sent-if-the-internal-state-of-the-host-remains-safe-after-an-inconsistency-was-detected-n---case--name-id-too-many-handles--tref-none-docs--too-many-handles-are-currently-open-and-a-new-one-cannot-be-created-n-nimplementations-are-free-to-represent-handles-as-they-want-and-to-enforce-limits-to-limit-resources-usage-n---case--name-id-key-not-supported--tref-none-docs--a-key-was-provided-but-the-chosen-algorithm-doesn-t-support-keys-n-nthis-is-returned-by-symmetric-operations-n-nmany-hash-functions-in-particular-do-not-support-keys-without-being-used-in-particular-constructions-nblindly-ignoring-a-key-provided-by-mistake-while-trying-to-open-a-context-for-such-as-function-could-cause-serious-security-vulnerabilities-n-nthese-functions-must-refuse-to-create-the-context-and-return-this-error-instead-n---case--name-id-key-required--tref-none-docs--a-key-is-required-for-the-chosen-algorithm-but-none-was-given-n---case--name-id-invalid-tag--tref-none-docs--the-provided-authentication-tag-is-invalid-or-incompatible-with-the-current-algorithm-n-nthis-error-is-returned-by-decryption-functions-and-tag-verification-functions-n-nunlike-verification-failed--this-error-code-is-returned-when-the-tag-cannot-possibly-verify-for-any-input-n---case--name-id-invalid-operation--tref-none-docs--the-requested-operation-is-incompatible-with-the-current-scheme-n-nfor-example-the-symmetric-state-encrypt--function-cannot-complete-if-the-selected-construction-is-a-key-derivation-function-nthis-error-code-will-be-returned-instead-n---case--name-id-nonce-required--tref-none-docs--a-nonce-is-required-n-nmost-encryption-schemes-require-a-nonce-n-nin-the-absence-of-a-nonce-the-wasi-cryptography-module-can-automatically-generate-one-if-that-can-be-done-safely-the-nonce-can-be-retrieved-later-with-the-symmetric-state-option-get--function-using-the-nonce-parameter-nif-automatically-generating-a-nonce-cannot-be-done-safely-the-module-never-falls-back-to-an-insecure-option-and-requests-an-explicit-nonce-by-throwing-that-error-n---case--name-id-invalid-nonce--tref-none-docs--the-provided-nonce-doesn-t-have-a-correct-size-for-the-given-cipher-n---case--name-id-option-not-set--tref-none-docs--the-named-option-was-not-set-n-nthe-caller-tried-to-read-the-value-of-an-option-that-was-not-set-nthis-error-is-used-to-make-the-distinction-between-an-empty-option-and-an-option-that-was-not-set-and-left-to-its-default-value-n---case--name-id-not-found--tref-none-docs--a-key-or-key-pair-matching-the-requested-identifier-cannot-be-found-using-the-supplied-information-n-nthis-error-is-returned-by-a-secrets-manager-via-the-keypair-from-id--function-n---case--name-id-parameters-missing--tref-none-docs--the-algorithm-requires-parameters-that-haven-t-been-set-n-nnon-generic-options-are-required-and-must-be-given-by-building-an-options-set-and-giving-that-object-to-functions-instantiating-that-algorithm-n---case--name-id-in-progress--tref-none-docs--a-requested-computation-is-not-done-yet-and-additional-calls-to-the-function-are-required-n-nsome-functions-such-as-functions-generating-key-pairs-and-password-stretching-functions-can-take-a-long-time-to-complete-n-nin-order-to-avoid-a-host-call-to-be-blocked-for-too-long-these-functions-can-return-prematurely-requiring-additional-calls-with-the-same-parameters-until-they-complete-n---case--name-id-incompatible-keys--tref-none-docs--multiple-keys-have-been-provided-but-they-do-not-share-the-same-type-n-nthis-error-is-returned-when-trying-to-build-a-key-pair-from-a-public-key-and-a-secret-key-that-were-created-for-different-and-incompatible-algorithms-n---case--name-id-expired--tref-none-docs--a-managed-key-or-secret-expired-and-cannot-be-used-any-more-n-----docs--error-codes-n---docs-------docs--tuple-representing-results-and-size-produced-by-a-detached-encrypt-operation-n;
+  /// A list of results from the individual encrypt/decrypt operations within a batch operation.
+  type batch-encrypt-detached-results = list<encrypt-detached-result>;
+  /// A list of results from squeeze operation within a batch operation.
+  type batch-squeeze-results = list<crypto-errno>;
+  type temp = todo-from-witx-namedtype--name-id-squeeze-detached-result--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-value-record-recorddatatype--kind-tuple-members--recordmember--name-id-0--tref-name-namedtype--name-id-symmetric-tag--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-handle-handledatatype--resource-id-resourceid--name-id-handle--module-id-moduleid-witx-wasi-ephemeral-crypto-common-witx-----docs--an-authentication-tag-n-nthis-is-an-object-returned-by-functions-computing-authentication-tags-n-na-tag-can-be-compared-against-another-tag-directly-supplied-as-raw-bytes-in-constant-time-with-the-symmetric-tag-verify--function-n-nthis-object-type-can-t-be-directly-created-from-raw-bytes-they-are-only-returned-by-functions-computing-macs-n-nthe-host-is-responsible-for-securely-wiping-them-from-memory-on-close-n---docs----recordmember--name-id-1--tref-name-namedtype--name-id-crypto-errno--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-variant-variant--tag-repr-u16-cases--case--name-id-success--tref-none-docs--operation-succeeded-n---case--name-id-guest-error--tref-none-docs--an-error-occurred-during-a-conversion-from-a-host-type-to-a-guest-type-n-nonly-an-internal-bug-can-throw-this-error-n---case--name-id-not-implemented--tref-none-docs--the-requested-operation-is-valid-but-not-implemented-by-the-host-n---case--name-id-unsupported-feature--tref-none-docs--the-requested-feature-is-not-supported-by-the-chosen-algorithm-n---case--name-id-prohibited-operation--tref-none-docs--the-requested-operation-is-valid-but-was-administratively-prohibited-n---case--name-id-unsupported-encoding--tref-none-docs--unsupported-encoding-for-an-import-or-export-operation-n---case--name-id-unsupported-algorithm--tref-none-docs--the-requested-algorithm-is-not-supported-by-the-host-n---case--name-id-unsupported-option--tref-none-docs--the-requested-option-is-not-supported-by-the-currently-selected-algorithm-n---case--name-id-invalid-key--tref-none-docs--an-invalid-or-incompatible-key-was-supplied-n-nthe-key-may-not-be-valid-or-was-generated-for-a-different-algorithm-or-parameters-set-n---case--name-id-invalid-length--tref-none-docs--the-currently-selected-algorithm-doesn-t-support-the-requested-output-length-n-nthis-error-is-thrown-by-non-extensible-hash-functions-when-requesting-an-output-size-larger-than-they-produce-out-of-a-single-block-n---case--name-id-verification-failed--tref-none-docs--a-signature-or-authentication-tag-verification-failed-n---case--name-id-rng-error--tref-none-docs--a-secure-random-numbers-generator-is-not-available-n-nthe-requested-operation-requires-random-numbers-but-the-host-cannot-securely-generate-them-at-the-moment-n---case--name-id-algorithm-failure--tref-none-docs--an-error-was-returned-by-the-underlying-cryptography-library-n-nthe-host-may-be-running-out-of-memory-parameters-may-be-incompatible-with-the-chosen-implementation-of-an-algorithm-or-another-unexpected-error-may-have-happened-n-nideally-the-specification-should-provide-enough-details-and-guidance-to-make-this-error-impossible-to-ever-be-thrown-n-nrealistically-the-wasi-crypto-module-cannot-possibly-cover-all-possible-error-types-implementations-can-return-especially-since-some-of-these-may-be-language-specific-nthis-error-can-thus-be-thrown-when-other-error-types-are-not-suitable-and-when-the-original-error-comes-from-the-cryptographic-primitives-themselves-and-not-from-the-wasi-module-n---case--name-id-invalid-signature--tref-none-docs--the-supplied-signature-is-invalid-or-incompatible-with-the-chosen-algorithm-n---case--name-id-closed--tref-none-docs--an-attempt-was-made-to-close-a-handle-that-was-already-closed-n---case--name-id-invalid-handle--tref-none-docs--a-function-was-called-with-an-unassigned-handle-a-closed-handle-or-handle-of-an-unexpected-type-n---case--name-id-overflow--tref-none-docs--the-host-needs-to-copy-data-to-a-guest-allocated-buffer-but-that-buffer-is-too-small-n---case--name-id-internal-error--tref-none-docs--an-internal-error-occurred-n-nthis-error-is-reserved-to-internal-consistency-checks-and-must-only-be-sent-if-the-internal-state-of-the-host-remains-safe-after-an-inconsistency-was-detected-n---case--name-id-too-many-handles--tref-none-docs--too-many-handles-are-currently-open-and-a-new-one-cannot-be-created-n-nimplementations-are-free-to-represent-handles-as-they-want-and-to-enforce-limits-to-limit-resources-usage-n---case--name-id-key-not-supported--tref-none-docs--a-key-was-provided-but-the-chosen-algorithm-doesn-t-support-keys-n-nthis-is-returned-by-symmetric-operations-n-nmany-hash-functions-in-particular-do-not-support-keys-without-being-used-in-particular-constructions-nblindly-ignoring-a-key-provided-by-mistake-while-trying-to-open-a-context-for-such-as-function-could-cause-serious-security-vulnerabilities-n-nthese-functions-must-refuse-to-create-the-context-and-return-this-error-instead-n---case--name-id-key-required--tref-none-docs--a-key-is-required-for-the-chosen-algorithm-but-none-was-given-n---case--name-id-invalid-tag--tref-none-docs--the-provided-authentication-tag-is-invalid-or-incompatible-with-the-current-algorithm-n-nthis-error-is-returned-by-decryption-functions-and-tag-verification-functions-n-nunlike-verification-failed--this-error-code-is-returned-when-the-tag-cannot-possibly-verify-for-any-input-n---case--name-id-invalid-operation--tref-none-docs--the-requested-operation-is-incompatible-with-the-current-scheme-n-nfor-example-the-symmetric-state-encrypt--function-cannot-complete-if-the-selected-construction-is-a-key-derivation-function-nthis-error-code-will-be-returned-instead-n---case--name-id-nonce-required--tref-none-docs--a-nonce-is-required-n-nmost-encryption-schemes-require-a-nonce-n-nin-the-absence-of-a-nonce-the-wasi-cryptography-module-can-automatically-generate-one-if-that-can-be-done-safely-the-nonce-can-be-retrieved-later-with-the-symmetric-state-option-get--function-using-the-nonce-parameter-nif-automatically-generating-a-nonce-cannot-be-done-safely-the-module-never-falls-back-to-an-insecure-option-and-requests-an-explicit-nonce-by-throwing-that-error-n---case--name-id-invalid-nonce--tref-none-docs--the-provided-nonce-doesn-t-have-a-correct-size-for-the-given-cipher-n---case--name-id-option-not-set--tref-none-docs--the-named-option-was-not-set-n-nthe-caller-tried-to-read-the-value-of-an-option-that-was-not-set-nthis-error-is-used-to-make-the-distinction-between-an-empty-option-and-an-option-that-was-not-set-and-left-to-its-default-value-n---case--name-id-not-found--tref-none-docs--a-key-or-key-pair-matching-the-requested-identifier-cannot-be-found-using-the-supplied-information-n-nthis-error-is-returned-by-a-secrets-manager-via-the-keypair-from-id--function-n---case--name-id-parameters-missing--tref-none-docs--the-algorithm-requires-parameters-that-haven-t-been-set-n-nnon-generic-options-are-required-and-must-be-given-by-building-an-options-set-and-giving-that-object-to-functions-instantiating-that-algorithm-n---case--name-id-in-progress--tref-none-docs--a-requested-computation-is-not-done-yet-and-additional-calls-to-the-function-are-required-n-nsome-functions-such-as-functions-generating-key-pairs-and-password-stretching-functions-can-take-a-long-time-to-complete-n-nin-order-to-avoid-a-host-call-to-be-blocked-for-too-long-these-functions-can-return-prematurely-requiring-additional-calls-with-the-same-parameters-until-they-complete-n---case--name-id-incompatible-keys--tref-none-docs--multiple-keys-have-been-provided-but-they-do-not-share-the-same-type-n-nthis-error-is-returned-when-trying-to-build-a-key-pair-from-a-public-key-and-a-secret-key-that-were-created-for-different-and-incompatible-algorithms-n---case--name-id-expired--tref-none-docs--a-managed-key-or-secret-expired-and-cannot-be-used-any-more-n-----docs--error-codes-n---docs-------docs--tuple-representing-results-and-tag-and-error-produced-by-a-detached-squeeze-operation-n;
+  /// A list of results from the individual detached squeeze operations within a batch operation.
+  type batch-squeeze-detached-results = list<squeeze-detached-result>;
+  /// Batch of operations to squeeze bytes from a batch of states.
+  /// 
+  /// This is a batch version of the $symmetric_state_squeeze operation.
+  /// 
+  /// Each entry in the batch corresponds to an individual squeeze operation.
+  /// The parameters associated with each operation are grouped into a tuple.
+  /// 
+  /// The batch operation returns an error code of type $crypto_errno that
+  /// indicates if the batch was processed or if the batch could not be
+  /// processed.
+  /// 
+  /// Batch processing error codes:
+  ///  - `success`: Batch was processed. The status of each operation is indicated in the results list.
+  ///  - `not_implemented`: Batch functionality is not supported.
+  ///  - `unsupported_feature`: Inconsistent operations within the batch, e.g. not all operations in the batch use the same algorithm.
+  /// 
+  /// If the batch was processed, the result is a list of $crypto_errno error
+  /// codes that represent the status of the operation in the input list at
+  /// the same list offset.
+  /// 
+  /// 
+  /// 
+  /// TODO: Fix 'batch'.
+  ///   Original WITX: Value(Record(RecordDatatype { kind: Tuple, members: [RecordMember { name: Id("0"), tref: Name(NamedType { name: Id("symmetric_state"), module: ModuleId("witx/wasi_ephemeral_crypto_common.witx"), tref: Value(Handle(HandleDatatype { resource_id: ResourceId { name: Id("handle"), module_id: ModuleId("witx/wasi_ephemeral_crypto_common.witx") } })), docs: "A state to perform symmetric operations.\n\nThe state is not reset nor invalidated after an option has been performed.\nIncremental updates and sessions are thus supported.\n" }), docs: "" }, RecordMember { name: Id("1"), tref: Name(NamedType { name: Id("data"), module: ModuleId("witx/wasi_ephemeral_crypto_symmetric_batch.witx"), tref: Value(Buffer(Buffer { out: false, tref: Value(Builtin(U8 { lang_c_char: false })) })), docs: "A non-mutable data buffer\n" }), docs: "" }, RecordMember { name: Id("2"), tref: Name(NamedType { name: Id("data_len"), module: ModuleId("witx/wasi_ephemeral_crypto_symmetric_batch.witx"), tref: Name(NamedType { name: Id("size"), module: ModuleId("witx/wasi_ephemeral_crypto_common.witx"), tref: Value(Builtin(U32 { lang_ptr_size: true })), docs: "Size of a value.\n" }), docs: "" }), docs: "" }] })).
+  ///   Reason: Unimplemented logic
+  batch-symmetric-state-squeeze: func(batch: todo-from-witx-value-record-recorddatatype--kind-tuple-members--recordmember--name-id-0--tref-name-namedtype--name-id-symmetric-state--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-handle-handledatatype--resource-id-resourceid--name-id-handle--module-id-moduleid-witx-wasi-ephemeral-crypto-common-witx-----docs--a-state-to-perform-symmetric-operations-n-nthe-state-is-not-reset-nor-invalidated-after-an-option-has-been-performed-nincremental-updates-and-sessions-are-thus-supported-n---docs----recordmember--name-id-1--tref-name-namedtype--name-id-data--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-value-buffer-buffer--out-false-tref-value-builtin-u8--lang-c-char-false-----docs--a-non-mutable-data-buffer-n---docs----recordmember--name-id-2--tref-name-namedtype--name-id-data-len--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-name-namedtype--name-id-size--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-builtin-u32--lang-ptr-size-true---docs--size-of-a-value-n---docs-----docs) -> result<batch-squeeze-results, crypto-errno>;
+  /// Batch of operations to compute and return a tag for all the data
+  /// injected into the state so far.
+  /// 
+  /// This is a batch version of the $symmetric_state_squeeze_tag operation.
+  /// 
+  /// Each entry in the batch corresponds to an individual squeeze_tag
+  /// operation. The parameters associated with each operation are grouped
+  /// into a tuple.
+  /// 
+  /// The batch operation returns an error code of type $crypto_errno that
+  /// indicates if the batch was processed or if the batch could not be
+  /// processed.
+  /// 
+  /// Batch processing error codes:
+  ///  - `success`: Batch was processed. The status of each operation is indicated in the results list.
+  ///  - `not_implemented`: Batch functionality is not supported.
+  ///  - `unsupported_feature`: Inconsistent operations within the batch, e.g. not all operations in the batch use the same algorithm.
+  /// 
+  /// If the batch was processed, the result is a list of tuples, with each
+  /// list entry corresponding to the operation in the input list at the same
+  /// list offset. Each tuple contains a $crypto_errno error code and a tag.
+  /// The error code represents the status of the operation and the tag is the
+  /// tag generated from the squeeze operation. The tag is only valid if the
+  /// tuple's error code is `success`.
+  /// 
+  batch-symmetric-state-squeeze-tag: func(states: list<symmetric-state>) -> result<batch-squeeze-detached-results, crypto-errno>;
+  /// Perform a batch of symmetric encrypt operations.
+  /// 
+  /// This is a batch version of the symmetric_state_encrypt operation.
+  /// 
+  /// Each entry in the batch corresponds to an individual encrypt operation.
+  /// The parameters associated with each encrypt operation are grouped into a
+  /// tuple.
+  /// 
+  /// The batch operation returns an error code of type $crypto_errno that
+  /// indicates if the batch was processed or if the batch could not be
+  /// processed.
+  /// 
+  /// Batch processing error codes:
+  ///  - `success`: Batch was processed. The status of each operation is indicated in the results list.
+  ///  - `not_implemented`: Batch functionality is not supported.
+  ///  - `unsupported_feature`: Inconsistent operations within the batch, e.g. not all operations in the batch use the same algorithm.
+  /// 
+  /// If the batch was processed, the result is a list of tuples, with each
+  /// list entry corresponding to the operation in the input list at the same
+  /// list offset.
+  /// Each tuple contains a size and a $crypto_errno error code.
+  /// The error code represents the status of the operation and the size is
+  /// the actual size of the ciphertext and the tag in the output buffer. The
+  /// size value is only valid if the tuple's error code is `success`.
+  /// 
+  /// Example usage:
+  /// 
+  /// ```rust
+  /// let mut batch = Vec::new();
+  /// 
+  /// let state_handle = ctx.symmetric_state_open("AES-256-GCM", Some(key_handle1), Some(options_handle1))?;
+  /// let mut ciphertext = vec![0u8; message.len() + ctx.symmetric_state_max_tag_len(state_handle)?];
+  /// batch.push((batch, state_handle, ciphertext, ciphertext.len(), message, message.len()));
+  /// 
+  /// let state_handle = ctx.symmetric_state_open("AES-256-GCM", Some(key_handle2), Some(options_handle2))?;
+  /// let mut ciphertext = vec![0u8; message2.len() + ctx.symmetric_state_max_tag_len(state_handle)?];
+  /// batch.push((batch, state_handle, ciphertext, ciphertext.len(), message2, message2.len()));
+  /// 
+  /// let results = ctx.batch_symmetric_state_encrypt(batch)?;
+  /// ```
+  /// 
+  /// 
+  /// TODO: Fix 'batch'.
+  ///   Original WITX: Value(Record(RecordDatatype { kind: Tuple, members: [RecordMember { name: Id("0"), tref: Name(NamedType { name: Id("symmetric_state"), module: ModuleId("witx/wasi_ephemeral_crypto_common.witx"), tref: Value(Handle(HandleDatatype { resource_id: ResourceId { name: Id("handle"), module_id: ModuleId("witx/wasi_ephemeral_crypto_common.witx") } })), docs: "A state to perform symmetric operations.\n\nThe state is not reset nor invalidated after an option has been performed.\nIncremental updates and sessions are thus supported.\n" }), docs: "" }, RecordMember { name: Id("1"), tref: Name(NamedType { name: Id("output"), module: ModuleId("witx/wasi_ephemeral_crypto_symmetric_batch.witx"), tref: Value(Buffer(Buffer { out: true, tref: Value(Builtin(U8 { lang_c_char: false })) })), docs: "An output buffer\n" }), docs: "" }, RecordMember { name: Id("2"), tref: Name(NamedType { name: Id("output_len"), module: ModuleId("witx/wasi_ephemeral_crypto_symmetric_batch.witx"), tref: Name(NamedType { name: Id("size"), module: ModuleId("witx/wasi_ephemeral_crypto_common.witx"), tref: Value(Builtin(U32 { lang_ptr_size: true })), docs: "Size of a value.\n" }), docs: "" }), docs: "" }, RecordMember { name: Id("3"), tref: Name(NamedType { name: Id("data"), module: ModuleId("witx/wasi_ephemeral_crypto_symmetric_batch.witx"), tref: Value(Buffer(Buffer { out: false, tref: Value(Builtin(U8 { lang_c_char: false })) })), docs: "A non-mutable data buffer\n" }), docs: "" }, RecordMember { name: Id("4"), tref: Name(NamedType { name: Id("data_len"), module: ModuleId("witx/wasi_ephemeral_crypto_symmetric_batch.witx"), tref: Name(NamedType { name: Id("size"), module: ModuleId("witx/wasi_ephemeral_crypto_common.witx"), tref: Value(Builtin(U32 { lang_ptr_size: true })), docs: "Size of a value.\n" }), docs: "" }), docs: "" }] })).
+  ///   Reason: Unimplemented logic
+  batch-symmetric-state-encrypt: func(batch: todo-from-witx-value-record-recorddatatype--kind-tuple-members--recordmember--name-id-0--tref-name-namedtype--name-id-symmetric-state--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-handle-handledatatype--resource-id-resourceid--name-id-handle--module-id-moduleid-witx-wasi-ephemeral-crypto-common-witx-----docs--a-state-to-perform-symmetric-operations-n-nthe-state-is-not-reset-nor-invalidated-after-an-option-has-been-performed-nincremental-updates-and-sessions-are-thus-supported-n---docs----recordmember--name-id-1--tref-name-namedtype--name-id-output--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-value-buffer-buffer--out-true-tref-value-builtin-u8--lang-c-char-false-----docs--an-output-buffer-n---docs----recordmember--name-id-2--tref-name-namedtype--name-id-output-len--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-name-namedtype--name-id-size--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-builtin-u32--lang-ptr-size-true---docs--size-of-a-value-n---docs-----docs----recordmember--name-id-3--tref-name-namedtype--name-id-data--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-value-buffer-buffer--out-false-tref-value-builtin-u8--lang-c-char-false-----docs--a-non-mutable-data-buffer-n---docs----recordmember--name-id-4--tref-name-namedtype--name-id-data-len--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-name-namedtype--name-id-size--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-builtin-u32--lang-ptr-size-true---docs--size-of-a-value-n---docs-----docs) -> result<batch-crypt-results, crypto-errno>;
+  /// Perform a batch of symmetric encrypt operations with detached tags.
+  /// 
+  /// This is a batch version of the symmetric_state_encrypt_detached
+  /// operation.
+  /// 
+  /// Each entry in the batch corresponds to an individual encrypt operation.
+  /// The parameters associated with each encrypt operation are grouped into a
+  /// tuple.
+  /// 
+  /// The batch operation returns an error code of type $crypto_errno that
+  /// indicates if the batch was processed or if the batch could not be
+  /// processed.
+  /// 
+  /// Batch processing error codes:
+  ///  - `success`: Batch was processed. The status of each operation is indicated in the results list.
+  ///  - `not_implemented`: Batch functionality is not supported.
+  ///  - `unsupported_feature`: Inconsistent operations within the batch, e.g. not all operations in the batch use the same algorithm.
+  /// 
+  /// If the batch was processed, the result is a list of tuples, with each
+  /// list entry corresponding to the operation in the input list at the same
+  /// list offset.
+  /// Each tuple contains a tag and a $crypto_errno error code.
+  /// The error code represents the status of the operation and the tag is
+  /// the tag generated by the operation. The tag is only valid if the tuple's
+  /// error code is `success`.
+  /// 
+  /// Example usage:
+  /// 
+  /// ```rust
+  /// let mut batch = Vec::new();
+  /// 
+  /// let state_handle = ctx.symmetric_state_open("AES-256-GCM", Some(key_handle1), Some(options_handle1))?;
+  /// let mut ciphertext = vec![0u8; message.len() + ctx.symmetric_state_max_tag_len(state_handle)?];
+  /// batch.push((batch, state_handle, ciphertext, ciphertext.len(), message, message.len()));
+  /// 
+  /// let state_handle = ctx.symmetric_state_open("AES-256-GCM", Some(key_handle2), Some(options_handle2))?;
+  /// let mut ciphertext = vec![0u8; message2.len() + ctx.symmetric_state_max_tag_len(state_handle)?];
+  /// batch.push((batch, state_handle, ciphertext, ciphertext.len(), message2, message2.len()));
+  /// 
+  /// let results = ctx.batch_symmetric_state_encrypt_detached(batch)?;
+  /// ```
+  /// 
+  /// 
+  /// TODO: Fix 'batch'.
+  ///   Original WITX: Value(Record(RecordDatatype { kind: Tuple, members: [RecordMember { name: Id("0"), tref: Name(NamedType { name: Id("symmetric_state"), module: ModuleId("witx/wasi_ephemeral_crypto_common.witx"), tref: Value(Handle(HandleDatatype { resource_id: ResourceId { name: Id("handle"), module_id: ModuleId("witx/wasi_ephemeral_crypto_common.witx") } })), docs: "A state to perform symmetric operations.\n\nThe state is not reset nor invalidated after an option has been performed.\nIncremental updates and sessions are thus supported.\n" }), docs: "" }, RecordMember { name: Id("1"), tref: Name(NamedType { name: Id("output"), module: ModuleId("witx/wasi_ephemeral_crypto_symmetric_batch.witx"), tref: Value(Buffer(Buffer { out: true, tref: Value(Builtin(U8 { lang_c_char: false })) })), docs: "An output buffer\n" }), docs: "" }, RecordMember { name: Id("2"), tref: Name(NamedType { name: Id("output_len"), module: ModuleId("witx/wasi_ephemeral_crypto_symmetric_batch.witx"), tref: Name(NamedType { name: Id("size"), module: ModuleId("witx/wasi_ephemeral_crypto_common.witx"), tref: Value(Builtin(U32 { lang_ptr_size: true })), docs: "Size of a value.\n" }), docs: "" }), docs: "" }, RecordMember { name: Id("3"), tref: Name(NamedType { name: Id("data"), module: ModuleId("witx/wasi_ephemeral_crypto_symmetric_batch.witx"), tref: Value(Buffer(Buffer { out: false, tref: Value(Builtin(U8 { lang_c_char: false })) })), docs: "A non-mutable data buffer\n" }), docs: "" }, RecordMember { name: Id("4"), tref: Name(NamedType { name: Id("data_len"), module: ModuleId("witx/wasi_ephemeral_crypto_symmetric_batch.witx"), tref: Name(NamedType { name: Id("size"), module: ModuleId("witx/wasi_ephemeral_crypto_common.witx"), tref: Value(Builtin(U32 { lang_ptr_size: true })), docs: "Size of a value.\n" }), docs: "" }), docs: "" }] })).
+  ///   Reason: Unimplemented logic
+  batch-symmetric-state-encrypt-detached: func(batch: todo-from-witx-value-record-recorddatatype--kind-tuple-members--recordmember--name-id-0--tref-name-namedtype--name-id-symmetric-state--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-handle-handledatatype--resource-id-resourceid--name-id-handle--module-id-moduleid-witx-wasi-ephemeral-crypto-common-witx-----docs--a-state-to-perform-symmetric-operations-n-nthe-state-is-not-reset-nor-invalidated-after-an-option-has-been-performed-nincremental-updates-and-sessions-are-thus-supported-n---docs----recordmember--name-id-1--tref-name-namedtype--name-id-output--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-value-buffer-buffer--out-true-tref-value-builtin-u8--lang-c-char-false-----docs--an-output-buffer-n---docs----recordmember--name-id-2--tref-name-namedtype--name-id-output-len--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-name-namedtype--name-id-size--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-builtin-u32--lang-ptr-size-true---docs--size-of-a-value-n---docs-----docs----recordmember--name-id-3--tref-name-namedtype--name-id-data--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-value-buffer-buffer--out-false-tref-value-builtin-u8--lang-c-char-false-----docs--a-non-mutable-data-buffer-n---docs----recordmember--name-id-4--tref-name-namedtype--name-id-data-len--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-name-namedtype--name-id-size--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-builtin-u32--lang-ptr-size-true---docs--size-of-a-value-n---docs-----docs) -> result<batch-encrypt-detached-results, crypto-errno>;
+  /// Perform a batch of symmetric decrypt operations.
+  /// 
+  /// This is a batch version of the symmetric_state_decrypt operation.
+  /// 
+  /// Each entry in the batch corresponds to an individual decrypt operation.
+  /// The parameters associated with each decrypt operation are grouped into a
+  /// tuple.
+  /// 
+  /// The batch operation returns an error code of type $crypto_errno that
+  /// indicates if the batch was processed or if the batch could not be
+  /// processed.
+  /// 
+  /// Batch processing error codes:
+  ///  - `success`: Batch was processed. The status of each operation is indicated in the results list.
+  ///  - `not_implemented`: Batch functionality is not supported.
+  ///  - `unsupported_feature`: Inconsistent operations within the batch, e.g. not all operations in the batch use the same algorithm.
+  /// 
+  /// If the batch was processed, the result is a list of tuples, with each
+  /// list entry corresponding to the operation in the input list at the same
+  /// list offset.
+  /// Each tuple contains a size and a $crypto_errno error code.
+  /// The error code represents the status of the operation and the size is
+  /// the actual size of the decrypted data in the output buffer. The size
+  /// value is only valid if the tuple's error code is `success`.
+  /// 
+  /// 
+  /// 
+  /// TODO: Fix 'batch'.
+  ///   Original WITX: Value(Record(RecordDatatype { kind: Tuple, members: [RecordMember { name: Id("0"), tref: Name(NamedType { name: Id("symmetric_state"), module: ModuleId("witx/wasi_ephemeral_crypto_common.witx"), tref: Value(Handle(HandleDatatype { resource_id: ResourceId { name: Id("handle"), module_id: ModuleId("witx/wasi_ephemeral_crypto_common.witx") } })), docs: "A state to perform symmetric operations.\n\nThe state is not reset nor invalidated after an option has been performed.\nIncremental updates and sessions are thus supported.\n" }), docs: "" }, RecordMember { name: Id("1"), tref: Name(NamedType { name: Id("output"), module: ModuleId("witx/wasi_ephemeral_crypto_symmetric_batch.witx"), tref: Value(Buffer(Buffer { out: true, tref: Value(Builtin(U8 { lang_c_char: false })) })), docs: "An output buffer\n" }), docs: "" }, RecordMember { name: Id("2"), tref: Name(NamedType { name: Id("output_len"), module: ModuleId("witx/wasi_ephemeral_crypto_symmetric_batch.witx"), tref: Name(NamedType { name: Id("size"), module: ModuleId("witx/wasi_ephemeral_crypto_common.witx"), tref: Value(Builtin(U32 { lang_ptr_size: true })), docs: "Size of a value.\n" }), docs: "" }), docs: "" }, RecordMember { name: Id("3"), tref: Name(NamedType { name: Id("data"), module: ModuleId("witx/wasi_ephemeral_crypto_symmetric_batch.witx"), tref: Value(Buffer(Buffer { out: false, tref: Value(Builtin(U8 { lang_c_char: false })) })), docs: "A non-mutable data buffer\n" }), docs: "" }, RecordMember { name: Id("4"), tref: Name(NamedType { name: Id("data_len"), module: ModuleId("witx/wasi_ephemeral_crypto_symmetric_batch.witx"), tref: Name(NamedType { name: Id("size"), module: ModuleId("witx/wasi_ephemeral_crypto_common.witx"), tref: Value(Builtin(U32 { lang_ptr_size: true })), docs: "Size of a value.\n" }), docs: "" }), docs: "" }] })).
+  ///   Reason: Unimplemented logic
+  batch-symmetric-state-decrypt: func(batch: todo-from-witx-value-record-recorddatatype--kind-tuple-members--recordmember--name-id-0--tref-name-namedtype--name-id-symmetric-state--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-handle-handledatatype--resource-id-resourceid--name-id-handle--module-id-moduleid-witx-wasi-ephemeral-crypto-common-witx-----docs--a-state-to-perform-symmetric-operations-n-nthe-state-is-not-reset-nor-invalidated-after-an-option-has-been-performed-nincremental-updates-and-sessions-are-thus-supported-n---docs----recordmember--name-id-1--tref-name-namedtype--name-id-output--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-value-buffer-buffer--out-true-tref-value-builtin-u8--lang-c-char-false-----docs--an-output-buffer-n---docs----recordmember--name-id-2--tref-name-namedtype--name-id-output-len--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-name-namedtype--name-id-size--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-builtin-u32--lang-ptr-size-true---docs--size-of-a-value-n---docs-----docs----recordmember--name-id-3--tref-name-namedtype--name-id-data--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-value-buffer-buffer--out-false-tref-value-builtin-u8--lang-c-char-false-----docs--a-non-mutable-data-buffer-n---docs----recordmember--name-id-4--tref-name-namedtype--name-id-data-len--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-name-namedtype--name-id-size--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-builtin-u32--lang-ptr-size-true---docs--size-of-a-value-n---docs-----docs) -> result<batch-crypt-results, crypto-errno>;
+  /// Perform a batch of symmetric decrypt operations with detached tags.
+  /// 
+  /// This is a batch version of the symmetric_state_decrypt_detached operation.
+  /// 
+  /// Each entry in the batch corresponds to an individual decrypt operation.
+  /// The parameters associated with each decrypt operation are grouped into a
+  /// tuple.
+  /// 
+  /// The batch operation returns an error code of type $crypto_errno that
+  /// indicates if the batch was processed or if the batch could not be
+  /// processed.
+  /// 
+  /// Batch processing error codes:
+  ///  - `success`: Batch was processed. The status of each operation is indicated in the results list.
+  ///  - `not_implemented`: Batch functionality is not supported.
+  ///  - `unsupported_feature`: Inconsistent operations within the batch, e.g. not all operations in the batch use the same algorithm.
+  /// 
+  /// If the batch was processed, the result is a list of tuples, with each
+  /// list entry corresponding to the operation in the input list at the same
+  /// list offset.
+  /// Each tuple contains a size and a $crypto_errno error code.
+  /// The error code represents the status of the operation and the size is
+  /// the actual size of the decrypted data in the output buffer. The size
+  /// value is only valid if the tuple's error code is `success`.
+  /// 
+  /// 
+  /// 
+  /// TODO: Fix 'batch'.
+  ///   Original WITX: Value(Record(RecordDatatype { kind: Tuple, members: [RecordMember { name: Id("0"), tref: Name(NamedType { name: Id("symmetric_state"), module: ModuleId("witx/wasi_ephemeral_crypto_common.witx"), tref: Value(Handle(HandleDatatype { resource_id: ResourceId { name: Id("handle"), module_id: ModuleId("witx/wasi_ephemeral_crypto_common.witx") } })), docs: "A state to perform symmetric operations.\n\nThe state is not reset nor invalidated after an option has been performed.\nIncremental updates and sessions are thus supported.\n" }), docs: "" }, RecordMember { name: Id("1"), tref: Name(NamedType { name: Id("output"), module: ModuleId("witx/wasi_ephemeral_crypto_symmetric_batch.witx"), tref: Value(Buffer(Buffer { out: true, tref: Value(Builtin(U8 { lang_c_char: false })) })), docs: "An output buffer\n" }), docs: "" }, RecordMember { name: Id("2"), tref: Name(NamedType { name: Id("output_len"), module: ModuleId("witx/wasi_ephemeral_crypto_symmetric_batch.witx"), tref: Name(NamedType { name: Id("size"), module: ModuleId("witx/wasi_ephemeral_crypto_common.witx"), tref: Value(Builtin(U32 { lang_ptr_size: true })), docs: "Size of a value.\n" }), docs: "" }), docs: "" }, RecordMember { name: Id("3"), tref: Name(NamedType { name: Id("data"), module: ModuleId("witx/wasi_ephemeral_crypto_symmetric_batch.witx"), tref: Value(Buffer(Buffer { out: false, tref: Value(Builtin(U8 { lang_c_char: false })) })), docs: "A non-mutable data buffer\n" }), docs: "" }, RecordMember { name: Id("4"), tref: Name(NamedType { name: Id("data_len"), module: ModuleId("witx/wasi_ephemeral_crypto_symmetric_batch.witx"), tref: Name(NamedType { name: Id("size"), module: ModuleId("witx/wasi_ephemeral_crypto_common.witx"), tref: Value(Builtin(U32 { lang_ptr_size: true })), docs: "Size of a value.\n" }), docs: "" }), docs: "" }, RecordMember { name: Id("5"), tref: Name(NamedType { name: Id("raw_tag"), module: ModuleId("witx/wasi_ephemeral_crypto_symmetric_batch.witx"), tref: Value(Buffer(Buffer { out: false, tref: Value(Builtin(U8 { lang_c_char: false })) })), docs: "An raw tag buffer\n" }), docs: "" }, RecordMember { name: Id("6"), tref: Name(NamedType { name: Id("raw_tag_len"), module: ModuleId("witx/wasi_ephemeral_crypto_symmetric_batch.witx"), tref: Name(NamedType { name: Id("size"), module: ModuleId("witx/wasi_ephemeral_crypto_common.witx"), tref: Value(Builtin(U32 { lang_ptr_size: true })), docs: "Size of a value.\n" }), docs: "" }), docs: "" }] })).
+  ///   Reason: Unimplemented logic
+  batch-symmetric-state-decrypt-detached: func(batch: todo-from-witx-value-record-recorddatatype--kind-tuple-members--recordmember--name-id-0--tref-name-namedtype--name-id-symmetric-state--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-handle-handledatatype--resource-id-resourceid--name-id-handle--module-id-moduleid-witx-wasi-ephemeral-crypto-common-witx-----docs--a-state-to-perform-symmetric-operations-n-nthe-state-is-not-reset-nor-invalidated-after-an-option-has-been-performed-nincremental-updates-and-sessions-are-thus-supported-n---docs----recordmember--name-id-1--tref-name-namedtype--name-id-output--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-value-buffer-buffer--out-true-tref-value-builtin-u8--lang-c-char-false-----docs--an-output-buffer-n---docs----recordmember--name-id-2--tref-name-namedtype--name-id-output-len--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-name-namedtype--name-id-size--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-builtin-u32--lang-ptr-size-true---docs--size-of-a-value-n---docs-----docs----recordmember--name-id-3--tref-name-namedtype--name-id-data--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-value-buffer-buffer--out-false-tref-value-builtin-u8--lang-c-char-false-----docs--a-non-mutable-data-buffer-n---docs----recordmember--name-id-4--tref-name-namedtype--name-id-data-len--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-name-namedtype--name-id-size--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-builtin-u32--lang-ptr-size-true---docs--size-of-a-value-n---docs-----docs----recordmember--name-id-5--tref-name-namedtype--name-id-raw-tag--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-value-buffer-buffer--out-false-tref-value-builtin-u8--lang-c-char-false-----docs--an-raw-tag-buffer-n---docs----recordmember--name-id-6--tref-name-namedtype--name-id-raw-tag-len--module-moduleid-witx-wasi-ephemeral-crypto-symmetric-batch-witx--tref-name-namedtype--name-id-size--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-builtin-u32--lang-ptr-size-true---docs--size-of-a-value-n---docs-----docs) -> result<batch-crypt-results, crypto-errno>;
+}

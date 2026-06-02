@@ -2,7 +2,7 @@ package wasi:crypto@0.0.1;
 
 interface wasi-ephemeral-crypto-kx {
   use wasi-ephemeral-crypto-common.{keypair, publickey, secretkey, array-output, crypto-errno, size};
- 
+
   /// `$kx_keypair` is just an alias for `$keypair`
   ///
   /// However, bindings may want to define a specialized type `kx_keypair` as a super class of `keypair`.

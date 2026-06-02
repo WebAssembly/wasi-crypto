@@ -24,7 +24,7 @@ interface wasi-ephemeral-crypto-kx {
   /// The algorithm also has to support this kind of key exchange. If this is not the case, the `$crypto_errno.invalid_operation` error is returned.
   ///
   /// Otherwise, a raw shared key is returned, and can be imported as a symmetric key.
-  kx-dh: func(pk: publickey, sk: secretkey) -> result<array-output, crypto-errno>;
+  kx-dh: func(pk: borrow<publickey>, sk: borrow<secretkey>) -> result<array-output, crypto-errno>;
 
   /// Create a shared secret and encrypt it for the given public key.
   ///
@@ -32,10 +32,10 @@ interface wasi-ephemeral-crypto-kx {
   /// If a selected algorithm doesn't support it, `$crypto_errno.invalid_operation` is returned.
   ///
   /// On success, both the shared secret and its encrypted version are returned.
-  kx-encapsulate: func(pk: publickey) -> result<tuple<array-output, array-output>, crypto-errno>;
+  kx-encapsulate: func(pk: borrow<publickey>) -> result<tuple<array-output, array-output>, crypto-errno>;
 
   /// Decapsulate an encapsulated secret created with `kx_encapsulate`
   ///
   /// Return the secret, or `$crypto_errno.verification_failed` on error.
-  kx-decapsulate: func(sk: secretkey, encapsulated-secret: list<u8>) -> result<array-output, crypto-errno>;
+  kx-decapsulate: func(sk: borrow<secretkey>, encapsulated-secret: list<u8>) -> result<array-output, crypto-errno>;
 }

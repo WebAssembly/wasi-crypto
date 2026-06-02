@@ -1,7 +1,7 @@
 package wasi:crypto@0.0.1;
 
 interface wasi-ephemeral-crypto-symmetric {
-  use wasi-ephemeral-crypto-common.{opt-options, symmetric-key, crypto-errno, size, array-output, secrets-manager, version, opt-symmetric-key, symmetric-state, %u64, symmetric-tag};
+  use wasi-ephemeral-crypto-common.{options, symmetric-key, crypto-errno, size, array-output, secrets-manager, version, symmetric-state, %u64, symmetric-tag};
 
   // Would have liked to keep this `symmetric-key-id`, but that overlaps with the function name
   type stored-key-id = list<u8>;
@@ -11,7 +11,7 @@ interface wasi-ephemeral-crypto-symmetric {
   /// `options` can be `None` to use the default parameters, or an algorithm-specific set of parameters to override.
   ///
   /// This function may return `unsupported_feature` if key generation is not supported by the host for the chosen algorithm, or `unsupported_algorithm` if the algorithm is not supported by the host.
-  symmetric-key-generate: func(algorithm: string, options: opt-options) -> result<symmetric-key, crypto-errno>;
+  symmetric-key-generate: func(algorithm: string, options: option<borrow<options>>) -> result<symmetric-key, crypto-errno>;
 
   /// Create a symmetric key from raw material.
   ///
@@ -25,7 +25,7 @@ interface wasi-ephemeral-crypto-symmetric {
   /// This is mainly useful to export a managed key.
   ///
   /// May return `prohibited_operation` if this operation is denied.
-  symmetric-key-export: func(symmetric-key: symmetric-key) -> result<array-output, crypto-errno>;
+  symmetric-key-export: func(symmetric-key: borrow<symmetric-key>) -> result<array-output, crypto-errno>;
 
   /// Destroy a symmetric key.
   ///
@@ -45,7 +45,7 @@ interface wasi-ephemeral-crypto-symmetric {
   /// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
   ///
   /// This is also an optional import, meaning that the function may not even exist.
-  symmetric-key-generate-managed: func(secrets-manager: secrets-manager, algorithm: string, options: opt-options) -> result<symmetric-key, crypto-errno>;
+  symmetric-key-generate-managed: func(secrets-manager: borrow<secrets-manager>, algorithm: string, options: option<borrow<options>>) -> result<symmetric-key, crypto-errno>;
 
   /// __(optional)__
   /// Store a symmetric key into the secrets manager.
@@ -53,7 +53,7 @@ interface wasi-ephemeral-crypto-symmetric {
   /// On success, the function returns the key identifier.
   ///
   /// This is an optional import, meaning that the function may not even exist.
-  symmetric-key-store-managed: func(secrets-manager: secrets-manager, symmetric-key: symmetric-key) -> result<stored-key-id, crypto-errno>;
+  symmetric-key-store-managed: func(secrets-manager: borrow<secrets-manager>, symmetric-key: borrow<symmetric-key>) -> result<stored-key-id, crypto-errno>;
 
   /// __(optional)__
   /// Replace a managed symmetric key.
@@ -76,7 +76,7 @@ interface wasi-ephemeral-crypto-symmetric {
   /// If the operation succeeded, the new version is returned.
   ///
   /// This is an optional import, meaning that the function may not even exist.
-  symmetric-key-replace-managed: func(secrets-manager: secrets-manager, symmetric-key-old: symmetric-key, symmetric-key-new: symmetric-key) -> result<version, crypto-errno>;
+  symmetric-key-replace-managed: func(secrets-manager: borrow<secrets-manager>, symmetric-key-old: symmetric-key, symmetric-key-new: borrow<symmetric-key>) -> result<version, crypto-errno>;
 
   /// __(optional)__
   /// Return the key identifier and version of a managed symmetric key.
@@ -84,7 +84,7 @@ interface wasi-ephemeral-crypto-symmetric {
   /// If the key is not managed, `unsupported_feature` is returned instead.
   ///
   /// This is an optional import, meaning that the function may not even exist.
-  symmetric-key-id: func(symmetric-key: symmetric-key) -> result<tuple<stored-key-id, version>, crypto-errno>;
+  symmetric-key-id: func(symmetric-key: borrow<symmetric-key>) -> result<tuple<stored-key-id, version>, crypto-errno>;
 
   /// __(optional)__
   /// Return a managed symmetric key from a key identifier.
@@ -94,7 +94,7 @@ interface wasi-ephemeral-crypto-symmetric {
   /// If no key matching the provided information is found, `not_found` is returned instead.
   ///
   /// This is an optional import, meaning that the function may not even exist.
-  symmetric-key-from-id: func(secrets-manager: secrets-manager, symmetric-key-id: stored-key-id, symmetric-key-version: version) -> result<symmetric-key, crypto-errno>;
+  symmetric-key-from-id: func(secrets-manager: borrow<secrets-manager>, symmetric-key-id: stored-key-id, symmetric-key-version: version) -> result<symmetric-key, crypto-errno>;
 
   /// Create a new state to absorb and produce data using symmetric operations.
   ///
@@ -271,7 +271,7 @@ interface wasi-ephemeral-crypto-symmetric {
   /// let next_key_handle = ctx.symmetric_state_squeeze_key(state_handle, "Xoodyak-128")?;
   /// // ...
   /// ```
-  symmetric-state-open: func(algorithm: string, key: opt-symmetric-key, options: opt-options) -> result<symmetric-state, crypto-errno>;
+  symmetric-state-open: func(algorithm: string, key: option<borrow<symmetric-key>>, options: option<borrow<options>>) -> result<symmetric-state, crypto-errno>;
 
   /// Retrieve a parameter from the current state.
   ///
@@ -280,24 +280,24 @@ interface wasi-ephemeral-crypto-symmetric {
   /// The function may return `options_not_set` if an option was not set, which is different from an empty value.
   ///
   /// It may also return `unsupported_option` if the option doesn't exist for the chosen algorithm.
-  symmetric-state-options-get: func(handle: symmetric-state, name: string) -> result<list<u8>, crypto-errno>;
+  symmetric-state-options-get: func(state: borrow<symmetric-state>, name: string) -> result<list<u8>, crypto-errno>;
 
   /// Retrieve an integer parameter from the current state.
   ///
   /// The function may return `options_not_set` if an option was not set.
   ///
   /// It may also return `unsupported_option` if the option doesn't exist for the chosen algorithm.
-  symmetric-state-options-get-u64: func(handle: symmetric-state, name: string) -> result<%u64, crypto-errno>;
+  symmetric-state-options-get-u64: func(state: borrow<symmetric-state>, name: string) -> result<%u64, crypto-errno>;
 
   /// Clone a symmetric state.
   ///
   /// The function clones the internal state, assigns a new handle to it and returns the new handle.
-  symmetric-state-clone: func(handle: symmetric-state) -> result<symmetric-state, crypto-errno>;
+  symmetric-state-clone: func(state: borrow<symmetric-state>) -> result<symmetric-state, crypto-errno>;
 
   /// Destroy a symmetric state.
   ///
   /// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
-  symmetric-state-close: func(handle: symmetric-state) -> result<_, crypto-errno>;
+  symmetric-state-close: func(state: symmetric-state) -> result<_, crypto-errno>;
 
   /// Absorb data into the state.
   ///
@@ -311,7 +311,7 @@ interface wasi-ephemeral-crypto-symmetric {
   /// If the chosen algorithm doesn't accept input data, the `invalid_operation` error code is returned.
   ///
   /// If too much data has been fed for the algorithm, `overflow` may be thrown.
-  symmetric-state-absorb: func(handle: symmetric-state, data: list<u8>) -> result<_, crypto-errno>;
+  symmetric-state-absorb: func(state: borrow<symmetric-state>, data: list<u8>) -> result<_, crypto-errno>;
 
   /// Squeeze bytes from the state.
   ///
@@ -324,7 +324,7 @@ interface wasi-ephemeral-crypto-symmetric {
   ///
   /// For password-stretching functions, the function may return `in_progress`.
   /// In that case, the guest should retry with the same parameters until the function completes.
-  symmetric-state-squeeze: func(handle: symmetric-state) -> result<list<u8>, crypto-errno>;
+  symmetric-state-squeeze: func(state: borrow<symmetric-state>) -> result<list<u8>, crypto-errno>;
 
   /// Compute and return a tag for all the data injected into the state so far.
   ///
@@ -336,7 +336,7 @@ interface wasi-ephemeral-crypto-symmetric {
   ///
   /// For password-stretching functions, the function may return `in_progress`.
   /// In that case, the guest should retry with the same parameters until the function completes.
-  symmetric-state-squeeze-tag: func(handle: symmetric-state) -> result<symmetric-tag, crypto-errno>;
+  symmetric-state-squeeze-tag: func(state: borrow<symmetric-state>) -> result<symmetric-tag, crypto-errno>;
 
   /// Use the current state to produce a key for a target algorithm.
   ///
@@ -344,7 +344,7 @@ interface wasi-ephemeral-crypto-symmetric {
   /// For session-based authentication encryption, this returns a key that can be used to resume a session without storing a nonce.
   ///
   /// `invalid_operation` is returned for algorithms not supporting this operation.
-  symmetric-state-squeeze-key: func(handle: symmetric-state, alg-str: string) -> result<symmetric-key, crypto-errno>;
+  symmetric-state-squeeze-key: func(state: borrow<symmetric-state>, alg-str: string) -> result<symmetric-key, crypto-errno>;
 
   /// Return the maximum length of an authentication tag for the current algorithm.
   ///
@@ -355,7 +355,7 @@ interface wasi-ephemeral-crypto-symmetric {
   /// For an encryption operation, the size of the output buffer should be `input_len + symmetric_state_max_tag_len()`.
   ///
   /// For a decryption operation, the size of the buffer that will store the decrypted data must be `ciphertext_len - symmetric_state_max_tag_len()`.
-  symmetric-state-max-tag-len: func(handle: symmetric-state) -> result<size, crypto-errno>;
+  symmetric-state-max-tag-len: func(state: borrow<symmetric-state>) -> result<size, crypto-errno>;
 
   /// Encrypt data with an attached tag.
   ///
@@ -366,7 +366,7 @@ interface wasi-ephemeral-crypto-symmetric {
   /// The function returns the ciphertext along with the tag.
   ///
   /// `invalid_operation` is returned for algorithms not supporting encryption.
-  symmetric-state-encrypt: func(handle: symmetric-state, data: list<u8>) -> result<list<u8>, crypto-errno>;
+  symmetric-state-encrypt: func(state: borrow<symmetric-state>, data: list<u8>) -> result<list<u8>, crypto-errno>;
 
   /// Encrypt data, with a detached tag.
   ///
@@ -377,7 +377,7 @@ interface wasi-ephemeral-crypto-symmetric {
   /// The function returns the ciphertext and tag.
   ///
   /// `invalid_operation` is returned for algorithms not supporting encryption.
-  symmetric-state-encrypt-detached: func(handle: symmetric-state, data: list<u8>) -> result<tuple<list<u8>, symmetric-tag>, crypto-errno>;
+  symmetric-state-encrypt-detached: func(state: borrow<symmetric-state>, data: list<u8>) -> result<tuple<list<u8>, symmetric-tag>, crypto-errno>;
 
   /// - **Stream cipher:** adds the input to the stream cipher output. `out_len` and `data_len` can be equal, as no authentication tags will be added.
   /// - **AEAD:** decrypts `data` into `out`. Additional data must have been previously absorbed using `symmetric_state_absorb()`.
@@ -388,7 +388,7 @@ interface wasi-ephemeral-crypto-symmetric {
   /// `invalid_tag` is returned if the tag didn't verify.
   ///
   /// `invalid_operation` is returned for algorithms not supporting encryption.
-  symmetric-state-decrypt: func(handle: symmetric-state, data: list<u8>) -> result<list<u8>, crypto-errno>;
+  symmetric-state-decrypt: func(state: borrow<symmetric-state>, data: list<u8>) -> result<list<u8>, crypto-errno>;
 
   /// - **Stream cipher:** returns `invalid_operation` since stream ciphers do not include authentication tags.
   /// - **AEAD:** decrypts `data` into `out`. Additional data must have been previously absorbed using `symmetric_state_absorb()`.
@@ -401,19 +401,19 @@ interface wasi-ephemeral-crypto-symmetric {
   /// `invalid_tag` is returned if the tag verification failed.
   ///
   /// `invalid_operation` is returned for algorithms not supporting encryption.
-  symmetric-state-decrypt-detached: func(handle: symmetric-state, data: list<u8>, raw-tag: list<u8>) -> result<list<u8>, crypto-errno>;
+  symmetric-state-decrypt-detached: func(state: borrow<symmetric-state>, data: list<u8>, raw-tag: list<u8>) -> result<list<u8>, crypto-errno>;
 
   /// Make it impossible to recover the previous state.
   ///
   /// This operation is supported by some systems keeping a rolling state over an entire session, for forward security.
   ///
   /// `invalid_operation` is returned for algorithms not supporting ratcheting.
-  symmetric-state-ratchet: func(handle: symmetric-state) -> result<_, crypto-errno>;
+  symmetric-state-ratchet: func(state: borrow<symmetric-state>) -> result<_, crypto-errno>;
 
   /// Return the length of an authentication tag.
   ///
   /// This function can be used by a guest to allocate the correct buffer size to copy a computed authentication tag.
-  symmetric-tag-len: func(symmetric-tag: symmetric-tag) -> result<size, crypto-errno>;
+  symmetric-tag-len: func(symmetric-tag: borrow<symmetric-tag>) -> result<size, crypto-errno>;
 
   /// Copy an authentication tag into a guest-allocated buffer.
   ///
@@ -424,7 +424,7 @@ interface wasi-ephemeral-crypto-symmetric {
   /// ```rust
   /// let raw_tag = ctx.symmetric_tag_pull(raw_tag_handle)?;
   /// ```
-  symmetric-tag-pull: func(symmetric-tag: symmetric-tag) -> result<list<u8>, crypto-errno>;
+  symmetric-tag-pull: func(symmetric-tag: borrow<symmetric-tag>) -> result<list<u8>, crypto-errno>;
 
   /// Verify that a computed authentication tag matches the expected value, in constant-time.
   ///
@@ -441,7 +441,7 @@ interface wasi-ephemeral-crypto-symmetric {
   /// let computed_tag_handle = ctx.symmetric_state_squeeze_tag(state_handle)?;
   /// ctx.symmetric_tag_verify(computed_tag_handle, expected_raw_tag)?;
   /// ```
-  symmetric-tag-verify: func(symmetric-tag: symmetric-tag, expected-raw-tag: list<u8>) -> result<_, crypto-errno>;
+  symmetric-tag-verify: func(symmetric-tag: borrow<symmetric-tag>, expected-raw-tag: list<u8>) -> result<_, crypto-errno>;
 
   /// Explicitly destroy an unused authentication tag.
   ///

@@ -1,7 +1,7 @@
 package wasi:crypto@0.0.1;
 
 interface wasi-ephemeral-crypto-asymmetric-common {
-  use wasi-ephemeral-crypto-common.{algorithm-type, opt-options, keypair, crypto-errno, size, keypair-encoding, secrets-manager, version, publickey, secretkey, array-output, publickey-encoding, secretkey-encoding};
+  use wasi-ephemeral-crypto-common.{algorithm-type, options, keypair, crypto-errno, size, keypair-encoding, secrets-manager, version, publickey, secretkey, array-output, publickey-encoding, secretkey-encoding};
 
   type kp-id = list<u8>;
 
@@ -23,7 +23,7 @@ interface wasi-ephemeral-crypto-asymmetric-common {
   /// ```rust
   /// let kp_handle = ctx.keypair_generate(AlgorithmType::Signatures, "RSA_PKCS1_2048_SHA256", None)?;
   /// ```
-  keypair-generate: func(algorithm-type: algorithm-type, algorithm: string, options: opt-options) -> result<keypair, crypto-errno>;
+  keypair-generate: func(algorithm-type: algorithm-type, algorithm: string, options: option<borrow<options>>) -> result<keypair, crypto-errno>;
 
   /// Import a key pair.
   ///
@@ -53,13 +53,13 @@ interface wasi-ephemeral-crypto-asymmetric-common {
   /// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
   ///
   /// This is also an optional import, meaning that the function may not even exist.
-  keypair-generate-managed: func(secrets-manager: secrets-manager, algorithm-type: algorithm-type, algorithm: string, options: opt-options) -> result<keypair, crypto-errno>;
+  keypair-generate-managed: func(secrets-manager: borrow<secrets-manager>, algorithm-type: algorithm-type, algorithm: string, options: option<borrow<options>>) -> result<keypair, crypto-errno>;
 
   /// __(optional)__
   /// Store a key pair into the secrets manager.
   ///
   /// On success, the function returns the key pair identifier
-  keypair-store-managed: func(secrets-manager: secrets-manager, kp: keypair) -> result<kp-id, crypto-errno>;
+  keypair-store-managed: func(secrets-manager: borrow<secrets-manager>, kp: borrow<keypair>) -> result<kp-id, crypto-errno>;
 
   /// __(optional)__
   /// Replace a managed key pair.
@@ -82,7 +82,7 @@ interface wasi-ephemeral-crypto-asymmetric-common {
   /// If the operation succeeded, the new version is returned.
   ///
   /// This is an optional import, meaning that the function may not even exist.
-  keypair-replace-managed: func(secrets-manager: secrets-manager, kp-old: keypair, kp-new: keypair) -> result<version, crypto-errno>;
+  keypair-replace-managed: func(secrets-manager: borrow<secrets-manager>, kp-old: keypair, kp-new: borrow<keypair>) -> result<version, crypto-errno>;
 
   /// __(optional)__
   /// Return the key pair identifier and version of a managed key pair.
@@ -90,7 +90,7 @@ interface wasi-ephemeral-crypto-asymmetric-common {
   /// If the key pair is not managed, `unsupported_feature` is returned instead.
   ///
   /// This is an optional import, meaning that the function may not even exist.
-  keypair-id: func(kp: keypair) -> result<tuple<kp-id, version>, crypto-errno>;
+  keypair-id: func(kp: borrow<keypair>) -> result<tuple<kp-id, version>, crypto-errno>;
 
   /// __(optional)__
   /// Return a managed key pair from a key identifier.
@@ -100,21 +100,21 @@ interface wasi-ephemeral-crypto-asymmetric-common {
   /// If no key pair matching the provided information is found, `not_found` is returned instead.
   ///
   /// This is an optional import, meaning that the function may not even exist.
-  keypair-from-id: func(secrets-manager: secrets-manager, kp-id: kp-id, kp-version: version) -> result<keypair, crypto-errno>;
+  keypair-from-id: func(secrets-manager: borrow<secrets-manager>, kp-id: kp-id, kp-version: version) -> result<keypair, crypto-errno>;
 
   /// Create a key pair from a public key and a secret key.
-  keypair-from-pk-and-sk: func(publickey: publickey, secretkey: secretkey) -> result<keypair, crypto-errno>;
+  keypair-from-pk-and-sk: func(publickey: borrow<publickey>, secretkey: borrow<secretkey>) -> result<keypair, crypto-errno>;
 
   /// Export a key pair as the given encoding format.
   ///
   /// May return `prohibited_operation` if this operation is denied or `unsupported_encoding` if the encoding is not supported.
-  keypair-export: func(kp: keypair, encoding: keypair-encoding) -> result<array-output, crypto-errno>;
+  keypair-export: func(kp: borrow<keypair>, encoding: keypair-encoding) -> result<array-output, crypto-errno>;
 
   /// Get the public key of a key pair.
-  keypair-publickey: func(kp: keypair) -> result<publickey, crypto-errno>;
+  keypair-publickey: func(kp: borrow<keypair>) -> result<publickey, crypto-errno>;
 
   /// Get the secret key of a key pair.
-  keypair-secretkey: func(kp: keypair) -> result<secretkey, crypto-errno>;
+  keypair-secretkey: func(kp: borrow<keypair>) -> result<secretkey, crypto-errno>;
 
   /// Destroy a key pair.
   ///
@@ -141,17 +141,17 @@ interface wasi-ephemeral-crypto-asymmetric-common {
   /// Export a public key as the given encoding format.
   ///
   /// May return `unsupported_encoding` if the encoding is not supported.
-  publickey-export: func(pk: publickey, encoding: publickey-encoding) -> result<array-output, crypto-errno>;
+  publickey-export: func(pk: borrow<publickey>, encoding: publickey-encoding) -> result<array-output, crypto-errno>;
 
   /// Check that a public key is valid and in canonical form.
   ///
   /// This function may perform stricter checks than those made during importation at the expense of additional CPU cycles.
   ///
   /// The function returns `invalid_key` if the public key didn't pass the checks.
-  publickey-verify: func(pk: publickey) -> result<_, crypto-errno>;
+  publickey-verify: func(pk: borrow<publickey>) -> result<_, crypto-errno>;
 
   /// Compute the public key for a secret key.
-  publickey-from-secretkey: func(sk: secretkey) -> result<publickey, crypto-errno>;
+  publickey-from-secretkey: func(sk: borrow<secretkey>) -> result<publickey, crypto-errno>;
 
   /// Destroy a public key.
   ///
@@ -176,7 +176,7 @@ interface wasi-ephemeral-crypto-asymmetric-common {
   /// Export a secret key as the given encoding format.
   ///
   /// May return `unsupported_encoding` if the encoding is not supported.
-  secretkey-export: func(sk: secretkey, encoding: secretkey-encoding) -> result<array-output, crypto-errno>;
+  secretkey-export: func(sk: borrow<secretkey>, encoding: secretkey-encoding) -> result<array-output, crypto-errno>;
 
   /// Destroy a secret key.
   ///

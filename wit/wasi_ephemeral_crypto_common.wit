@@ -1,8 +1,6 @@
 package wasi:crypto@0.0.1;
 
 interface wasi-ephemeral-crypto-common {
-  use wasi-ephemeral-crypto-todo-types.{todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false};
-
   type key-id = list<u8>;
 
   /// Error codes.
@@ -349,17 +347,17 @@ interface wasi-ephemeral-crypto-common {
   /// This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
   options-set-u64: func(handle: options, name: string, value: u64) -> result<_, crypto-errno>;
 
-  /// Set or update a guest-allocated memory that the host can use or return data into.
+  /// Set or update buffer that the host can use or return data into.
   ///
   /// This is for example used to set the scratch buffer required by memory-hard functions.
   ///
+  /// NOTE: In WITX, this was a raw pointer into guest linear memory, ensuring the allocation counted against the guest's memory budget.
+  /// This implementation using `list<u8>` does not have this guarantee and serves as a stopgap till [caller-supplied buffers](https://wasi.dev/roadmap) arrive in future WASI 0.3.x release.
+  ///
   /// This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
-  ///
-  ///
-  /// TODO: Fix 'buffer'.
-  ///   Original WITX: Value(Pointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  options-set-guest-buffer: func(handle: options, name: string, buffer: todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false, buffer-len: size) -> result<_, crypto-errno>;
+  @deprecated(version = 0.0.1)
+  @since(version = 0.0.1)
+  options-set-guest-buffer: func(handle: options, name: string, buffer: list<u8>) -> result<_, crypto-errno>;
 
   /// Return the length of an `array_output` object.
   ///

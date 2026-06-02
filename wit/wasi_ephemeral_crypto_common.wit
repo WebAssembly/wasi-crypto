@@ -230,9 +230,6 @@ interface wasi-ephemeral-crypto-common {
   /// A 64-bit value
   type %u64 = u64;
 
-  resource handle {
-  }
-
   /// Handle for functions returning output whose size may be large or not known in advance.
   ///
   /// An `array_output` object contains a host-allocated byte array.
@@ -241,54 +238,54 @@ interface wasi-ephemeral-crypto-common {
   /// In addition, the content of such an object can be consumed by a guest in a streaming fashion.
   ///
   /// An `array_output` handle is automatically closed after its full content has been consumed.
-  type array-output = handle;
+  resource array-output {}
 
   /// A set of options.
   ///
   /// This type is used to set non-default parameters.
   ///
   /// The exact set of allowed options depends on the algorithm being used.
-  type options = handle;
+  resource options {}
 
   /// A handle to the optional secrets management facilities offered by a host.
   ///
   /// This is used to generate, retrieve and invalidate managed keys.
-  type secrets-manager = handle;
+  resource secrets-manager {}
 
   /// A key pair.
-  type keypair = handle;
+  resource keypair {}
 
   /// A state to absorb data to be signed.
   ///
   /// After a signature has been computed or verified, the state remains valid for further operations.
   ///
   /// A subsequent signature would sign all the data accumulated since the creation of the state object.
-  type signature-state = handle;
+  resource signature-state {}
 
   /// A signature.
-  type signature = handle;
+  resource signature {}
 
   /// A public key, for key exchange and signature verification.
-  type publickey = handle;
+  resource publickey {}
 
   /// A secret key, for key exchange mechanisms.
-  type secretkey = handle;
+  resource secretkey {}
 
   /// A state to absorb signed data to be verified.
-  type signature-verification-state = handle;
+  resource signature-verification-state {}
 
   /// A state to perform symmetric operations.
   ///
   /// The state is not reset nor invalidated after an option has been performed.
   /// Incremental updates and sessions are thus supported.
-  type symmetric-state = handle;
+  resource symmetric-state {}
 
   /// A symmetric key.
   ///
   /// The key can be imported from raw bytes, or can be a reference to a managed key.
   ///
   /// If it was imported, the host will wipe it from memory as soon as the handle is closed.
-  type symmetric-key = handle;
+  resource symmetric-key {}
 
   /// An authentication tag.
   ///
@@ -299,7 +296,7 @@ interface wasi-ephemeral-crypto-common {
   /// This object type can't be directly created from raw bytes. They are only returned by functions computing MACs.
   ///
   /// The host is responsible for securely wiping them from memory on close.
-  type symmetric-tag = handle;
+  resource symmetric-tag {}
 
   /// Options index, only required by the Interface Types translation layer.
   variant opt-options-u {

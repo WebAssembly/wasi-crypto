@@ -2,7 +2,10 @@ package wasi:crypto@0.0.1;
 
 interface wasi-ephemeral-crypto-symmetric {
   use wasi-ephemeral-crypto-common.{opt-options, symmetric-key, crypto-errno, size, array-output, secrets-manager, version, opt-symmetric-key, symmetric-state, %u64, symmetric-tag};
-  use wasi-ephemeral-crypto-todo-types.{todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false};
+
+  // Would have liked to keep this `symmetric-key-id`, but that overlaps with the function name
+  type stored-key-id = list<u8>;
+
   /// Generate a new symmetric key for a given algorithm.
   ///
   /// `options` can be `None` to use the default parameters, or an algorithm-specific set of parameters to override.
@@ -15,12 +18,7 @@ interface wasi-ephemeral-crypto-symmetric {
   /// The algorithm is internally stored along with the key, and trying to use the key with an operation expecting a different algorithm will return `invalid_key`.
   ///
   /// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
-  ///
-  ///
-  /// TODO: Fix 'raw'.
-  ///   Original WITX: Value(ConstPointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  symmetric-key-import: func(algorithm: string, raw: todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, raw-len: size) -> result<symmetric-key, crypto-errno>;
+  symmetric-key-import: func(algorithm: string, raw: list<u8>) -> result<symmetric-key, crypto-errno>;
 
   /// Export a symmetric key as raw material.
   ///
@@ -52,16 +50,10 @@ interface wasi-ephemeral-crypto-symmetric {
   /// __(optional)__
   /// Store a symmetric key into the secrets manager.
   ///
-  /// On success, the function stores the key identifier into `$symmetric_key_id`,
-  /// into which up to `$symmetric_key_id_max_len` can be written.
+  /// On success, the function returns the key identifier.
   ///
-  /// The function returns `overflow` if the supplied buffer is too small.
-  ///
-  ///
-  /// TODO: Fix 'symmetric-key-id'.
-  ///   Original WITX: Value(Pointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  symmetric-key-store-managed: func(secrets-manager: secrets-manager, symmetric-key: symmetric-key, symmetric-key-id: todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false, symmetric-key-id-max-len: size) -> result<_, crypto-errno>;
+  /// This is an optional import, meaning that the function may not even exist.
+  symmetric-key-store-managed: func(secrets-manager: secrets-manager, symmetric-key: symmetric-key) -> result<stored-key-id, crypto-errno>;
 
   /// __(optional)__
   /// Replace a managed symmetric key.
@@ -92,12 +84,7 @@ interface wasi-ephemeral-crypto-symmetric {
   /// If the key is not managed, `unsupported_feature` is returned instead.
   ///
   /// This is an optional import, meaning that the function may not even exist.
-  ///
-  ///
-  /// TODO: Fix 'symmetric-key-id'.
-  ///   Original WITX: Value(Pointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  symmetric-key-id: func(symmetric-key: symmetric-key, symmetric-key-id: todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false, symmetric-key-id-max-len: size) -> result<tuple<size, version>, crypto-errno>;
+  symmetric-key-id: func(symmetric-key: symmetric-key) -> result<tuple<stored-key-id, version>, crypto-errno>;
 
   /// __(optional)__
   /// Return a managed symmetric key from a key identifier.
@@ -107,12 +94,7 @@ interface wasi-ephemeral-crypto-symmetric {
   /// If no key matching the provided information is found, `not_found` is returned instead.
   ///
   /// This is an optional import, meaning that the function may not even exist.
-  ///
-  ///
-  /// TODO: Fix 'symmetric-key-id'.
-  ///   Original WITX: Value(ConstPointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  symmetric-key-from-id: func(secrets-manager: secrets-manager, symmetric-key-id: todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, symmetric-key-id-len: size, symmetric-key-version: version) -> result<symmetric-key, crypto-errno>;
+  symmetric-key-from-id: func(secrets-manager: secrets-manager, symmetric-key-id: stored-key-id, symmetric-key-version: version) -> result<symmetric-key, crypto-errno>;
 
   /// Create a new state to absorb and produce data using symmetric operations.
   ///
@@ -298,12 +280,7 @@ interface wasi-ephemeral-crypto-symmetric {
   /// The function may return `options_not_set` if an option was not set, which is different from an empty value.
   ///
   /// It may also return `unsupported_option` if the option doesn't exist for the chosen algorithm.
-  ///
-  ///
-  /// TODO: Fix 'value'.
-  ///   Original WITX: Value(Pointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  symmetric-state-options-get: func(handle: symmetric-state, name: string, value: todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false, value-max-len: size) -> result<size, crypto-errno>;
+  symmetric-state-options-get: func(handle: symmetric-state, name: string) -> result<list<u8>, crypto-errno>;
 
   /// Retrieve an integer parameter from the current state.
   ///
@@ -334,12 +311,7 @@ interface wasi-ephemeral-crypto-symmetric {
   /// If the chosen algorithm doesn't accept input data, the `invalid_operation` error code is returned.
   ///
   /// If too much data has been fed for the algorithm, `overflow` may be thrown.
-  ///
-  ///
-  /// TODO: Fix 'data'.
-  ///   Original WITX: Value(ConstPointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  symmetric-state-absorb: func(handle: symmetric-state, data: todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, data-len: size) -> result<_, crypto-errno>;
+  symmetric-state-absorb: func(handle: symmetric-state, data: list<u8>) -> result<_, crypto-errno>;
 
   /// Squeeze bytes from the state.
   ///
@@ -352,12 +324,7 @@ interface wasi-ephemeral-crypto-symmetric {
   ///
   /// For password-stretching functions, the function may return `in_progress`.
   /// In that case, the guest should retry with the same parameters until the function completes.
-  ///
-  ///
-  /// TODO: Fix 'out'.
-  ///   Original WITX: Value(Pointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  symmetric-state-squeeze: func(handle: symmetric-state, out: todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false, out-len: size) -> result<_, crypto-errno>;
+  symmetric-state-squeeze: func(handle: symmetric-state) -> result<list<u8>, crypto-errno>;
 
   /// Compute and return a tag for all the data injected into the state so far.
   ///
@@ -396,21 +363,10 @@ interface wasi-ephemeral-crypto-symmetric {
   /// - **AEAD:** encrypts `data` into `out`, including the authentication tag to the output. Additional data must have been previously absorbed using `symmetric_state_absorb()`. The `symmetric_state_max_tag_len()` function can be used to retrieve the overhead of adding the tag, as well as padding if necessary.
   /// - **SHOE, Xoodyak, Strobe:** encrypts data, squeezes a tag and appends it to the output.
   ///
-  /// If `out` and `data` are the same address, encryption may happen in-place.
-  ///
-  /// The function returns the actual size of the ciphertext along with the tag.
+  /// The function returns the ciphertext along with the tag.
   ///
   /// `invalid_operation` is returned for algorithms not supporting encryption.
-  ///
-  ///
-  /// TODO: Fix 'out'.
-  ///   Original WITX: Value(Pointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  ///
-  /// TODO: Fix 'data'.
-  ///   Original WITX: Value(ConstPointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  symmetric-state-encrypt: func(handle: symmetric-state, out: todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false, out-len: size, data: todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, data-len: size) -> result<size, crypto-errno>;
+  symmetric-state-encrypt: func(handle: symmetric-state, data: list<u8>) -> result<list<u8>, crypto-errno>;
 
   /// Encrypt data, with a detached tag.
   ///
@@ -418,45 +374,21 @@ interface wasi-ephemeral-crypto-symmetric {
   /// - **AEAD:** encrypts `data` into `out` and returns the tag separately. Additional data must have been previously absorbed using `symmetric_state_absorb()`. The output and input buffers must be of the same length.
   /// - **SHOE, Xoodyak, Strobe:** encrypts data and squeezes a tag.
   ///
-  /// If `out` and `data` are the same address, encryption may happen in-place.
-  ///
-  /// The function returns the tag.
+  /// The function returns the ciphertext and tag.
   ///
   /// `invalid_operation` is returned for algorithms not supporting encryption.
-  ///
-  ///
-  /// TODO: Fix 'out'.
-  ///   Original WITX: Value(Pointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  ///
-  /// TODO: Fix 'data'.
-  ///   Original WITX: Value(ConstPointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  symmetric-state-encrypt-detached: func(handle: symmetric-state, out: todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false, out-len: size, data: todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, data-len: size) -> result<symmetric-tag, crypto-errno>;
+  symmetric-state-encrypt-detached: func(handle: symmetric-state, data: list<u8>) -> result<tuple<list<u8>, symmetric-tag>, crypto-errno>;
 
   /// - **Stream cipher:** adds the input to the stream cipher output. `out_len` and `data_len` can be equal, as no authentication tags will be added.
   /// - **AEAD:** decrypts `data` into `out`. Additional data must have been previously absorbed using `symmetric_state_absorb()`.
   /// - **SHOE, Xoodyak, Strobe:** decrypts data, squeezes a tag and verify that it matches the one that was appended to the ciphertext.
   ///
-  /// If `out` and `data` are the same address, decryption may happen in-place.
-  ///
-  /// `out_len` must be exactly `data_len` + `max_tag_len` bytes.
-  ///
-  /// The function returns the actual size of the decrypted message, which can be smaller than `out_len` for modes that requires padding.
+  /// The function returns the decrypted message.
   ///
   /// `invalid_tag` is returned if the tag didn't verify.
   ///
   /// `invalid_operation` is returned for algorithms not supporting encryption.
-  ///
-  ///
-  /// TODO: Fix 'out'.
-  ///   Original WITX: Value(Pointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  ///
-  /// TODO: Fix 'data'.
-  ///   Original WITX: Value(ConstPointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  symmetric-state-decrypt: func(handle: symmetric-state, out: todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false, out-len: size, data: todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, data-len: size) -> result<size, crypto-errno>;
+  symmetric-state-decrypt: func(handle: symmetric-state, data: list<u8>) -> result<list<u8>, crypto-errno>;
 
   /// - **Stream cipher:** returns `invalid_operation` since stream ciphers do not include authentication tags.
   /// - **AEAD:** decrypts `data` into `out`. Additional data must have been previously absorbed using `symmetric_state_absorb()`.
@@ -464,28 +396,12 @@ interface wasi-ephemeral-crypto-symmetric {
   ///
   /// `raw_tag` is the expected tag, as raw bytes.
   ///
-  /// `out` and `data` be must have the same length.
-  /// If they also share the same address, decryption may happen in-place.
-  ///
-  /// The function returns the actual size of the decrypted message.
+  /// The function returns the decrypted message.
   ///
   /// `invalid_tag` is returned if the tag verification failed.
   ///
   /// `invalid_operation` is returned for algorithms not supporting encryption.
-  ///
-  ///
-  /// TODO: Fix 'out'.
-  ///   Original WITX: Value(Pointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  ///
-  /// TODO: Fix 'data'.
-  ///   Original WITX: Value(ConstPointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  ///
-  /// TODO: Fix 'raw-tag'.
-  ///   Original WITX: Value(ConstPointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  symmetric-state-decrypt-detached: func(handle: symmetric-state, out: todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false, out-len: size, data: todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, data-len: size, raw-tag: todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, raw-tag-len: size) -> result<size, crypto-errno>;
+  symmetric-state-decrypt-detached: func(handle: symmetric-state, data: list<u8>, raw-tag: list<u8>) -> result<list<u8>, crypto-errno>;
 
   /// Make it impossible to recover the previous state.
   ///
@@ -506,19 +422,9 @@ interface wasi-ephemeral-crypto-symmetric {
   /// Example usage:
   ///
   /// ```rust
-  /// let mut raw_tag = [0u8; 16];
-  /// ctx.symmetric_tag_pull(raw_tag_handle, &mut raw_tag)?;
+  /// let raw_tag = ctx.symmetric_tag_pull(raw_tag_handle)?;
   /// ```
-  ///
-  /// The function returns `overflow` if the supplied buffer is too small to copy the tag.
-  ///
-  /// Otherwise, it returns the number of bytes that have been copied.
-  ///
-  ///
-  /// TODO: Fix 'buf'.
-  ///   Original WITX: Value(Pointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  symmetric-tag-pull: func(symmetric-tag: symmetric-tag, buf: todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false, buf-len: size) -> result<size, crypto-errno>;
+  symmetric-tag-pull: func(symmetric-tag: symmetric-tag) -> result<list<u8>, crypto-errno>;
 
   /// Verify that a computed authentication tag matches the expected value, in constant-time.
   ///
@@ -535,12 +441,7 @@ interface wasi-ephemeral-crypto-symmetric {
   /// let computed_tag_handle = ctx.symmetric_state_squeeze_tag(state_handle)?;
   /// ctx.symmetric_tag_verify(computed_tag_handle, expected_raw_tag)?;
   /// ```
-  ///
-  ///
-  /// TODO: Fix 'expected-raw-tag-ptr'.
-  ///   Original WITX: Value(ConstPointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  symmetric-tag-verify: func(symmetric-tag: symmetric-tag, expected-raw-tag-ptr: todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, expected-raw-tag-len: size) -> result<_, crypto-errno>;
+  symmetric-tag-verify: func(symmetric-tag: symmetric-tag, expected-raw-tag: list<u8>) -> result<_, crypto-errno>;
 
   /// Explicitly destroy an unused authentication tag.
   ///

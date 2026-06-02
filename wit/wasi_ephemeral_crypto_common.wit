@@ -2,6 +2,9 @@ package wasi:crypto@0.0.1;
 
 interface wasi-ephemeral-crypto-common {
   use wasi-ephemeral-crypto-todo-types.{todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false};
+
+  type key-id = list<u8>;
+
   /// Error codes.
   variant crypto-errno {
     /// Operation succeeded.
@@ -204,21 +207,15 @@ interface wasi-ephemeral-crypto-common {
   }
 
   /// Version of a managed key.
-  ///
-  /// A version can be an arbitrary `u64` integer, with the exception of some reserved values.
-  type version = u64;
-
-  /// TODO: Constant
-  resource version-const {
-    /// Original Value: 18374686479671623680
+  variant version {
     /// Key doesn't support versioning.
-    unspecified: func() -> u64;
-    /// Original Value: 18374686479671623681
+    unspecified,
     /// Use the latest version of a key.
-    latest: func() -> u64;
-    /// Original Value: 18374686479671623682
+    latest,
     /// Perform an operation over all versions of a key.
-    all: func() -> u64;
+    all,
+    /// Specific version specifier
+    specified(u64)
   }
 
   /// Size of a value.
@@ -343,12 +340,7 @@ interface wasi-ephemeral-crypto-common {
   /// This is used to set algorithm-specific parameters, but also to provide credentials for the secrets management facilities, if required.
   ///
   /// This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
-  ///
-  ///
-  /// TODO: Fix 'value'.
-  ///   Original WITX: Value(ConstPointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  options-set: func(handle: options, name: string, value: todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, value-len: size) -> result<_, crypto-errno>;
+  options-set: func(handle: options, name: string, value: list<u8>) -> result<_, crypto-errno>;
 
   /// Set or update an integer option.
   ///
@@ -378,7 +370,7 @@ interface wasi-ephemeral-crypto-common {
   ///
   /// Multiple calls to that function can be made in order to consume the data in a streaming fashion, if necessary.
   ///
-  /// The function returns the number of bytes that were actually copied. `0` means that the end of the stream has been reached. The total size always matches the output of `array_output_len()`.
+  /// The function returns the copied bytes. A length of 0 means that the end of the stream has been reached.
   ///
   /// The handle is automatically closed after all the data has been consumed.
   ///
@@ -386,15 +378,9 @@ interface wasi-ephemeral-crypto-common {
   ///
   /// ```rust
   /// let len = array_output_len(output_handle)?;
-  /// let mut out = vec![0u8; len];
-  /// array_output_pull(output_handle, &mut out)?;
+  /// let out =  array_output_pull(output_handle)?;
   /// ```
-  ///
-  ///
-  /// TODO: Fix 'buf'.
-  ///   Original WITX: Value(Pointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  array-output-pull: func(array-output: array-output, buf: todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false, buf-len: size) -> result<size, crypto-errno>;
+  array-output-pull: func(array-output: array-output) -> result<list<u8>, crypto-errno>;
 
   /// __(optional)__
   /// Create a context to use a secrets manager.
@@ -422,10 +408,5 @@ interface wasi-ephemeral-crypto-common {
   /// The function returns `unsupported_feature` if this operation is not supported by the host, and `not_found` if the identifier and version don't match any existing key.
   ///
   /// This is an optional import, meaning that the function may not even exist.
-  ///
-  ///
-  /// TODO: Fix 'key-id'.
-  ///   Original WITX: Value(ConstPointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  secrets-manager-invalidate: func(secrets-manager: secrets-manager, key-id: todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, key-id-len: size, key-version: version) -> result<_, crypto-errno>;
+  secrets-manager-invalidate: func(secrets-manager: secrets-manager, key-id: key-id, key-version: version) -> result<_, crypto-errno>;
 }

@@ -2,7 +2,7 @@ package wasi:crypto@0.0.1;
 
 interface wasi-ephemeral-crypto-kx {
   use wasi-ephemeral-crypto-common.{keypair, publickey, secretkey, array-output, crypto-errno, size};
-  use wasi-ephemeral-crypto-todo-types.{todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false};
+ 
   /// `$kx_keypair` is just an alias for `$keypair`
   ///
   /// However, bindings may want to define a specialized type `kx_keypair` as a super class of `keypair`.
@@ -37,10 +37,5 @@ interface wasi-ephemeral-crypto-kx {
   /// Decapsulate an encapsulated secret created with `kx_encapsulate`
   ///
   /// Return the secret, or `$crypto_errno.verification_failed` on error.
-  ///
-  ///
-  /// TODO: Fix 'encapsulated-secret'.
-  ///   Original WITX: Value(ConstPointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  kx-decapsulate: func(sk: secretkey, encapsulated-secret: todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, encapsulated-secret-len: size) -> result<array-output, crypto-errno>;
+  kx-decapsulate: func(sk: secretkey, encapsulated-secret: list<u8>) -> result<array-output, crypto-errno>;
 }

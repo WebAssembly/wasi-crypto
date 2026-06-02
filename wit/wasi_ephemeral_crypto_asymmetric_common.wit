@@ -2,7 +2,9 @@ package wasi:crypto@0.0.1;
 
 interface wasi-ephemeral-crypto-asymmetric-common {
   use wasi-ephemeral-crypto-common.{algorithm-type, opt-options, keypair, crypto-errno, size, keypair-encoding, secrets-manager, version, publickey, secretkey, array-output, publickey-encoding, secretkey-encoding};
-  use wasi-ephemeral-crypto-todo-types.{todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false};
+
+  type kp-id = list<u8>;
+
   /// Generate a new key pair.
   ///
   /// Internally, a key pair stores the supplied algorithm and optional parameters.
@@ -36,12 +38,7 @@ interface wasi-ephemeral-crypto-asymmetric-common {
   /// ```rust
   /// let kp_handle = ctx.keypair_import(AlgorithmType::Signatures, "RSA_PKCS1_2048_SHA256", KeypairEncoding::PKCS8)?;
   /// ```
-  ///
-  ///
-  /// TODO: Fix 'encoded'.
-  ///   Original WITX: Value(ConstPointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  keypair-import: func(algorithm-type: algorithm-type, algorithm: string, encoded: todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, encoded-len: size, encoding: keypair-encoding) -> result<keypair, crypto-errno>;
+  keypair-import: func(algorithm-type: algorithm-type, algorithm: string, encoded: list<u8>, encoding: keypair-encoding) -> result<keypair, crypto-errno>;
 
   /// __(optional)__
   /// Generate a new managed key pair.
@@ -61,16 +58,8 @@ interface wasi-ephemeral-crypto-asymmetric-common {
   /// __(optional)__
   /// Store a key pair into the secrets manager.
   ///
-  /// On success, the function stores the key pair identifier into `$kp_id`,
-  /// into which up to `$kp_id_max_len` can be written.
-  ///
-  /// The function returns `overflow` if the supplied buffer is too small.
-  ///
-  ///
-  /// TODO: Fix 'kp-id'.
-  ///   Original WITX: Value(Pointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  keypair-store-managed: func(secrets-manager: secrets-manager, kp: keypair, kp-id: todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false, kp-id-max-len: size) -> result<_, crypto-errno>;
+  /// On success, the function returns the key pair identifier
+  keypair-store-managed: func(secrets-manager: secrets-manager, kp: keypair) -> result<kp-id, crypto-errno>;
 
   /// __(optional)__
   /// Replace a managed key pair.
@@ -101,12 +90,7 @@ interface wasi-ephemeral-crypto-asymmetric-common {
   /// If the key pair is not managed, `unsupported_feature` is returned instead.
   ///
   /// This is an optional import, meaning that the function may not even exist.
-  ///
-  ///
-  /// TODO: Fix 'kp-id'.
-  ///   Original WITX: Value(Pointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  keypair-id: func(kp: keypair, kp-id: todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false, kp-id-max-len: size) -> result<tuple<size, version>, crypto-errno>;
+  keypair-id: func(kp: keypair) -> result<tuple<kp-id, version>, crypto-errno>;
 
   /// __(optional)__
   /// Return a managed key pair from a key identifier.
@@ -116,12 +100,7 @@ interface wasi-ephemeral-crypto-asymmetric-common {
   /// If no key pair matching the provided information is found, `not_found` is returned instead.
   ///
   /// This is an optional import, meaning that the function may not even exist.
-  ///
-  ///
-  /// TODO: Fix 'kp-id'.
-  ///   Original WITX: Value(ConstPointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  keypair-from-id: func(secrets-manager: secrets-manager, kp-id: todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, kp-id-len: size, kp-version: version) -> result<keypair, crypto-errno>;
+  keypair-from-id: func(secrets-manager: secrets-manager, kp-id: kp-id, kp-version: version) -> result<keypair, crypto-errno>;
 
   /// Create a key pair from a public key and a secret key.
   keypair-from-pk-and-sk: func(publickey: publickey, secretkey: secretkey) -> result<keypair, crypto-errno>;
@@ -157,12 +136,7 @@ interface wasi-ephemeral-crypto-asymmetric-common {
   /// ```rust
   /// let pk_handle = ctx.publickey_import(AlgorithmType::Signatures, encoded, PublicKeyEncoding::Sec)?;
   /// ```
-  ///
-  ///
-  /// TODO: Fix 'encoded'.
-  ///   Original WITX: Value(ConstPointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  publickey-import: func(algorithm-type: algorithm-type, algorithm: string, encoded: todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, encoded-len: size, encoding: publickey-encoding) -> result<publickey, crypto-errno>;
+  publickey-import: func(algorithm-type: algorithm-type, algorithm: string, encoded: list<u8>, encoding: publickey-encoding) -> result<publickey, crypto-errno>;
 
   /// Export a public key as the given encoding format.
   ///
@@ -197,12 +171,7 @@ interface wasi-ephemeral-crypto-asymmetric-common {
   /// ```rust
   /// let pk_handle = ctx.secretkey_import(AlgorithmType::KX, encoded, SecretKeyEncoding::Raw)?;
   /// ```
-  ///
-  ///
-  /// TODO: Fix 'encoded'.
-  ///   Original WITX: Value(ConstPointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  secretkey-import: func(algorithm-type: algorithm-type, algorithm: string, encoded: todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, encoded-len: size, encoding: secretkey-encoding) -> result<secretkey, crypto-errno>;
+  secretkey-import: func(algorithm-type: algorithm-type, algorithm: string, encoded: list<u8>, encoding: secretkey-encoding) -> result<secretkey, crypto-errno>;
 
   /// Export a secret key as the given encoding format.
   ///

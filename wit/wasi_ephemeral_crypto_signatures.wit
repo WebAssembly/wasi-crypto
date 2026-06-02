@@ -2,7 +2,7 @@ package wasi:crypto@0.0.1;
 
 interface wasi-ephemeral-crypto-signatures {
   use wasi-ephemeral-crypto-common.{keypair, publickey, secretkey, signature, signature-encoding, array-output, crypto-errno, size, signature-state, signature-verification-state};
-  use wasi-ephemeral-crypto-todo-types.{todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false};
+
   /// `$signature_keypair` is just an alias for `$keypair`
   ///
   /// However, bindings may want to define a specialized type `signature_keypair` as a super class of `keypair`, with additional methods such as `sign`.
@@ -38,12 +38,7 @@ interface wasi-ephemeral-crypto-signatures {
   /// ```rust
   /// let signature_handle = ctx.signature_import("ECDSA_P256_SHA256", SignatureEncoding::DER, encoded)?;
   /// ```
-  ///
-  ///
-  /// TODO: Fix 'encoded'.
-  ///   Original WITX: Value(ConstPointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  signature-import: func(algorithm: string, encoded: todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, encoded-len: size, encoding: signature-encoding) -> result<signature, crypto-errno>;
+  signature-import: func(algorithm: string, encoded: list<u8>, encoding: signature-encoding) -> result<signature, crypto-errno>;
 
   /// Create a new state to collect data to compute a signature on.
   ///
@@ -66,12 +61,7 @@ interface wasi-ephemeral-crypto-signatures {
   /// Absorb data into the signature state.
   ///
   /// This function may return `unsupported_feature` if the selected algorithm doesn't support incremental updates.
-  ///
-  ///
-  /// TODO: Fix 'input'.
-  ///   Original WITX: Value(ConstPointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  signature-state-update: func(state: signature-state, input: todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, input-len: size) -> result<_, crypto-errno>;
+  signature-state-update: func(state: signature-state, input: list<u8>) -> result<_, crypto-errno>;
 
   /// Compute a signature for all the data collected up to that point.
   ///
@@ -105,12 +95,7 @@ interface wasi-ephemeral-crypto-signatures {
   /// Absorb data into the signature verification state.
   ///
   /// This function may return `unsupported_feature` if the selected algorithm doesn't support incremental updates.
-  ///
-  ///
-  /// TODO: Fix 'input'.
-  ///   Original WITX: Value(ConstPointer(Value(Builtin(U8 { lang_c_char: false })))).
-  ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  signature-verification-state-update: func(state: signature-verification-state, input: todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, input-len: size) -> result<_, crypto-errno>;
+  signature-verification-state-update: func(state: signature-verification-state, input: list<u8>) -> result<_, crypto-errno>;
 
   /// Check that the given signature verifies for the data collected up to that point.
   ///

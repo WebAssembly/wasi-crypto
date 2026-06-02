@@ -1,0 +1,6 @@
+package wasi:crypto@0.0.1;
+
+interface wasi-ephemeral-crypto-todo-types {
+  type todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false = string;
+  type todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false = string;
+}

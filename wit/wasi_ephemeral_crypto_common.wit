@@ -1,6 +1,7 @@
 package wasi:crypto@0.0.1;
 
 interface wasi-ephemeral-crypto-common {
+  use wasi-ephemeral-crypto-todo-types.{todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false};
   /// Error codes.
   variant crypto-errno {
     /// Operation succeeded.
@@ -208,7 +209,7 @@ interface wasi-ephemeral-crypto-common {
   type version = u64;
 
   /// TODO: Constant
-  resource version {
+  resource version-const {
     /// Original Value: 18374686479671623680
     /// Key doesn't support versioning.
     unspecified: func() -> u64;

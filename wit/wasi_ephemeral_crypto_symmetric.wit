@@ -1,6 +1,8 @@
 package wasi:crypto@0.0.1;
 
 interface wasi-ephemeral-crypto-symmetric {
+  use wasi-ephemeral-crypto-common.{opt-options, symmetric-key, crypto-errno, size, array-output, secrets-manager, version, opt-symmetric-key, symmetric-state, %u64, symmetric-tag};
+  use wasi-ephemeral-crypto-todo-types.{todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false};
   /// Generate a new symmetric key for a given algorithm.
   ///
   /// `options` can be `None` to use the default parameters, or an algorithm-specific set of parameters to override.

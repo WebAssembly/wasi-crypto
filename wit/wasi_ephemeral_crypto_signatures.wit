@@ -1,6 +1,8 @@
 package wasi:crypto@0.0.1;
 
 interface wasi-ephemeral-crypto-signatures {
+  use wasi-ephemeral-crypto-common.{keypair, publickey, secretkey, signature, signature-encoding, array-output, crypto-errno, size, signature-state, signature-verification-state};
+  use wasi-ephemeral-crypto-todo-types.{todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false};
   /// `$signature_keypair` is just an alias for `$keypair`
   ///
   /// However, bindings may want to define a specialized type `signature_keypair` as a super class of `keypair`, with additional methods such as `sign`.

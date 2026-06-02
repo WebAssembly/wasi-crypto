@@ -2,7 +2,8 @@ package wasi:crypto@0.0.1;
 
 /// Symmetric Batch Operations
 interface wasi-ephemeral-crypto-symmetric-batch {
-  /// An output buffer
+  use wasi-ephemeral-crypto-common.{out-buffer, size, in-buffer, crypto-errno, symmetric-tag, symmetric-state};
+  use wasi-ephemeral-crypto-todo-types.{todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false};
   type output = out-buffer;
   type output-len = size;
 

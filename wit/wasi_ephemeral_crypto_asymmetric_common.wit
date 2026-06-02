@@ -1,6 +1,8 @@
 package wasi:crypto@0.0.1;
 
 interface wasi-ephemeral-crypto-asymmetric-common {
+  use wasi-ephemeral-crypto-common.{algorithm-type, opt-options, keypair, crypto-errno, size, keypair-encoding, secrets-manager, version, publickey, secretkey, array-output, publickey-encoding, secretkey-encoding};
+  use wasi-ephemeral-crypto-todo-types.{todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false};
   /// Generate a new key pair.
   ///
   /// Internally, a key pair stores the supplied algorithm and optional parameters.

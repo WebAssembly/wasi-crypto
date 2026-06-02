@@ -2,43 +2,43 @@ package wasi:crypto@0.0.1;
 
 interface wasi-ephemeral-crypto-kx {
   /// `$kx_keypair` is just an alias for `$keypair`
-  /// 
+  ///
   /// However, bindings may want to define a specialized type `kx_keypair` as a super class of `keypair`.
   type kx-keypair = keypair;
 
   /// `$kx_publickey` is just an alias for `$publickey`
-  /// 
+  ///
   /// However, bindings may want to define a specialized type `kx_publickey` as a super class of `publickey`, with additional methods such as `dh`.
   type kx-publickey = publickey;
 
   /// `$kx_secretkey` is just an alias for `$secretkey`
-  /// 
+  ///
   /// However, bindings may want to define a specialized type `kx_secretkey` as a super class of `secretkey`, with additional methods such as `dh`.
   type kx-secretkey = secretkey;
 
   /// Perform a simple Diffie-Hellman key exchange.
-  /// 
+  ///
   /// Both keys must be of the same type, or else the `$crypto_errno.incompatible_keys` error is returned.
   /// The algorithm also has to support this kind of key exchange. If this is not the case, the `$crypto_errno.invalid_operation` error is returned.
-  /// 
+  ///
   /// Otherwise, a raw shared key is returned, and can be imported as a symmetric key.
   kx-dh: func(pk: publickey, sk: secretkey) -> result<array-output, crypto-errno>;
 
   /// Create a shared secret and encrypt it for the given public key.
-  /// 
+  ///
   /// This operation is only compatible with specific algorithms.
   /// If a selected algorithm doesn't support it, `$crypto_errno.invalid_operation` is returned.
-  /// 
+  ///
   /// On success, both the shared secret and its encrypted version are returned.
   kx-encapsulate: func(pk: publickey) -> result<tuple<array-output, array-output>, crypto-errno>;
 
   /// Decapsulate an encapsulated secret created with `kx_encapsulate`
-  /// 
+  ///
   /// Return the secret, or `$crypto_errno.verification_failed` on error.
-  /// 
-  /// 
+  ///
+  ///
   /// TODO: Fix 'encapsulated-secret'.
   ///   Original WITX: Value(ConstPointer(Value(Builtin(U8 { lang_c_char: false })))).
   ///   Reason: WIT does not support raw memory addresses. Use 'list' or 'resource'.
-  kx-decapsulate: func(sk: secretkey, encapsulated-secret: todo-from-witx-value-constpointer-value-builtin-u8--lang-c-char-false, encapsulated-secret-len: size) -> result<array-output, crypto-errno>;
+  kx-decapsulate: func(sk: secretkey, encapsulated-secret: todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, encapsulated-secret-len: size) -> result<array-output, crypto-errno>;
 }

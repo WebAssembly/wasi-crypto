@@ -150,7 +150,7 @@ interface wasi-ephemeral-crypto-common {
     expired,
   }
   /// Encoding to use for importing or exporting a key pair.
-  variant keypair-encoding {
+  enum keypair-encoding {
     /// Raw bytes.
     raw,
     /// PKCS8/DER encoding.
@@ -162,7 +162,7 @@ interface wasi-ephemeral-crypto-common {
   }
 
   /// Encoding to use for importing or exporting a public key.
-  variant publickey-encoding {
+  enum publickey-encoding {
     /// Raw bytes.
     raw,
     /// PKCS8/DER encoding.
@@ -176,7 +176,7 @@ interface wasi-ephemeral-crypto-common {
   }
 
   /// Encoding to use for importing or exporting a secret key.
-  variant secretkey-encoding {
+  enum secretkey-encoding {
     /// Raw bytes.
     raw,
     /// PKCS8/DER encoding.
@@ -190,7 +190,7 @@ interface wasi-ephemeral-crypto-common {
   }
 
   /// Encoding to use for importing or exporting a signature.
-  variant signature-encoding {
+  enum signature-encoding {
     /// Raw bytes.
     raw,
     /// DER encoding.
@@ -198,7 +198,7 @@ interface wasi-ephemeral-crypto-common {
   }
 
   /// An algorithm category.
-  variant algorithm-type {
+  enum algorithm-type {
     signatures,
     symmetric,
     key-exchange,
@@ -294,7 +294,7 @@ interface wasi-ephemeral-crypto-common {
   resource symmetric-tag {}
 
   /// Options index, only required by the Interface Types translation layer.
-  variant opt-options-u {
+  enum opt-options-u {
     some,
     none,
   }
@@ -305,7 +305,7 @@ interface wasi-ephemeral-crypto-common {
   type opt-options = option<options>;
 
   /// Symmetric key index, only required by the Interface Types translation layer.
-  variant opt-symmetric-key-u {
+  enum opt-symmetric-key-u {
     some,
     none,
   }

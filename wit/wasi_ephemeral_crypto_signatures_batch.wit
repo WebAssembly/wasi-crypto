@@ -1,146 +1,20 @@
 package wasi:crypto@0.0.1;
 
 interface wasi-ephemeral-crypto-signatures-batch {
-  /// Error codes.
-  variant crypto-errno {
-    /// Operation succeeded.
-    success,
-    /// An error occurred during a conversion from a host type to a guest type.
-    /// 
-    /// Only an internal bug can throw this error.
-    guest-error,
-    /// The requested operation is valid, but not implemented by the host.
-    not-implemented,
-    /// The requested feature is not supported by the chosen algorithm.
-    unsupported-feature,
-    /// The requested operation is valid, but was administratively prohibited.
-    prohibited-operation,
-    /// Unsupported encoding for an import or export operation.
-    unsupported-encoding,
-    /// The requested algorithm is not supported by the host.
-    unsupported-algorithm,
-    /// The requested option is not supported by the currently selected algorithm.
-    unsupported-option,
-    /// An invalid or incompatible key was supplied.
-    /// 
-    /// The key may not be valid, or was generated for a different algorithm or parameters set.
-    invalid-key,
-    /// The currently selected algorithm doesn't support the requested output length.
-    /// 
-    /// This error is thrown by non-extensible hash functions, when requesting an output size larger than they produce out of a single block.
-    invalid-length,
-    /// A signature or authentication tag verification failed.
-    verification-failed,
-    /// A secure random numbers generator is not available.
-    /// 
-    /// The requested operation requires random numbers, but the host cannot securely generate them at the moment.
-    rng-error,
-    /// An error was returned by the underlying cryptography library.
-    /// 
-    /// The host may be running out of memory, parameters may be incompatible with the chosen implementation of an algorithm or another unexpected error may have happened.
-    /// 
-    /// Ideally, the specification should provide enough details and guidance to make this error impossible to ever be thrown.
-    /// 
-    /// Realistically, the WASI crypto module cannot possibly cover all possible error types implementations can return, especially since some of these may be language-specific.
-    /// This error can thus be thrown when other error types are not suitable, and when the original error comes from the cryptographic primitives themselves and not from the WASI module.
-    algorithm-failure,
-    /// The supplied signature is invalid, or incompatible with the chosen algorithm.
-    invalid-signature,
-    /// An attempt was made to close a handle that was already closed.
-    closed,
-    /// A function was called with an unassigned handle, a closed handle, or handle of an unexpected type.
-    invalid-handle,
-    /// The host needs to copy data to a guest-allocated buffer, but that buffer is too small.
-    overflow,
-    /// An internal error occurred.
-    /// 
-    /// This error is reserved to internal consistency checks, and must only be sent if the internal state of the host remains safe after an inconsistency was detected.
-    internal-error,
-    /// Too many handles are currently open, and a new one cannot be created.
-    /// 
-    /// Implementations are free to represent handles as they want, and to enforce limits to limit resources usage.
-    too-many-handles,
-    /// A key was provided, but the chosen algorithm doesn't support keys.
-    /// 
-    /// This is returned by symmetric operations.
-    /// 
-    /// Many hash functions, in particular, do not support keys without being used in particular constructions.
-    /// Blindly ignoring a key provided by mistake while trying to open a context for such as function could cause serious security vulnerabilities.
-    /// 
-    /// These functions must refuse to create the context and return this error instead.
-    key-not-supported,
-    /// A key is required for the chosen algorithm, but none was given.
-    key-required,
-    /// The provided authentication tag is invalid or incompatible with the current algorithm.
-    /// 
-    /// This error is returned by decryption functions and tag verification functions.
-    /// 
-    /// Unlike `verification_failed`, this error code is returned when the tag cannot possibly verify for any input.
-    invalid-tag,
-    /// The requested operation is incompatible with the current scheme.
-    /// 
-    /// For example, the `symmetric_state_encrypt()` function cannot complete if the selected construction is a key derivation function.
-    /// This error code will be returned instead.
-    invalid-operation,
-    /// A nonce is required.
-    /// 
-    /// Most encryption schemes require a nonce.
-    /// 
-    /// In the absence of a nonce, the WASI cryptography module can automatically generate one, if that can be done safely. The nonce can be retrieved later with the `symmetric_state_option_get()` function using the `nonce` parameter.
-    /// If automatically generating a nonce cannot be done safely, the module never falls back to an insecure option and requests an explicit nonce by throwing that error.
-    nonce-required,
-    /// The provided nonce doesn't have a correct size for the given cipher.
-    invalid-nonce,
-    /// The named option was not set.
-    /// 
-    /// The caller tried to read the value of an option that was not set.
-    /// This error is used to make the distinction between an empty option, and an option that was not set and left to its default value.
-    option-not-set,
-    /// A key or key pair matching the requested identifier cannot be found using the supplied information.
-    /// 
-    /// This error is returned by a secrets manager via the `keypair_from_id()` function.
-    not-found,
-    /// The algorithm requires parameters that haven't been set.
-    /// 
-    /// Non-generic options are required and must be given by building an `options` set and giving that object to functions instantiating that algorithm.
-    parameters-missing,
-    /// A requested computation is not done yet, and additional calls to the function are required.
-    /// 
-    /// Some functions, such as functions generating key pairs and password stretching functions, can take a long time to complete.
-    /// 
-    /// In order to avoid a host call to be blocked for too long, these functions can return prematurely, requiring additional calls with the same parameters until they complete.
-    in-progress,
-    /// Multiple keys have been provided, but they do not share the same type.
-    /// 
-    /// This error is returned when trying to build a key pair from a public key and a secret key that were created for different and incompatible algorithms.
-    incompatible-keys,
-    /// A managed key or secret expired and cannot be used any more.
-    expired,
-  }
-  /// Handle for functions returning output whose size may be large or not known in advance.
-  /// 
-  /// An `array_output` object contains a host-allocated byte array.
-  /// 
-  /// A guest can get the size of that array after a function returns in order to then allocate a buffer of the correct size.
-  /// In addition, the content of such an object can be consumed by a guest in a streaming fashion.
-  /// 
-  /// An `array_output` handle is automatically closed after its full content has been consumed.
-  type array-output = handle;
-  /// A signature.
-  type signature = handle;
-  /// A state to absorb data to be signed.
-  /// 
-  /// After a signature has been computed or verified, the state remains valid for further operations.
-  /// 
-  /// A subsequent signature would sign all the data accumulated since the creation of the state object.
-  type signature-state = handle;
-  /// A state to absorb signed data to be verified.
-  type signature-verification-state = handle;
-  type temp = todo-from-witx-namedtype--name-id-signature-sign-result--module-moduleid-witx-wasi-ephemeral-crypto-signatures-batch-witx--tref-value-record-recorddatatype--kind-tuple-members--recordmember--name-id-0--tref-name-namedtype--name-id-array-output--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-handle-handledatatype--resource-id-resourceid--name-id-handle--module-id-moduleid-witx-wasi-ephemeral-crypto-common-witx-----docs--handle-for-functions-returning-output-whose-size-may-be-large-or-not-known-in-advance-n-nan-array-output-object-contains-a-host-allocated-byte-array-n-na-guest-can-get-the-size-of-that-array-after-a-function-returns-in-order-to-then-allocate-a-buffer-of-the-correct-size-nin-addition-the-content-of-such-an-object-can-be-consumed-by-a-guest-in-a-streaming-fashion-n-nan-array-output-handle-is-automatically-closed-after-its-full-content-has-been-consumed-n---docs----recordmember--name-id-1--tref-name-namedtype--name-id-crypto-errno--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-variant-variant--tag-repr-u16-cases--case--name-id-success--tref-none-docs--operation-succeeded-n---case--name-id-guest-error--tref-none-docs--an-error-occurred-during-a-conversion-from-a-host-type-to-a-guest-type-n-nonly-an-internal-bug-can-throw-this-error-n---case--name-id-not-implemented--tref-none-docs--the-requested-operation-is-valid-but-not-implemented-by-the-host-n---case--name-id-unsupported-feature--tref-none-docs--the-requested-feature-is-not-supported-by-the-chosen-algorithm-n---case--name-id-prohibited-operation--tref-none-docs--the-requested-operation-is-valid-but-was-administratively-prohibited-n---case--name-id-unsupported-encoding--tref-none-docs--unsupported-encoding-for-an-import-or-export-operation-n---case--name-id-unsupported-algorithm--tref-none-docs--the-requested-algorithm-is-not-supported-by-the-host-n---case--name-id-unsupported-option--tref-none-docs--the-requested-option-is-not-supported-by-the-currently-selected-algorithm-n---case--name-id-invalid-key--tref-none-docs--an-invalid-or-incompatible-key-was-supplied-n-nthe-key-may-not-be-valid-or-was-generated-for-a-different-algorithm-or-parameters-set-n---case--name-id-invalid-length--tref-none-docs--the-currently-selected-algorithm-doesn-t-support-the-requested-output-length-n-nthis-error-is-thrown-by-non-extensible-hash-functions-when-requesting-an-output-size-larger-than-they-produce-out-of-a-single-block-n---case--name-id-verification-failed--tref-none-docs--a-signature-or-authentication-tag-verification-failed-n---case--name-id-rng-error--tref-none-docs--a-secure-random-numbers-generator-is-not-available-n-nthe-requested-operation-requires-random-numbers-but-the-host-cannot-securely-generate-them-at-the-moment-n---case--name-id-algorithm-failure--tref-none-docs--an-error-was-returned-by-the-underlying-cryptography-library-n-nthe-host-may-be-running-out-of-memory-parameters-may-be-incompatible-with-the-chosen-implementation-of-an-algorithm-or-another-unexpected-error-may-have-happened-n-nideally-the-specification-should-provide-enough-details-and-guidance-to-make-this-error-impossible-to-ever-be-thrown-n-nrealistically-the-wasi-crypto-module-cannot-possibly-cover-all-possible-error-types-implementations-can-return-especially-since-some-of-these-may-be-language-specific-nthis-error-can-thus-be-thrown-when-other-error-types-are-not-suitable-and-when-the-original-error-comes-from-the-cryptographic-primitives-themselves-and-not-from-the-wasi-module-n---case--name-id-invalid-signature--tref-none-docs--the-supplied-signature-is-invalid-or-incompatible-with-the-chosen-algorithm-n---case--name-id-closed--tref-none-docs--an-attempt-was-made-to-close-a-handle-that-was-already-closed-n---case--name-id-invalid-handle--tref-none-docs--a-function-was-called-with-an-unassigned-handle-a-closed-handle-or-handle-of-an-unexpected-type-n---case--name-id-overflow--tref-none-docs--the-host-needs-to-copy-data-to-a-guest-allocated-buffer-but-that-buffer-is-too-small-n---case--name-id-internal-error--tref-none-docs--an-internal-error-occurred-n-nthis-error-is-reserved-to-internal-consistency-checks-and-must-only-be-sent-if-the-internal-state-of-the-host-remains-safe-after-an-inconsistency-was-detected-n---case--name-id-too-many-handles--tref-none-docs--too-many-handles-are-currently-open-and-a-new-one-cannot-be-created-n-nimplementations-are-free-to-represent-handles-as-they-want-and-to-enforce-limits-to-limit-resources-usage-n---case--name-id-key-not-supported--tref-none-docs--a-key-was-provided-but-the-chosen-algorithm-doesn-t-support-keys-n-nthis-is-returned-by-symmetric-operations-n-nmany-hash-functions-in-particular-do-not-support-keys-without-being-used-in-particular-constructions-nblindly-ignoring-a-key-provided-by-mistake-while-trying-to-open-a-context-for-such-as-function-could-cause-serious-security-vulnerabilities-n-nthese-functions-must-refuse-to-create-the-context-and-return-this-error-instead-n---case--name-id-key-required--tref-none-docs--a-key-is-required-for-the-chosen-algorithm-but-none-was-given-n---case--name-id-invalid-tag--tref-none-docs--the-provided-authentication-tag-is-invalid-or-incompatible-with-the-current-algorithm-n-nthis-error-is-returned-by-decryption-functions-and-tag-verification-functions-n-nunlike-verification-failed--this-error-code-is-returned-when-the-tag-cannot-possibly-verify-for-any-input-n---case--name-id-invalid-operation--tref-none-docs--the-requested-operation-is-incompatible-with-the-current-scheme-n-nfor-example-the-symmetric-state-encrypt--function-cannot-complete-if-the-selected-construction-is-a-key-derivation-function-nthis-error-code-will-be-returned-instead-n---case--name-id-nonce-required--tref-none-docs--a-nonce-is-required-n-nmost-encryption-schemes-require-a-nonce-n-nin-the-absence-of-a-nonce-the-wasi-cryptography-module-can-automatically-generate-one-if-that-can-be-done-safely-the-nonce-can-be-retrieved-later-with-the-symmetric-state-option-get--function-using-the-nonce-parameter-nif-automatically-generating-a-nonce-cannot-be-done-safely-the-module-never-falls-back-to-an-insecure-option-and-requests-an-explicit-nonce-by-throwing-that-error-n---case--name-id-invalid-nonce--tref-none-docs--the-provided-nonce-doesn-t-have-a-correct-size-for-the-given-cipher-n---case--name-id-option-not-set--tref-none-docs--the-named-option-was-not-set-n-nthe-caller-tried-to-read-the-value-of-an-option-that-was-not-set-nthis-error-is-used-to-make-the-distinction-between-an-empty-option-and-an-option-that-was-not-set-and-left-to-its-default-value-n---case--name-id-not-found--tref-none-docs--a-key-or-key-pair-matching-the-requested-identifier-cannot-be-found-using-the-supplied-information-n-nthis-error-is-returned-by-a-secrets-manager-via-the-keypair-from-id--function-n---case--name-id-parameters-missing--tref-none-docs--the-algorithm-requires-parameters-that-haven-t-been-set-n-nnon-generic-options-are-required-and-must-be-given-by-building-an-options-set-and-giving-that-object-to-functions-instantiating-that-algorithm-n---case--name-id-in-progress--tref-none-docs--a-requested-computation-is-not-done-yet-and-additional-calls-to-the-function-are-required-n-nsome-functions-such-as-functions-generating-key-pairs-and-password-stretching-functions-can-take-a-long-time-to-complete-n-nin-order-to-avoid-a-host-call-to-be-blocked-for-too-long-these-functions-can-return-prematurely-requiring-additional-calls-with-the-same-parameters-until-they-complete-n---case--name-id-incompatible-keys--tref-none-docs--multiple-keys-have-been-provided-but-they-do-not-share-the-same-type-n-nthis-error-is-returned-when-trying-to-build-a-key-pair-from-a-public-key-and-a-secret-key-that-were-created-for-different-and-incompatible-algorithms-n---case--name-id-expired--tref-none-docs--a-managed-key-or-secret-expired-and-cannot-be-used-any-more-n-----docs--error-codes-n---docs-------docs--the-result-of-a-signature-sign-operation-a-pair-of-the-signature-and-an-error-code-n;
+  /// The result of a signature sign operation. A pair of the signature and an error code.
+  type signature-sign-result = tuple<array-output, crypto-errno>;
+
   /// A list of signature_sign results.
   type signature-results = list<signature-sign-result>;
-  type temp = todo-from-witx-namedtype--name-id-signature-verification-input--module-moduleid-witx-wasi-ephemeral-crypto-signatures-batch-witx--tref-value-record-recorddatatype--kind-tuple-members--recordmember--name-id-0--tref-name-namedtype--name-id-signature-verification-state--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-handle-handledatatype--resource-id-resourceid--name-id-handle--module-id-moduleid-witx-wasi-ephemeral-crypto-common-witx-----docs--a-state-to-absorb-signed-data-to-be-verified-n---docs----recordmember--name-id-1--tref-name-namedtype--name-id-signature--module-moduleid-witx-wasi-ephemeral-crypto-common-witx--tref-value-handle-handledatatype--resource-id-resourceid--name-id-handle--module-id-moduleid-witx-wasi-ephemeral-crypto-common-witx-----docs--a-signature-n---docs-------docs--a-tuple-of-a-signature-verification-state-and-the-signature-to-verify-n-nused-for-grouping-signature-verification-state-to-be-verified-with-the-signature-to-verify-nused-with-batch-signature-state-verify--n;
+
+  /// A tuple of a signature verification state and the signature to verify.
+  /// 
+  /// Used for grouping signature verification state to be verified with the signature to verify.
+  /// Used with batch_signature_state_verify().
+  type signature-verification-input = tuple<signature-verification-state, signature>;
+
   type signature-verification-results = list<crypto-errno>;
+
   /// Compute a batch of signatures.
   /// 
   /// This is a batch version of the signature_state_sign operation and is an extension of the wasi_ephemeral_crypto_signatures module.
@@ -182,6 +56,7 @@ interface wasi-ephemeral-crypto-signatures-batch {
   /// let raw_sig2 = signature_export(sig_handle[1], SignatureEncoding::Raw)?;
   /// ```
   batch-signature-state-sign: func(states: list<signature-state>) -> result<signature-results, crypto-errno>;
+
   /// Verify a batch of signatures.
   /// 
   /// This is a batch version of the signature_state_verify operation and is

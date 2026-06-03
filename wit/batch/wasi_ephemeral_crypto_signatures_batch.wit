@@ -2,7 +2,7 @@ package wasi:crypto@0.0.1;
 
 interface wasi-ephemeral-crypto-signatures-batch {
   use wasi-ephemeral-crypto-common.{array-output, crypto-errno, signature-verification-state, signature, signature-state};
-  use wasi-ephemeral-crypto-todo-types.{todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false};
+
   /// The result of a signature sign operation. A pair of the signature and an error code.
   type signature-sign-result = tuple<array-output, crypto-errno>;
 
@@ -13,7 +13,7 @@ interface wasi-ephemeral-crypto-signatures-batch {
   ///
   /// Used for grouping signature verification state to be verified with the signature to verify.
   /// Used with batch_signature_state_verify().
-  type signature-verification-input = tuple<signature-verification-state, signature>;
+  type signature-verification-input = tuple<borrow<signature-verification-state>, borrow<signature>>;
 
   type signature-verification-results = list<crypto-errno>;
 
@@ -57,7 +57,7 @@ interface wasi-ephemeral-crypto-signatures-batch {
   /// let raw_sig1 = signature_export(sig_handle[0], SignatureEncoding::Raw)?;
   /// let raw_sig2 = signature_export(sig_handle[1], SignatureEncoding::Raw)?;
   /// ```
-  batch-signature-state-sign: func(states: list<signature-state>) -> result<signature-results, crypto-errno>;
+  batch-signature-state-sign: func(states: list<borrow<signature-state>>) -> result<signature-results, crypto-errno>;
 
   /// Verify a batch of signatures.
   ///

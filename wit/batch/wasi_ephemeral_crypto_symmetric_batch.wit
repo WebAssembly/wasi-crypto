@@ -2,33 +2,33 @@ package wasi:crypto@0.0.1;
 
 /// Symmetric Batch Operations
 interface wasi-ephemeral-crypto-symmetric-batch {
-  use wasi-ephemeral-crypto-common.{out-buffer, size, in-buffer, crypto-errno, symmetric-tag, symmetric-state};
-  use wasi-ephemeral-crypto-todo-types.{todo-from-witx-value-constpointer-value-builtin-u8-lang-c-char-false, todo-from-witx-value-pointer-value-builtin-u8-lang-c-char-false};
-  type output = out-buffer;
-  type output-len = size;
+  use wasi-ephemeral-crypto-common.{size, crypto-errno, symmetric-tag, symmetric-state};
+
+  type output = list<u8>;
 
   /// A non-mutable data buffer
-  type data = in-buffer;
-  type data-len = size;
+  type data = list<u8>;
 
   /// A raw tag buffer
-  type raw-tag = in-buffer;
-  type raw-tag-len = size;
+  type raw-tag = list<u8>;
 
-  /// Tuple representing results and size produced by an encrypt/decrypt operation.
-  type crypt-result = tuple<size, crypto-errno>;
+  /// Tuple representing results and output buffers produced by an encrypt/decrypt operation.
+  type crypt-result = tuple<output, crypto-errno>;
 
   /// A list of results from the individual encrypt/decrypt operations within a batch operation.
   type batch-crypt-results = list<crypt-result>;
 
   /// Tuple representing results and size produced by a detached encrypt operation.
-  type encrypt-detached-result = tuple<symmetric-tag, crypto-errno>;
+  type encrypt-detached-result = tuple<output, symmetric-tag, crypto-errno>;
 
   /// A list of results from the individual encrypt/decrypt operations within a batch operation.
   type batch-encrypt-detached-results = list<encrypt-detached-result>;
 
+  /// Tuple representing results and size produced by a squeeze operation.
+  type squeeze-result = tuple<output, crypto-errno>;
+
   /// A list of results from squeeze operation within a batch operation.
-  type batch-squeeze-results = list<crypto-errno>;
+  type batch-squeeze-results = list<squeeze-result>;
 
   /// Tuple representing results and tag and error produced by a detached squeeze operation.
   type squeeze-detached-result = tuple<symmetric-tag, crypto-errno>;
@@ -56,7 +56,7 @@ interface wasi-ephemeral-crypto-symmetric-batch {
   /// codes that represent the status of the operation in the input list at
   /// the same list offset.
   ///
-  batch-symmetric-state-squeeze: func(batch: list<tuple<symmetric-state, data, data-len>>) -> result<batch-squeeze-results, crypto-errno>;
+  batch-symmetric-state-squeeze: func(batch: list<borrow<symmetric-state>>) -> result<batch-squeeze-results, crypto-errno>;
 
   /// Batch of operations to compute and return a tag for all the data
   /// injected into the state so far.
@@ -83,7 +83,7 @@ interface wasi-ephemeral-crypto-symmetric-batch {
   /// tag generated from the squeeze operation. The tag is only valid if the
   /// tuple's error code is `success`.
   ///
-  batch-symmetric-state-squeeze-tag: func(states: list<symmetric-state>) -> result<batch-squeeze-detached-results, crypto-errno>;
+  batch-symmetric-state-squeeze-tag: func(states: list<borrow<symmetric-state>>) -> result<batch-squeeze-detached-results, crypto-errno>;
 
   /// Perform a batch of symmetric encrypt operations.
   ///
@@ -125,7 +125,7 @@ interface wasi-ephemeral-crypto-symmetric-batch {
   ///
   /// let results = ctx.batch_symmetric_state_encrypt(batch)?;
   /// ```
-  batch-symmetric-state-encrypt: func(batch: list<tuple<symmetric-state, output, output-len, data, data-len>>) -> result<batch-crypt-results, crypto-errno>;
+  batch-symmetric-state-encrypt: func(batch: list<tuple<borrow<symmetric-state>, data>>) -> result<batch-crypt-results, crypto-errno>;
 
   /// Perform a batch of symmetric encrypt operations with detached tags.
   ///
@@ -168,7 +168,7 @@ interface wasi-ephemeral-crypto-symmetric-batch {
   ///
   /// let results = ctx.batch_symmetric_state_encrypt_detached(batch)?;
   /// ```
-  batch-symmetric-state-encrypt-detached: func(batch: list<tuple<symmetric-state, output, output-len, data, data-len>>) -> result<batch-encrypt-detached-results, crypto-errno>;
+  batch-symmetric-state-encrypt-detached: func(batch: list<tuple<borrow<symmetric-state>, data>>) -> result<batch-encrypt-detached-results, crypto-errno>;
 
   /// Perform a batch of symmetric decrypt operations.
   ///
@@ -195,7 +195,8 @@ interface wasi-ephemeral-crypto-symmetric-batch {
   /// the actual size of the decrypted data in the output buffer. The size
   /// value is only valid if the tuple's error code is `success`.
   ///
-  batch-symmetric-state-decrypt: func(batch: list<tuple<symmetric-state, output, output-len, data, data-len>>) -> result<batch-crypt-results, crypto-errno>;
+  batch-symmetric-state-decrypt: func(batch: list<tuple<borrow<symmetric-state>, data>>) -> result<batch-crypt-results, crypto-errno>;
+
   /// Perform a batch of symmetric decrypt operations with detached tags.
   ///
   /// This is a batch version of the symmetric_state_decrypt_detached operation.
@@ -221,5 +222,5 @@ interface wasi-ephemeral-crypto-symmetric-batch {
   /// the actual size of the decrypted data in the output buffer. The size
   /// value is only valid if the tuple's error code is `success`.
   ///
-  batch-symmetric-state-decrypt-detached: func(batch: list<tuple<symmetric-state, output, output-len, data, data-len, raw-tag, raw-tag-len>>) -> result<batch-crypt-results, crypto-errno>;
+  batch-symmetric-state-decrypt-detached: func(batch: list<tuple<borrow<symmetric-state>, data, raw-tag>>) -> result<batch-crypt-results, crypto-errno>;
 }

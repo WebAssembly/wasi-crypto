@@ -235,7 +235,7 @@ In addition, an implementation MAY allow these signatures to be serialized using
 
 |           | Signature key pair                                                                                 | Secret key                                                | Public key                                                |
 | --------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | --------------------------------------------------------- |
-| Ed25519   | raw (secret key + public key encoded as in RFC8032)                                               | raw (cf. RFC8032)                                         | raw (cf. RFC8032)                                         |
+| Ed25519   | raw (secret key + public key encoded as in RFC8032)                                                | raw (cf. RFC8032)                                         | raw (cf. RFC8032)                                         |
 | X25519    | N/A                                                                                                | raw (cf. RFC7748)                                         | raw (cf. RFC7748)                                         |
 | p256      | raw secret scalar encoded as big endian, SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |
 | p384      | raw secret scalar encoded as big endian, SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |

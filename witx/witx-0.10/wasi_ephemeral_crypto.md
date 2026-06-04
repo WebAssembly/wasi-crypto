@@ -270,7 +270,7 @@ Alias for `handle`.
 
 > A state to perform symmetric operations.
 > 
-> The state is not reset nor invalidated after an option has been performed.
+> The state is not reset nor invalidated after an operation has been performed.
 > Incremental updates and sessions are thus supported.
 
 
@@ -732,7 +732,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > __(optional)__
 > Replace a managed key pair.
 > 
-> This function crates a new version of a managed key pair, by replacing `$kp_old` with `$kp_new`.
+> This function creates a new version of a managed key pair, by replacing `$kp_old` with `$kp_new`.
 > 
 > It does several things:
 > 
@@ -800,7 +800,6 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > If no key pair matching the provided information is found, `not_found` is returned instead.
 > 
 > This is an optional import, meaning that the function may not even exist.
-> ```
 
 
 ---
@@ -1018,7 +1017,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > Example usage:
 > 
 > ```rust
-> let pk_handle = ctx.secretkey_import(AlgorithmType::KX, encoded, SecretKeyEncoding::Raw)?;
+> let sk_handle = ctx.secretkey_import(AlgorithmType::KX, encoded, SecretKeyEncoding::Raw)?;
 > ```
 
 
@@ -1224,12 +1223,12 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > __(optional)__
 > Replace a managed symmetric key.
 > 
-> This function creates a new version of a managed symmetric key, by replacing `$kp_old` with `$kp_new`.
+> This function creates a new version of a managed symmetric key, by replacing `$symmetric_key_old` with `$symmetric_key_new`.
 > 
 > It does several things:
 > 
 > - The key identifier for `$symmetric_key_new` is set to the one of `$symmetric_key_old`.
-> - A new, unique version identifier is assigned to `$kp_new`. This version will be equivalent to using `$version_latest` until the key is replaced.
+> - A new, unique version identifier is assigned to `$symmetric_key_new`. This version will be equivalent to using `$version_latest` until the key is replaced.
 > - The `$symmetric_key_old` handle is closed.
 > 
 > Both keys must share the same algorithm and have compatible parameters. If this is not the case, `incompatible_keys` is returned.
@@ -1287,7 +1286,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > __(optional)__
 > Return a managed symmetric key from a key identifier.
 > 
-> `kp_version` can be set to `version_latest` to retrieve the most recent version of a symmetric key.
+> `symmetric_key_version` can be set to `version_latest` to retrieve the most recent version of a symmetric key.
 > 
 > If no key matching the provided information is found, `not_found` is returned instead.
 > 
@@ -1337,7 +1336,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > - If it is safe to do so, the host will automatically generate a nonce. This is true for nonces that are large enough to be randomly generated, or if the host is able to maintain a global counter.
 > - If not, the function will fail and return the dedicated `nonce_required` error code.
 > 
-> A nonce that was automatically generated can be retrieved after the function returns with `symmetric_state_get(state_handle, "nonce")`.
+> A nonce that was automatically generated can be retrieved after the function returns with `symmetric_state_options_get(state_handle, "nonce")`.
 > 
 > **Sample usage patterns:**
 > 
@@ -1413,21 +1412,21 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > let mut subkey2 = vec![0u8; 32];
 > let key_handle = ctx.symmetric_key_import("BLAKE3", b"key")?;
 > let state_handle = ctx.symmetric_state_open("BLAKE3", Some(key_handle), None)?;
-> ctx.symmetric_absorb(state_handle, b"context")?;
-> ctx.squeeze(state_handle, &mut subkey1)?;
-> ctx.squeeze(state_handle, &mut subkey2)?;
+> ctx.symmetric_state_absorb(state_handle, b"context")?;
+> ctx.symmetric_state_squeeze(state_handle, &mut subkey1)?;
+> ctx.symmetric_state_squeeze(state_handle, &mut subkey2)?;
 > ```
 > 
 > - **Password hashing**
 > 
 > ```rust
 > let mut memory = vec![0u8; 1_000_000_000];
-> let options_handle = ctx.symmetric_options_open()?;
-> ctx.symmetric_options_set_guest_buffer(options_handle, "memory", &mut memory)?;
-> ctx.symmetric_options_set_u64(options_handle, "opslimit", 5)?;
-> ctx.symmetric_options_set_u64(options_handle, "parallelism", 8)?;
+> let options_handle = ctx.options_open(AlgorithmType::Symmetric)?;
+> ctx.options_set_guest_buffer(options_handle, "memory", &mut memory)?;
+> ctx.options_set_u64(options_handle, "opslimit", 5)?;
+> ctx.options_set_u64(options_handle, "parallelism", 8)?;
 > 
-> let state_handle = ctx.symmetric_state_open("ARGON2-ID-13", None, Some(options))?;
+> let state_handle = ctx.symmetric_state_open("ARGON2-ID-13", None, Some(options_handle))?;
 > ctx.symmetric_state_absorb(state_handle, b"password")?;
 > 
 > let pw_str_handle = ctx.symmetric_state_squeeze_tag(state_handle)?;
@@ -1441,8 +1440,8 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > let key_handle = ctx.symmetric_key_generate("AES-256-GCM", None)?;
 > let message = b"test";
 > 
-> let options_handle = ctx.symmetric_options_open()?;
-> ctx.symmetric_options_set(options_handle, "nonce", nonce)?;
+> let options_handle = ctx.options_open(AlgorithmType::Symmetric)?;
+> ctx.options_set(options_handle, "nonce", nonce)?;
 > 
 > let state_handle = ctx.symmetric_state_open("AES-256-GCM", Some(key_handle), Some(options_handle))?;
 > let mut ciphertext = vec![0u8; message.len() + ctx.symmetric_state_max_tag_len(state_handle)?];
@@ -1506,7 +1505,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > 
 > In particular, `symmetric_state_options_get("nonce")` can be used to get a nonce that was automatically generated.
 > 
-> The function may return `options_not_set` if an option was not set, which is different from an empty value.
+> The function may return `option_not_set` if an option was not set, which is different from an empty value.
 > 
 > It may also return `unsupported_option` if the option doesn't exist for the chosen algorithm.
 
@@ -1527,7 +1526,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 > Retrieve an integer parameter from the current state.
 > 
-> The function may return `options_not_set` if an option was not set.
+> The function may return `option_not_set` if an option was not set.
 > 
 > It may also return `unsupported_option` if the option doesn't exist for the chosen algorithm.
 
@@ -1608,7 +1607,7 @@ This function has no output.
 
 > Squeeze bytes from the state.
 > 
-> - **Hash functions:** this tries to output an `out_len` bytes digest from the absorbed data. The hash function output will be truncated if necessary. If the requested size is too large, the `invalid_len` error code is returned.
+> - **Hash functions:** this tries to output an `out_len` bytes digest from the absorbed data. The hash function output will be truncated if necessary. If the requested size is too large, the `invalid_length` error code is returned.
 > - **Key derivation functions:** : outputs an arbitrary-long derived key.
 > - **RNGs, DRBGs, stream ciphers:**: outputs arbitrary-long data.
 > - **Stateful hash objects, permutation-based constructions:** squeeze.
@@ -1661,7 +1660,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > Use the current state to produce a key for a target algorithm.
 > 
 > For extract-then-expand constructions, this returns the PRK.
-> For session-base authentication encryption, this returns a key that can be used to resume a session without storing a nonce.
+> For session-based authentication encryption, this returns a key that can be used to resume a session without storing a nonce.
 > 
 > `invalid_operation` is returned for algorithms not supporting this operation.
 
@@ -1773,9 +1772,9 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > 
 > If `out` and `data` are the same address, decryption may happen in-place.
 > 
-> `out_len` must be exactly `data_len` + `max_tag_len` bytes.
+> `out_len` must be exactly `data_len` - `symmetric_state_max_tag_len()` bytes.
 > 
-> The function returns the actual size of the decrypted message, which can be smaller than `out_len` for modes that requires padding.
+> The function returns the actual size of the decrypted message, which can be smaller than `out_len` for modes that require padding.
 > 
 > `invalid_tag` is returned if the tag didn't verify.
 > 
@@ -2083,7 +2082,7 @@ This function has no output.
 
 > Absorb data into the signature state.
 > 
-> This function may return `unsupported_feature` is the selected algorithm doesn't support incremental updates.
+> This function may return `unsupported_feature` if the selected algorithm doesn't support incremental updates.
 
 
 ---
@@ -2119,7 +2118,7 @@ This function has no output.
 > 
 > Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
 > 
-> Note that closing a signature state doesn't close or invalidate the key pair object, that be reused for further signatures.
+> Note that closing a signature state doesn't close or invalidate the key pair object, that can be reused for further signatures.
 
 
 ---
@@ -2148,7 +2147,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > let signature_handle = ctx.signature_import(AlgorithmType::Signatures, "ECDSA_P256_SHA256", encoded_sig, SignatureEncoding::Der)?;
 > let state_handle = ctx.signature_verification_state_open(pk_handle)?;
 > ctx.signature_verification_state_update(state_handle, "message")?;
-> ctx.signature_verification_state_verify(signature_handle)?;
+> ctx.signature_verification_state_verify(state_handle, signature_handle)?;
 > ```
 
 
@@ -2167,7 +2166,7 @@ This function has no output.
 
 > Absorb data into the signature verification state.
 > 
-> This function may return `unsupported_feature` is the selected algorithm doesn't support incremental updates.
+> This function may return `unsupported_feature` if the selected algorithm doesn't support incremental updates.
 
 
 ---
@@ -2182,7 +2181,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 This function has no output.
 
-> Check that the given signature is verifies for the data collected up to that point point.
+> Check that the given signature verifies for the data collected up to that point.
 > 
 > The state is not closed and can absorb more data to allow for incremental verification.
 > 
@@ -2204,7 +2203,7 @@ This function has no output.
 > 
 > Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
 > 
-> Note that closing a signature state doesn't close or invalidate the public key object, that be reused for further verifications.
+> Note that closing a signature state doesn't close or invalidate the public key object, that can be reused for further verifications.
 
 
 ---
@@ -2271,7 +2270,7 @@ Alias for `handle`.
 
 > `$kx_secretkey` is just an alias for `$secretkey`
 > 
-> However, bindings may want to define a specialized type `kx_secretkey` as a super class of `secretkeykey`, with additional methods such as `dh`.
+> However, bindings may want to define a specialized type `kx_secretkey` as a super class of `secretkey`, with additional methods such as `dh`.
 
 
 ---
@@ -2295,8 +2294,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > Both keys must be of the same type, or else the `$crypto_errno.incompatible_keys` error is returned.
 > The algorithm also has to support this kind of key exchange. If this is not the case, the `$crypto_errno.invalid_operation` error is returned.
 > 
-> Otherwide, a raw shared key is returned, and can be imported as a symmetric key.
-> ```
+> Otherwise, a raw shared key is returned, and can be imported as a symmetric key.
 
 
 ---
@@ -2336,7 +2334,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 * _[`array_output`](#array_output)_ mutable pointer
 
-> Decapsulate an encapsulated secret crated with `kx_encapsulate`
+> Decapsulate an encapsulated secret created with `kx_encapsulate`
 > 
 > Return the secret, or `$crypto_errno.verification_failed` on error.
 
@@ -2380,7 +2378,7 @@ This function has no output.
 > An expiration date is mandatory.
 > 
 > On success, the secret identifier is put into `$secret_id` if it fits into `$secret_id_max_len` bytes.
-> If the supplied ouptut buffer is too small, `$overflow` is returned.
+> If the supplied output buffer is too small, `$overflow` is returned.
 > 
 > If this function is not supported by the host the `$unsupported_feature` error is returned.
 
@@ -2403,7 +2401,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 * _[`version`](#version)_ mutable pointer
 
-> Replace a managed external with a new version.
+> Replace a managed external secret with a new version.
 > 
 > `$expiration` is the expiration date of the secret as a UNIX timestamp, in seconds.
 > An expiration date is mandatory.

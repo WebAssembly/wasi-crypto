@@ -129,7 +129,7 @@ Alias for `u64`.
 
 > Version of a managed key.
 > 
-> A version can be an arbitrary `u64` integer, with the expection of some reserved values.
+> A version can be an arbitrary `u64` integer, with the exception of some reserved values.
 
 
 ---
@@ -265,7 +265,7 @@ Alias for `handle`.
 
 > A state to perform symmetric operations.
 > 
-> The state is not reset nor invalidated after an option has been performed.
+> The state is not reset nor invalidated after an operation has been performed.
 > Incremental updates and sessions are thus supported.
 
 
@@ -296,7 +296,7 @@ Alias for `handle`.
 > 
 > This object type can't be directly created from raw bytes. They are only returned by functions computing MACs.
 > 
-> The host is reponsible for securely wiping them from memory on close.
+> The host is responsible for securely wiping them from memory on close.
 
 
 ---
@@ -485,7 +485,7 @@ This function has no output.
 
 > Absorb data into the signature state.
 > 
-> This function may return `unsupported_feature` is the selected algorithm doesn't support incremental updates.
+> This function may return `unsupported_feature` if the selected algorithm doesn't support incremental updates.
 
 
 ---
@@ -521,7 +521,7 @@ This function has no output.
 > 
 > Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
 > 
-> Note that closing a signature state doesn't close or invalidate the key pair object, that be reused for further signatures.
+> Note that closing a signature state doesn't close or invalidate the key pair object, that can be reused for further signatures.
 
 
 ---
@@ -550,7 +550,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > let signature_handle = ctx.signature_import(AlgorithmType::Signatures, "ECDSA_P256_SHA256", encoded_sig, SignatureEncoding::Der)?;
 > let state_handle = ctx.signature_verification_state_open(pk_handle)?;
 > ctx.signature_verification_state_update(state_handle, "message")?;
-> ctx.signature_verification_state_verify(signature_handle)?;
+> ctx.signature_verification_state_verify(state_handle, signature_handle)?;
 > ```
 
 
@@ -569,7 +569,7 @@ This function has no output.
 
 > Absorb data into the signature verification state.
 > 
-> This function may return `unsupported_feature` is the selected algorithm doesn't support incremental updates.
+> This function may return `unsupported_feature` if the selected algorithm doesn't support incremental updates.
 
 
 ---
@@ -584,7 +584,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 This function has no output.
 
-> Check that the given signature is verifies for the data collected up to that point point.
+> Check that the given signature verifies for the data collected up to that point.
 > 
 > The state is not closed and can absorb more data to allow for incremental verification.
 > 
@@ -606,7 +606,7 @@ This function has no output.
 > 
 > Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
 > 
-> Note that closing a signature state doesn't close or invalidate the public key object, that be reused for further verifications.
+> Note that closing a signature state doesn't close or invalidate the public key object, that can be reused for further verifications.
 
 
 ---

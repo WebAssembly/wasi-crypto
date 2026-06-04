@@ -129,7 +129,7 @@ Alias for `u64`.
 
 > Version of a managed key.
 > 
-> A version can be an arbitrary `u64` integer, with the expection of some reserved values.
+> A version can be an arbitrary `u64` integer, with the exception of some reserved values.
 
 
 ---
@@ -265,7 +265,7 @@ Alias for `handle`.
 
 > A state to perform symmetric operations.
 > 
-> The state is not reset nor invalidated after an option has been performed.
+> The state is not reset nor invalidated after an operation has been performed.
 > Incremental updates and sessions are thus supported.
 
 
@@ -296,7 +296,7 @@ Alias for `handle`.
 > 
 > This object type can't be directly created from raw bytes. They are only returned by functions computing MACs.
 > 
-> The host is reponsible for securely wiping them from memory on close.
+> The host is responsible for securely wiping them from memory on close.
 
 
 ---
@@ -468,7 +468,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 > Batch of operations to squeeze bytes from the state.
 > 
-> - **Hash functions:** this tries to output an `out_len` bytes digest from the absorbed data. The hash function output will be truncated if necessary. If the requested size is too large, the `invalid_len` error code is returned.
+> - **Hash functions:** this tries to output an `out_len` bytes digest from the absorbed data. The hash function output will be truncated if necessary. If the requested size is too large, the `invalid_length` error code is returned.
 > - **Key derivation functions:** : outputs an arbitrary-long derived key.
 > - **RNGs, DRBGs, stream ciphers:**: outputs arbitrary-long data.
 > - **Stateful hash objects, permutation-based constructions:** squeeze.

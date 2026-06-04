@@ -108,7 +108,7 @@
             ;;;
             ;;; Most encryption schemes require a nonce.
             ;;;
-            ;;; In the absence of a nonce, the WASI cryptography module can automatically generate one, if that can be done safely. The nonce can be retrieved later with the `symmetric_state_option_get()` function using the `nonce` parameter.
+            ;;; In the absence of a nonce, the WASI cryptography module can automatically generate one, if that can be done safely. The nonce can be retrieved later with the `symmetric_state_options_get()` function using the `nonce` parameter.
             ;;; If automatically generating a nonce cannot be done safely, the module never falls back to an insecure option and requests an explicit nonce by throwing that error.
             $nonce_required
 
@@ -295,7 +295,7 @@
 
     ;;; A state to perform symmetric operations.
     ;;;
-    ;;; The state is not reset nor invalidated after an option has been performed.
+    ;;; The state is not reset nor invalidated after an operation has been performed.
     ;;; Incremental updates and sessions are thus supported.
     (typename $symmetric_state (handle $handle))
 

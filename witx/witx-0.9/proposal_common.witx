@@ -4,7 +4,7 @@
         ;;; Operation succeeded.
         $success
 
-        ;;; An error occurred when trying to during a conversion from a host type to a guest type.
+        ;;; An error occurred when trying to convert from a host type to a guest type.
         ;;;
         ;;; Only an internal bug can throw this error.
         $guest_error
@@ -107,7 +107,7 @@
         ;;;
         ;;; Most encryption schemes require a nonce.
         ;;;
-        ;;; In the absence of a nonce, the WASI cryptography module can automatically generate one, if that can be done safely. The nonce can be retrieved later with the `symmetric_state_option_get()` function using the `nonce` parameter.
+        ;;; In the absence of a nonce, the WASI cryptography module can automatically generate one, if that can be done safely. The nonce can be retrieved later with the `symmetric_state_options_get()` function using the `nonce` parameter.
         ;;; If automatically generating a nonce cannot be done safely, the module never falls back to an insecure option and requests an explicit nonce by throwing that error.
         $nonce_required
 
@@ -153,7 +153,7 @@
         ;;; Raw bytes.
         $raw
 
-        ;;; PCSK8/DER encoding.
+        ;;; PKCS8/DER encoding.
         $pkcs8
 
         ;;; PEM encoding.
@@ -226,7 +226,7 @@
 
 ;;; Version of a managed key.
 ;;;
-;;; A version can be an arbitrary `u64` integer, with the expection of some reserved values.
+;;; A version can be an arbitrary `u64` integer, with the exception of some reserved values.
 (typename $version u64)
 ;;; Key doesn't support versioning.
 (@witx const $version $unspecified 0xff00000000000000)
@@ -289,7 +289,7 @@
 
 ;;; A state to perform symmetric operations.
 ;;;
-;;; The state is not reset nor invalidated after an option has been performed.
+;;; The state is not reset nor invalidated after an operation has been performed.
 ;;; Incremental updates and sessions are thus supported.
 (typename $symmetric_state (handle))
 
@@ -308,7 +308,7 @@
 ;;;
 ;;; This object type can't be directly created from raw bytes. They are only returned by functions computing MACs.
 ;;;
-;;; The host is reponsible for securely wiping them from memory on close.
+;;; The host is responsible for securely wiping them from memory on close.
 (typename $symmetric_tag (handle))
 
 ;;; Options index, only required by the Interface Types translation layer.

@@ -265,7 +265,7 @@ Alias for `handle`.
 
 > A state to perform symmetric operations.
 > 
-> The state is not reset nor invalidated after an option has been performed.
+> The state is not reset nor invalidated after an operation has been performed.
 > Incremental updates and sessions are thus supported.
 
 
@@ -501,12 +501,12 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > __(optional)__
 > Replace a managed symmetric key.
 > 
-> This function creates a new version of a managed symmetric key, by replacing `$kp_old` with `$kp_new`.
+> This function creates a new version of a managed symmetric key, by replacing `$symmetric_key_old` with `$symmetric_key_new`.
 > 
 > It does several things:
 > 
 > - The key identifier for `$symmetric_key_new` is set to the one of `$symmetric_key_old`.
-> - A new, unique version identifier is assigned to `$kp_new`. This version will be equivalent to using `$version_latest` until the key is replaced.
+> - A new, unique version identifier is assigned to `$symmetric_key_new`. This version will be equivalent to using `$version_latest` until the key is replaced.
 > - The `$symmetric_key_old` handle is closed.
 > 
 > Both keys must share the same algorithm and have compatible parameters. If this is not the case, `incompatible_keys` is returned.
@@ -564,7 +564,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > __(optional)__
 > Return a managed symmetric key from a key identifier.
 > 
-> `kp_version` can be set to `version_latest` to retrieve the most recent version of a symmetric key.
+> `symmetric_key_version` can be set to `version_latest` to retrieve the most recent version of a symmetric key.
 > 
 > If no key matching the provided information is found, `not_found` is returned instead.
 > 
@@ -614,7 +614,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > - If it is safe to do so, the host will automatically generate a nonce. This is true for nonces that are large enough to be randomly generated, or if the host is able to maintain a global counter.
 > - If not, the function will fail and return the dedicated `nonce_required` error code.
 > 
-> A nonce that was automatically generated can be retrieved after the function returns with `symmetric_state_get(state_handle, "nonce")`.
+> A nonce that was automatically generated can be retrieved after the function returns with `symmetric_state_options_get(state_handle, "nonce")`.
 > 
 > **Sample usage patterns:**
 > 
@@ -690,21 +690,21 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > let mut subkey2 = vec![0u8; 32];
 > let key_handle = ctx.symmetric_key_import("BLAKE3", b"key")?;
 > let state_handle = ctx.symmetric_state_open("BLAKE3", Some(key_handle), None)?;
-> ctx.symmetric_absorb(state_handle, b"context")?;
-> ctx.squeeze(state_handle, &mut subkey1)?;
-> ctx.squeeze(state_handle, &mut subkey2)?;
+> ctx.symmetric_state_absorb(state_handle, b"context")?;
+> ctx.symmetric_state_squeeze(state_handle, &mut subkey1)?;
+> ctx.symmetric_state_squeeze(state_handle, &mut subkey2)?;
 > ```
 > 
 > - **Password hashing**
 > 
 > ```rust
 > let mut memory = vec![0u8; 1_000_000_000];
-> let options_handle = ctx.symmetric_options_open()?;
-> ctx.symmetric_options_set_guest_buffer(options_handle, "memory", &mut memory)?;
-> ctx.symmetric_options_set_u64(options_handle, "opslimit", 5)?;
-> ctx.symmetric_options_set_u64(options_handle, "parallelism", 8)?;
+> let options_handle = ctx.options_open(AlgorithmType::Symmetric)?;
+> ctx.options_set_guest_buffer(options_handle, "memory", &mut memory)?;
+> ctx.options_set_u64(options_handle, "opslimit", 5)?;
+> ctx.options_set_u64(options_handle, "parallelism", 8)?;
 > 
-> let state_handle = ctx.symmetric_state_open("ARGON2-ID-13", None, Some(options))?;
+> let state_handle = ctx.symmetric_state_open("ARGON2-ID-13", None, Some(options_handle))?;
 > ctx.symmetric_state_absorb(state_handle, b"password")?;
 > 
 > let pw_str_handle = ctx.symmetric_state_squeeze_tag(state_handle)?;
@@ -718,8 +718,8 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > let key_handle = ctx.symmetric_key_generate("AES-256-GCM", None)?;
 > let message = b"test";
 > 
-> let options_handle = ctx.symmetric_options_open()?;
-> ctx.symmetric_options_set(options_handle, "nonce", nonce)?;
+> let options_handle = ctx.options_open(AlgorithmType::Symmetric)?;
+> ctx.options_set(options_handle, "nonce", nonce)?;
 > 
 > let state_handle = ctx.symmetric_state_open("AES-256-GCM", Some(key_handle), Some(options_handle))?;
 > let mut ciphertext = vec![0u8; message.len() + ctx.symmetric_state_max_tag_len(state_handle)?];
@@ -783,7 +783,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > 
 > In particular, `symmetric_state_options_get("nonce")` can be used to get a nonce that was automatically generated.
 > 
-> The function may return `options_not_set` if an option was not set, which is different from an empty value.
+> The function may return `option_not_set` if an option was not set, which is different from an empty value.
 > 
 > It may also return `unsupported_option` if the option doesn't exist for the chosen algorithm.
 
@@ -804,7 +804,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 > Retrieve an integer parameter from the current state.
 > 
-> The function may return `options_not_set` if an option was not set.
+> The function may return `option_not_set` if an option was not set.
 > 
 > It may also return `unsupported_option` if the option doesn't exist for the chosen algorithm.
 
@@ -885,7 +885,7 @@ This function has no output.
 
 > Squeeze bytes from the state.
 > 
-> - **Hash functions:** this tries to output an `out_len` bytes digest from the absorbed data. The hash function output will be truncated if necessary. If the requested size is too large, the `invalid_len` error code is returned.
+> - **Hash functions:** this tries to output an `out_len` bytes digest from the absorbed data. The hash function output will be truncated if necessary. If the requested size is too large, the `invalid_length` error code is returned.
 > - **Key derivation functions:** : outputs an arbitrary-long derived key.
 > - **RNGs, DRBGs, stream ciphers:**: outputs arbitrary-long data.
 > - **Stateful hash objects, permutation-based constructions:** squeeze.
@@ -1050,9 +1050,9 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > 
 > If `out` and `data` are the same address, decryption may happen in-place.
 > 
-> `out_len` must be exactly `data_len` + `max_tag_len` bytes.
+> `out_len` must be exactly `data_len` - `symmetric_state_max_tag_len()` bytes.
 > 
-> The function returns the actual size of the decrypted message, which can be smaller than `out_len` for modes that requires padding.
+> The function returns the actual size of the decrypted message, which can be smaller than `out_len` for modes that require padding.
 > 
 > `invalid_tag` is returned if the tag didn't verify.
 > 

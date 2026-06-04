@@ -270,7 +270,7 @@ Alias for `handle`.
 
 > A state to perform symmetric operations.
 > 
-> The state is not reset nor invalidated after an option has been performed.
+> The state is not reset nor invalidated after an operation has been performed.
 > Incremental updates and sessions are thus supported.
 
 

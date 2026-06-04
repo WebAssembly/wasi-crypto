@@ -129,7 +129,7 @@ Alias for `u64`.
 
 > Version of a managed key.
 > 
-> A version can be an arbitrary `u64` integer, with the expection of some reserved values.
+> A version can be an arbitrary `u64` integer, with the exception of some reserved values.
 
 
 ---
@@ -265,7 +265,7 @@ Alias for `handle`.
 
 > A state to perform symmetric operations.
 > 
-> The state is not reset nor invalidated after an option has been performed.
+> The state is not reset nor invalidated after an operation has been performed.
 > Incremental updates and sessions are thus supported.
 
 
@@ -296,7 +296,7 @@ Alias for `handle`.
 > 
 > This object type can't be directly created from raw bytes. They are only returned by functions computing MACs.
 > 
-> The host is reponsible for securely wiping them from memory on close.
+> The host is responsible for securely wiping them from memory on close.
 
 
 ---
@@ -373,7 +373,7 @@ This function has no output.
 > An expiration date is mandatory.
 > 
 > On success, the secret identifier is put into `$secret_id` if it fits into `$secret_id_max_len` bytes.
-> If the supplied ouptut buffer is too small, `$overflow` is returned.
+> If the supplied output buffer is too small, `$overflow` is returned.
 > 
 > If this function is not supported by the host the `$unsupported_feature` error is returned.
 
@@ -396,7 +396,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 * _[`version`](#version)_ mutable pointer
 
-> Replace a managed external with a new version.
+> Replace a managed external secret with a new version.
 > 
 > `$expiration` is the expiration date of the secret as a UNIX timestamp, in seconds.
 > An expiration date is mandatory.

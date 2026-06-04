@@ -12,7 +12,7 @@
 
 ;;; `$kx_secretkey` is just an alias for `$secretkey`
 ;;;
-;;; However, bindings may want to define a specialized type `kx_secretkey` as a super class of `secretkeykey`, with additional methods such as `dh`.
+;;; However, bindings may want to define a specialized type `kx_secretkey` as a super class of `secretkey`, with additional methods such as `dh`.
 (typename $kx_secretkey $secretkey)
 
 ;;; Key exchange operations.
@@ -25,8 +25,7 @@
     ;;; Both keys must be of the same type, or else the `$crypto_errno.incompatible_keys` error is returned.
     ;;; The algorithm also has to support this kind of key exchange. If this is not the case, the `$crypto_errno.invalid_operation` error is returned.
     ;;;
-    ;;; Otherwide, a raw shared key is returned, and can be imported as a symmetric key.
-    ;;; ```
+    ;;; Otherwise, a raw shared key is returned, and can be imported as a symmetric key.
     (@interface func (export "kx_dh")
         (param $pk $publickey)
         (param $sk $secretkey)
@@ -44,7 +43,7 @@
         (result $error (expected (tuple $array_output $array_output) (error $crypto_errno)))
     )
 
-    ;;; Decapsulate an encapsulated secret crated with `kx_encapsulate`
+    ;;; Decapsulate an encapsulated secret created with `kx_encapsulate`
     ;;;
     ;;; Return the secret, or `$crypto_errno.verification_failed` on error.
     (@interface func (export "kx_decapsulate")

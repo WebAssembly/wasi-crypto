@@ -16,7 +16,7 @@ Modules (HSM) are becoming popular as they can properly isolate users'
 private keys from the rest of the system or cloud. To operate on those
 private keys, applications need to use the standard interface provided
 at the system level.
-3. Software certification: Governments and enterprise often require
+3. Software certification: Governments and enterprises often require
 certification of crypto implementations. Notable examples are
 FIPS-140, Common Criteria, and PCI-DSS. Usually, such certifications
 are given to the common system libraries, as it is impractical to
@@ -49,7 +49,7 @@ All these APIs must be designed for interoperability, with no undefined
 behaviors.
 
 Being core APIs, they should also be designed for stability. Namely,
-these APIs should support current and futures primitives and
+these APIs should support current and future primitives and
 constructions without requiring breaking changes.
 Current and future constructions include XOFs, session-based
 encryption, and post-quantum key exchange and signatures.

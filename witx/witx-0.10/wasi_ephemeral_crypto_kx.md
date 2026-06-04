@@ -129,7 +129,7 @@ Alias for `u64`.
 
 > Version of a managed key.
 > 
-> A version can be an arbitrary `u64` integer, with the expection of some reserved values.
+> A version can be an arbitrary `u64` integer, with the exception of some reserved values.
 
 
 ---
@@ -265,7 +265,7 @@ Alias for `handle`.
 
 > A state to perform symmetric operations.
 > 
-> The state is not reset nor invalidated after an option has been performed.
+> The state is not reset nor invalidated after an operation has been performed.
 > Incremental updates and sessions are thus supported.
 
 
@@ -296,7 +296,7 @@ Alias for `handle`.
 > 
 > This object type can't be directly created from raw bytes. They are only returned by functions computing MACs.
 > 
-> The host is reponsible for securely wiping them from memory on close.
+> The host is responsible for securely wiping them from memory on close.
 
 
 ---
@@ -382,7 +382,7 @@ Alias for `handle`.
 
 > `$kx_secretkey` is just an alias for `$secretkey`
 > 
-> However, bindings may want to define a specialized type `kx_secretkey` as a super class of `secretkeykey`, with additional methods such as `dh`.
+> However, bindings may want to define a specialized type `kx_secretkey` as a super class of `secretkey`, with additional methods such as `dh`.
 
 
 ---
@@ -406,8 +406,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > Both keys must be of the same type, or else the `$crypto_errno.incompatible_keys` error is returned.
 > The algorithm also has to support this kind of key exchange. If this is not the case, the `$crypto_errno.invalid_operation` error is returned.
 > 
-> Otherwide, a raw shared key is returned, and can be imported as a symmetric key.
-> ```
+> Otherwise, a raw shared key is returned, and can be imported as a symmetric key.
 
 
 ---
@@ -447,7 +446,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 
 * _[`array_output`](#array_output)_ mutable pointer
 
-> Decapsulate an encapsulated secret crated with `kx_encapsulate`
+> Decapsulate an encapsulated secret created with `kx_encapsulate`
 > 
 > Return the secret, or `$crypto_errno.verification_failed` on error.
 

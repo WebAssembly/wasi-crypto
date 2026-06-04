@@ -129,7 +129,7 @@ Alias for `u64`.
 
 > Version of a managed key.
 > 
-> A version can be an arbitrary `u64` integer, with the expection of some reserved values.
+> A version can be an arbitrary `u64` integer, with the exception of some reserved values.
 
 
 ---
@@ -265,7 +265,7 @@ Alias for `handle`.
 
 > A state to perform symmetric operations.
 > 
-> The state is not reset nor invalidated after an option has been performed.
+> The state is not reset nor invalidated after an operation has been performed.
 > Incremental updates and sessions are thus supported.
 
 
@@ -296,7 +296,7 @@ Alias for `handle`.
 > 
 > This object type can't be directly created from raw bytes. They are only returned by functions computing MACs.
 > 
-> The host is reponsible for securely wiping them from memory on close.
+> The host is responsible for securely wiping them from memory on close.
 
 
 ---
@@ -490,7 +490,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > __(optional)__
 > Replace a managed key pair.
 > 
-> This function crates a new version of a managed key pair, by replacing `$kp_old` with `$kp_new`.
+> This function creates a new version of a managed key pair, by replacing `$kp_old` with `$kp_new`.
 > 
 > It does several things:
 > 
@@ -558,7 +558,6 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > If no key pair matching the provided information is found, `not_found` is returned instead.
 > 
 > This is an optional import, meaning that the function may not even exist.
-> ```
 
 
 ---
@@ -776,7 +775,7 @@ Returned error type: _[`crypto_errno`](#crypto_errno)_
 > Example usage:
 > 
 > ```rust
-> let pk_handle = ctx.secretkey_import(AlgorithmType::KX, encoded, SecretKeyEncoding::Raw)?;
+> let sk_handle = ctx.secretkey_import(AlgorithmType::KX, encoded, SecretKeyEncoding::Raw)?;
 > ```
 
 

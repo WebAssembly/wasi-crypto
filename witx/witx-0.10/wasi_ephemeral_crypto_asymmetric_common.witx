@@ -245,7 +245,7 @@
     ;;; Example usage:
     ;;;
     ;;; ```rust
-    ;;; let pk_handle = ctx.secretkey_import(AlgorithmType::KX, encoded, SecretKeyEncoding::Raw)?;
+    ;;; let sk_handle = ctx.secretkey_import(AlgorithmType::KX, encoded, SecretKeyEncoding::Raw)?;
     ;;; ```
     (@interface func (export "secretkey_import")
         (param $algorithm_type $algorithm_type)

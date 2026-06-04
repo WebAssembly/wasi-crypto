@@ -156,7 +156,7 @@ Applications never access these representations directly. Keys, group elements a
 * `pkcs8`: `PKCS#8`/`DER` encoding. Implementations MAY support encryption.
 * `pem`: `PEM`-encoded `PKCS#8`/`DER` format. Implementations MAY support encryption.
 * `sec`: Affine coordinates [`SEC-1`](https://www.secg.org/sec1-v2.pdf) scalar and elliptic curve point encoding.
-* `local`: implemented-defined encoding. Such a representation can be more efficient than standard serialization formats, but is not defined not required by the `wasi-crypto` specification, and is thus not meant to be portable across implementations.
+* `local`: implementation-defined encoding. Such a representation can be more efficient than standard serialization formats, but is not defined or required by the `wasi-crypto` specification, and is thus not meant to be portable across implementations.
 
 Encodings are specified as constants, which are defined for individual key types:
 
@@ -214,7 +214,7 @@ For every supported key type, an implementation MAY allow importation and export
 
 #### Key pairs for signatures
 
-For signature, a `keypair` is an object with the following properties:
+For signatures, a `keypair` is an object with the following properties:
 
 * A signature can be computed using this object and the data to be signed,
 * A public key can be efficiently computed from it.
@@ -235,7 +235,7 @@ In addition, an implementation MAY allow these signatures to be serialized using
 
 |           | Signature key pair                                                                                 | Secret key                                                | Public key                                                |
 | --------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | --------------------------------------------------------- |
-| Ed25519   | raw (private key + public key encoded as in RFC8032)                                               | raw (cf. RFC8032)                                         | raw (cf. RFC8032)                                         |
+| Ed25519   | raw (secret key + public key encoded as in RFC8032)                                               | raw (cf. RFC8032)                                         | raw (cf. RFC8032)                                         |
 | X25519    | N/A                                                                                                | raw (cf. RFC7748)                                         | raw (cf. RFC7748)                                         |
 | p256      | raw secret scalar encoded as big endian, SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |
 | p384      | raw secret scalar encoded as big endian, SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 | SEC-1, unencrypted PKCS#8, PEM-encoded unencrypted PKCS#8 |
@@ -304,9 +304,9 @@ let nonce = symmetric_state_options_get(state_handle, "nonce")?;
 
 Three option types are supported and can be mixed and matched in an option set:
 
-- Byte vectors, set with `<algorithm type>_options_set()`
-- Unsigned integers, set with `<algorithm type>_options_set_u64()`
-- Memory buffers, set with `<algorithm type>_set_guest_buffer()`
+- Byte vectors, set with `options_set()`
+- Unsigned integers, set with `options_set_u64()`
+- Memory buffers, set with `options_set_guest_buffer()`
 
 Some primitives may require a large scratch buffer, that should be accounted as guest memory. This is the case for memory-hard password hashing functions such as Scrypt or Argon2. The last option type (memory buffers) handles this use case.
 
@@ -315,11 +315,11 @@ Calling the above functions on an option that was already set MUST overwrite the
 Here is an example of an option set for a password hashing function:
 
 ```rust
-let options_handle = symmetric_options_open()?;
-symmetric_options_set_guest_buffer(options_handle, "memory", &mut memory)?;
-symmetric_options_set_u64(options_handle, "opslimit", 5)?;
-symmetric_options_set_u64(options_handle, "parallelism", 8)?;
-let state_handle = symmetric_state_open("ARGON2-ID-13", None, Some(options))?;
+let options_handle = options_open(AlgorithmType::Symmetric)?;
+options_set_guest_buffer(options_handle, "memory", &mut memory)?;
+options_set_u64(options_handle, "opslimit", 5)?;
+options_set_u64(options_handle, "parallelism", 8)?;
+let state_handle = symmetric_state_open("ARGON2-ID-13", None, Some(options_handle))?;
 ```
 
 # Algorithms
@@ -522,7 +522,7 @@ A key pair can be reused for multiple operations, as long as they share the same
 After use, a key pair can be disposed with `keypair_close()`:
 
 ```rust
-keypair_close(sk_handle)?;
+keypair_close(kp_handle)?;
 ```
 
 The `keypair_close()` function indicates that the key pair will not be needed any more.
@@ -536,7 +536,7 @@ A `wasi-crypto` implementation MUST support at least two different key exchange 
 * Diffie-Hellman based key agreement, returning a deterministic secret for a given (public key, secret key) pair
 * Key encapsulation mechanisms, where the runtime is expected to generate a random secret, and encapsulate it using the recipient's public key.
 
-Key exchange mechanisms use the common asymetric key types: `secretkey`, `publickey` and `keypair`.
+Key exchange mechanisms use the common asymmetric key types: `secretkey`, `publickey` and `keypair`.
 
 Such keys can be created and exported using the common functions for handling asymmetric keys.
 
@@ -582,11 +582,11 @@ If the decapsulation fails, the `kx_decapsulate()` function MUST return `verific
 
 ## Note on Hybrid Public Key Encryption
 
-A `wasi-crypto` implementation is not required to expose a Hybrid Public Key Encryption interface. HPKE can be easily and securely be reimplemented using the existing APIs.
+A `wasi-crypto` implementation is not required to expose a Hybrid Public Key Encryption interface. HPKE can easily and securely be implemented using the existing APIs.
 
 # Signatures
 
-Signatures use asymetric key types: `secretkey`, `publickey` and `keypair`.
+Signatures use asymmetric key types: `secretkey`, `publickey` and `keypair`.
 
 Such keys can be created and exported using the common functions for handling asymmetric keys.
 
@@ -607,7 +607,7 @@ A `wasi-crypto` implementation MUST support the `raw` encoding, that represents 
 Signature computation requires the following steps:
 
 1) `signature_state_open()` to create a new state
-2) One of more calls to `signature_state_update()` to absorb a message to be signed
+2) One or more calls to `signature_state_update()` to absorb a message to be signed
 3) `signature_state_sign()` to compute a signature for all the data absorbed until that point
 4) `signature_state_close()` to dispose the state
 
@@ -636,7 +636,7 @@ let raw_sig = signature_export(sig_handle, SignatureEncoding::Raw)?;
 Signature verification requires the following steps:
 
 1) `signature_verification_state_open()` to create a new state
-2) One of more calls to `signature_verification_state_update()` to absorb a message to be verified
+2) One or more calls to `signature_verification_state_update()` to absorb a message to be verified
 3) `signature_verification_state_verify()` to verify the signature of the entire input absorbed up to that point.
 4) `signature_verification_state_close()` to dispose the state
 
@@ -647,8 +647,8 @@ let pk_handle = publickey_import(AlgorithmType::Signatures, "ECDSA_P256_SHA256",
 let signature_handle = signature_import(AlgorithmType::Signatures, "ECDSA_P256_SHA256", encoded_sig, SignatureEncoding::Der)?;
 let state_handle = signature_verification_state_open(pk_handle)?;
 signature_verification_state_update(state_handle, "message")?;
-signature_verification_state_verify(signature_handle)?;
-signature_verification_state_close(signature_handle)?;
+signature_verification_state_verify(state_handle, signature_handle)?;
+signature_verification_state_close(state_handle)?;
 ```
 
 # Symmetric operations
@@ -713,7 +713,7 @@ The returned value is an `array_output` handle.
 A new key can also be securely generated by the runtime:
 
 ```rust
-let key_handle = symmetric_key_generate("SHA-256")?;
+let key_handle = symmetric_key_generate("HMAC/SHA-256")?;
 ```
 
 Some algorithm accept multiple key sizes.
@@ -793,7 +793,7 @@ If too much data has been fed for the algorithm, `overflow` MUST be thrown.
 
 * `symmetric_state_squeeze()`: squeeze bytes from the state.
 
-  - **Hash functions:** this tries to output an `out_len` bytes digest from the absorbed data. The hash function output will be truncated if necessary. If the requested size is too large, the `invalid_len` error code is returned.
+  - **Hash functions:** this tries to output an `out_len` bytes digest from the absorbed data. The hash function output will be truncated if necessary. If the requested size is too large, the `invalid_length` error code is returned.
   - **Key derivation functions:** : outputs an arbitrary-long derived key.
   - **RNGs, DRBGs, stream ciphers:**: outputs arbitrary-long data.
   - **Stateful hash objects, permutation-based constructions:** squeeze.
@@ -851,7 +851,7 @@ The host MUST return an `overflow` error code if the output buffer is too small,
 
   - **Stream cipher:** adds the input to the stream cipher output.
   - **AEAD:** decrypt a ciphertext. Additional data MAY have been previously absorbed using `symmetric_state_absorb()`.
-  - **Session:** decrypts data, squeezes a tag and verify that it matches the one that was appended to the ciphertext.
+  - **Session:** decrypts data, squeezes a tag and verifies that it matches the one that was appended to the ciphertext.
 
 `invalid_tag` MUST be returned if the tag didn't verify.
 
@@ -884,7 +884,7 @@ The host MUST return an `overflow` error code if the output buffer is too small,
 
 An authentication tag is always returned as handle. `wasi-crypto` bindings SHOULD verify them with the `symmetric_tag_verify()` function instead of exporting them and doing the verification themselves.
 
-Authentication tags are assumed to be very small. For this reason, copying the actual tag to the guest environment requires a single function call, which also immediately invalides the handle. Unlike `array_output` handles, no streaming interface is necessary. Implementation can directly map handles to the raw representation of a tag.
+Authentication tags are assumed to be very small. For this reason, copying the actual tag to the guest environment requires a single function call, which also immediately invalidates the handle. Unlike `array_output` handles, no streaming interface is necessary. Implementation can directly map handles to the raw representation of a tag.
 
 Checking that a computed tag matches an expected tag is made using the `symmetric_tag_verify()` function:
 
@@ -1052,9 +1052,9 @@ let mut subkey1 = vec![0u8; 32];
 let mut subkey2 = vec![0u8; 32];
 let key_handle = symmetric_key_import("BLAKE3", b"key")?;
 let state_handle = symmetric_state_open("BLAKE3", Some(key_handle), None)?;
-symmetric_absorb(state_handle, b"context")?;
-squeeze(state_handle, &mut subkey1)?;
-squeeze(state_handle, &mut subkey2)?;
+symmetric_state_absorb(state_handle, b"context")?;
+symmetric_state_squeeze(state_handle, &mut subkey1)?;
+symmetric_state_squeeze(state_handle, &mut subkey2)?;
 ```
 
 `wasi-crypto` implementations MUST NOT copy the state. Repeated calls to the `squeeze()` function MUST produce different outputs.
@@ -1074,12 +1074,12 @@ Example usage:
 
 ```rust
 let mut memory = vec![0u8; 1_000_000_000];
-let options_handle = symmetric_options_open()?;
-symmetric_options_set_guest_buffer(options_handle, "memory", &mut memory)?;
-symmetric_options_set_u64(options_handle, "opslimit", 5)?;
-symmetric_options_set_u64(options_handle, "parallelism", 8)?;
+let options_handle = options_open(AlgorithmType::Symmetric)?;
+options_set_guest_buffer(options_handle, "memory", &mut memory)?;
+options_set_u64(options_handle, "opslimit", 5)?;
+options_set_u64(options_handle, "parallelism", 8)?;
 
-let state_handle = symmetric_state_open("ARGON2-ID-13", None, Some(options))?;
+let state_handle = symmetric_state_open("ARGON2-ID-13", None, Some(options_handle))?;
 symmetric_state_absorb(state_handle, b"password")?;
 
 let pw_str_handle = symmetric_state_squeeze_tag(state_handle)?;
@@ -1157,14 +1157,14 @@ A runtime generating a nonce MUST define a `nonce` option set to that nonce, eve
 
 ### Session authenticated modes
 
-Permutation-based modes allow multiple types of operations over a rolling state authentication the entire transcript.
+Permutation-based modes allow multiple types of operations over a rolling state authenticating the entire transcript.
 
 They MUST support the following operations:
 
 - `absorb()`
 - `squeeze()`
 
-Additional operations are algorithm-dependant, and implementations including this type of algorithm MUST document the set of supported operations.
+Additional operations are algorithm-dependent, and implementations including this type of algorithm MUST document the set of supported operations.
 
 `wasi-crypto` implementers are encouraged to include the `XOODYAK-128` algorithm to exercise an extensive set of operations typically supported by this kind of construction.
 
@@ -1193,14 +1193,14 @@ A function performing a cryptographic operation using a secret key MUST accept t
 
 This has several advantages:
 - Type safety: a handle represents the keying material as well as the algorithm the key must be used with. This prevents a key from being used with a different algorithm. While the type check is systematically made at runtime, this also simplifies static analysis and encourages bindings developers to use a dedicated type to represent secret keys, improving clarity and compile-time safety.
-- Leakage mitigation: the runtime SHOULD transparently overwrite secret keys stored in memory when handle are closed.
+- Leakage mitigation: the runtime SHOULD transparently overwrite secret keys stored in memory when handles are closed.
 - Isolation: a runtime can store keys in dedicated memory regions, encrypt them, set `PROT_READ`/`PROT_NONE` protection on pages containing keys at rest, insert guard pages around pages containing keys, or do any other extra safety measure to protect sensitive data.
-- HSM compatibility: keys may be generated by, or stored in a hardward or software security module.
+- HSM compatibility: keys may be generated by, or stored in a hardware or software security module.
 - A secret key can be internally managed by the runtime, allowing guest applications to use it for encryption, authentication and signature, without having access to the actual secret, even if the application is compromised.
 
 A single type is used to represent a key handle, no matter if the key was imported from a serialized representation by the application, allowing a single API to be shared in different contexts.
 
-We define a "managed key" as a key whose storage is managed by the runtime. In this context, applications can create a key handle from a key identifier a version. The runtime is responsible for loading the actual key using this information, and exposing it as a regular key handle.
+We define a "managed key" as a key whose storage is managed by the runtime. In this context, applications can create a key handle from a key identifier and a version. The runtime is responsible for loading the actual key using this information, and exposing it as a regular key handle.
 
 A managed key can be generated by the runtime given an algorithm description, or imported by the guest application from a serialized representation. The runtime stores it using any internal representation, and returns a unique key identifier and version number.
 
@@ -1220,9 +1220,9 @@ Guest applications SHOULD NOT use secrets management capabilities in portable ap
 
 The `secrets_manager_open()` function may not be present if the host doesn't support secrets management.
 
-`secrets_manager_close()` indicates that a secrets manager is not going to be used any longer. Implementatins MUST use reference counting, and only free the related resources on no more managed secrets linked to that manager are in use.
+`secrets_manager_close()` indicates that a secrets manager is not going to be used any longer. Implementations MUST use reference counting, and only free the related resources when no more managed secrets linked to that manager are in use.
 
-Implementations MUST NOT require the `secrets_manager_close()` function to be called in order to finalize durable storage of manage secrets.
+Implementations MUST NOT require the `secrets_manager_close()` function to be called in order to finalize durable storage of managed secrets.
 
 ## Key identifiers and versions
 
@@ -1230,7 +1230,7 @@ A managed key should be accessible by a guest application using an identifier an
 
 A runtime MUST ensure global uniqueness of key identifiers. Key identifiers MUST NOT be deterministic. In particular, they MUST NOT be hashes of the actual keys.
 
-Versions are signed 64 bit integers, and MUST be monotically increasing. Versions can be between `0x0` and `0xfeffffffffffffff` (included), the following values being reserved:
+Versions are unsigned 64 bit integers, and MUST be monotonically increasing. Versions can be between `0x0` and `0xfeffffffffffffff` (included), the following values being reserved:
 
 * `0xff00000000000000` (`unspecified`): represents the absence of a version.
 * `0xff00000000000001` (`latest`): represents the latest version of a key, when used as a function parameter.
@@ -1273,7 +1273,7 @@ If the host provides secrets management capabilities, the symmetric operations, 
 
 * `keypair_generate_managed()`: generate a managed key pair. The runtime MUST ensure that long-term storage of the key pair was made before returning from the function. The runtime is also responsible for assigning a key identifier and base version to the new key.
 * `keypair_store_managed()`: convert an existing key pair into a managed key pair. This function can be used by a guest application to leverage the host secrets management capabilities to store a key pair generated and imported by the application itself. The runtime MUST ensure that long-term storage of the key pair was made before returning from the function. The runtime is also responsible for assigning a key identifier and base to the new key.
-* `keypair_replace_managed()`: create a new version of a key pair. The host MUST monotically increement the version number, durably store the new versin, and MUST NOT invalidate any previous versions of the key pair. All versions of a key must share the exact same algorithm. If this is not the case, the implementation MUST return the `incompatible_keys` error code.
+* `keypair_replace_managed()`: create a new version of a key pair. The host MUST monotonically increment the version number, durably store the new version, and MUST NOT invalidate any previous versions of the key pair. All versions of a key must share the exact same algorithm. If this is not the case, the implementation MUST return the `incompatible_keys` error code.
 * `keypair_id()`: return the key identifier assigned by the runtime to a key pair handle. If the key is not managed, the function must return the special `0xff00000000000000` (`unspecified`) value. The function MUST return an `overflow` error code if the guest buffer supplied to store the identifier is too small.
 * `keypair_from_id()`: return a key pair handle given a key identifier and version. The version must be an exact version number of the special `0xff00000000000001` (`latest`) value. The function MUST return `not_found` if no matching key pair is found.
 * `symmetric_key_generate_managed()`: generate a managed symmetric key. The runtime MUST ensure that long-term storage of the key was made before returning from the function. The runtime is also responsible for assigning a key identifier and base to the new key.
@@ -1287,7 +1287,7 @@ External secrets are binary blobs, that can represent external API tokens or any
 
 These secrets can be securely stored, and then retrieved using an identifier.
 
-Alternatively, the secrets manager can encrypt them, and applications will supply the ciphertext get the original secret back.
+Alternatively, the secrets manager can encrypt them, and applications will supply the ciphertext to get the original secret back.
 
 The external secrets API is optional and require secrets management capabilities to be implemented.
 
@@ -1319,7 +1319,7 @@ let secrets_manager_handle = secrets_manager_open(options)?;
 let secret = external_secret_from_id(secrets_manager_handle, secret_id, Version::Latest)?;
 ```
 
-The function returns an `array_ouput` handle on success. On error, it MUST return one of:
+The function returns an `array_output` handle on success. On error, it MUST return one of:
 - `not_found` if the (`secret_id`, `version`) tuple doesn't map to a stored secret
 - `expired` if the secret has expired.
 
@@ -1388,7 +1388,7 @@ let secret = external_secret_decapsulate(encrypted_secret)?;
 The function returns an `array_output` object on success.
 
 The runtime MUST check the expiration date and return `expired` if the secret is not valid any longer.
-The function MUST check the authentication tag and return `invalid_tag` if it doesn't verify.
+The function MUST check the authentication tag and return `verification_failed` if it doesn't verify.
 
 # API overview
 

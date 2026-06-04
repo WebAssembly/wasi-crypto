@@ -89,7 +89,7 @@
     ;;; __(optional)__
     ;;; Replace a managed key pair.
     ;;;
-    ;;; This function crates a new version of a managed key pair, by replacing `$kp_old` with `$kp_new`.
+    ;;; This function creates a new version of a managed key pair, by replacing `$kp_old` with `$kp_new`.
     ;;;
     ;;; It does several things:
     ;;;
@@ -135,7 +135,6 @@
     ;;; If no key pair matching the provided information is found, `not_found` is returned instead.
     ;;;
     ;;; This is an optional import, meaning that the function may not even exist.
-    ;;; ```
     (@interface func (export "keypair_from_id")
         (param $secrets_manager $secrets_manager)
         (param $kp_id (@witx const_pointer u8))
@@ -248,7 +247,7 @@
     ;;; Example usage:
     ;;;
     ;;; ```rust
-    ;;; let pk_handle = ctx.secretkey_import(AlgorithmType::KX, encoded, SecretKeyEncoding::Raw)?;
+    ;;; let sk_handle = ctx.secretkey_import(AlgorithmType::KX, encoded, SecretKeyEncoding::Raw)?;
     ;;; ```
     (@interface func (export "secretkey_import")
         (param $algorithm_type $algorithm_type)

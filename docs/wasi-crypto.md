@@ -22,7 +22,6 @@ This document describes `wasi-crypto`, a set of APIs that a runtime can expose t
   - [Required algorithms](#required-algorithms)
   - [Recommended algorithms](#recommended-algorithms)
   - [Optional algorithms](#optional-algorithms)
-  - [Reserved algorithm identifiers](#reserved-algorithm-identifiers)
 - [Asymmetric operations](#asymmetric-operations)
   - [Secret keys](#secret-keys-1)
   - [Public keys](#public-keys-1)
@@ -388,31 +387,28 @@ A `wasi-crypto` implementation MUST implement the following algorithms, and MUST
 | `TURBOSHAKE-256`     | TurboSHAKE extendable-output function with a 256 bit security level                                                     |
 | `KT128`              | KangarooTwelve extendable-output function with a 128 bit security level                                                 |
 | `KT256`              | KangarooTwelve extendable-output function with a 256 bit security level                                                 |
+| `AEGIS-128L`         | AEGIS128L authenticated cipher                                                                                          |
+| `AEGIS-128X2`        | AEGIS128X2 authenticated cipher                                                                                         |
+| `AEGIS-128X4`        | AEGIS128X4 authenticated cipher                                                                                         |
+| `AEGIS-256`          | AEGIS256 authenticated cipher                                                                                           |
+| `AEGIS-256X2`        | AEGIS256X2 authenticated cipher                                                                                         |
+| `AEGIS-256X4`        | AEGIS256X4 authenticated cipher                                                                                         |
+| `AES-128-GCM-SIV`    | AES-GCM-SIV authenticated cipher with a 128 bit key                                                                     |
+| `AES-256-GCM-SIV`    | AES-GCM-SIV authenticated cipher with a 256 bit key                                                                     |
+| `AES-128-SIV`        | AES-SIV authenticated cipher with a 128 bit key, as specified in RFC5297                                                |
+| `AES-256-SIV`        | AES-SIV authenticated cipher with a 256 bit key, as specified in RFC5297                                                |
+| `AES-128-CMAC`       | AES-CMAC authenticated cipher with a 128 bit key                                                                        |
+| `AES-256-CMAC`       | AES-CMAC authenticated cipher with a 256 bit key                                                                        |
+| `AES-128-CBC`        | AES in CBC mode without authentication, using a 128 bit key                                                             |
+| `AES-256-CBC`        | AES in CBC mode without authentication, using a 256 bit key                                                             |
+| `AES-128-CTR`        | AES in CTR mode without authentication, using a 128 bit key                                                             |
+| `AES-256-CTR`        | AES in CTR mode without authentication, using a 256 bit key                                                             |
+| `X448`               | X448 ECDH as specified in RFC7748                                                                                       |
+| `Ed448`              | Edwards Curve signatures over Edwards448 (pure EdDSA) as specified in RFC8032                                           |
+| `KMAC-128`           | KMAC with a 128 bit security level                                                                                      |
+| `KMAC-256`           | KMAC with a 256 bit security level                                                                                      |
 
-Implementations are encouraged to include the `XOODYAK-128`, `XCHACHA20-POLY1305` and `ML-KEM-1024` (or `ML-KEM-768`) algorithms in order to exercise additional features of the API.
-
-## Reserved algorithm identifiers
-
-| Identifier        | Algorithm                                                                     |
-| ----------------- | ----------------------------------------------------------------------------- |
-| `AEGIS-128L`      | AEGIS128L authenticated cipher                                                |
-| `AEGIS-128X2`     | AEGIS128X2 authenticated cipher                                               |
-| `AEGIS-128X4`     | AEGIS128X4 authenticated cipher                                               |
-| `AEGIS-256`       | AEGIS256 authenticated cipher                                                 |
-| `AEGIS-256X2`     | AEGIS256X2 authenticated cipher                                               |
-| `AEGIS-256X4`     | AEGIS256X4 authenticated cipher                                               |
-| `AES-128-GCM-SIV` | AES-GCM-SIV authenticated cipher with a 128 bit key                           |
-| `AES-256-GCM-SIV` | AES-GCM-SIV authenticated cipher with a 256 bit key                           |
-| `AES-128-CMAC`    | AES-CMAC authenticated cipher with a 128 bit key                              |
-| `AES-256-CMAC`    | AES-CMAC authenticated cipher with a 256 bit key                              |
-| `AES-128-CBC`     | AES in CBC mode without authentication, using a 128 bit key                   |
-| `AES-256-CBC`     | AES in CBC mode without authentication, using a 256 bit key                   |
-| `AES-128-CTR`     | AES in CTR mode without authentication, using a 128 bit key                   |
-| `AES-256-CTR`     | AES in CTR mode without authentication, using a 256 bit key                   |
-| `X448`            | X448 ECDH as specified in RFC7748                                             |
-| `Ed448`           | Edwards Curve signatures over Edwards448 (pure EdDSA) as specified in RFC8032 |
-| `KMAC-128`        | KMAC with a 128 bit security level                                            |
-| `KMAC-256`        | KMAC with a 256 bit security level                                            |
+Implementations are encouraged to include the `XOODYAK-128` and `XCHACHA20-POLY1305` algorithms in order to exercise additional features of the API.
 
 Each algorithm belongs to one of these categories, represented by the `algorithm_type` type:
 

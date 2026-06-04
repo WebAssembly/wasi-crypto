@@ -368,6 +368,7 @@ A `wasi-crypto` implementation MUST implement the following algorithms, and MUST
 | `P384-SHA384`           | NIST p384 ECDH with the SHA-384 hash function                                       |
 | `CHACHA20-POLY1305`     | ChaCha20-Poly1305 AEAD cipher as specified in RFC8439                               |
 | `X25519`                | X25519 ECDH as specified in RFC7748                                                 |
+| `X-WING`                | X-WING hybrid post-quantum key exchange mechanism                                   |
 
 ## Optional algorithms
 
@@ -376,7 +377,6 @@ A `wasi-crypto` implementation MUST implement the following algorithms, and MUST
 | `ML-KEM-1024`        | ML-KEM-1024 post-quantum key encapsulation mechanism, as standardized by NIST                                           |
 | `ML-KEM-768`         | ML-KEM-768 post-quantum key encapsulation mechanism, as standardized by NIST                                            |
 | `ML-KEM-512`         | ML-KEM-512 post-quantum key encapsulation mechanism, as standardized by NIST                                            |
-| `X-WING`             | X-WING hybrid post-quantum key exchange mechanism                                                                       |
 | `XOODYAK-128`        | XOODYAK lightweight scheme, as specified in the most recent submission to NIST competition for lightweight cryptography |
 | `XCHACHA20-POLY1305` | ChaCha20-Poly1305 AEAD with an extended nonce, as specified in the most recent `draft-irtf-cfrg-xchacha` CFRG draft     |
 | `CSHAKE-128`         | cSHAKE with a 128 bit security level                                                                                    |

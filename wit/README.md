@@ -34,4 +34,4 @@
 | **`Variant`** without data              | `enum`                                | There is nothing stopping the transpiler from handling this case as well. I just didn't notice and fixing it by hand was easier.                                                         |
 | `type ... = handle`                     | `resource`                            | This required manually adding `borrow<>` where required.                                                                                                                                 |
 | **Imports**                             | `use wasi-ephemeral-crypto-common.{}` | This was done manually and verified using:                                                                                                                                               |
-| `wasm-tools component wit .`.           |
+| `wasm-tools component wit .`            |

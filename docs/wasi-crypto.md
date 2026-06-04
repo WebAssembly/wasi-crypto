@@ -384,6 +384,10 @@ A `wasi-crypto` implementation MUST implement the following algorithms, and MUST
 | `XCHACHA20-POLY1305` | ChaCha20-Poly1305 AEAD with an extended nonce, as specified in the most recent `draft-irtf-cfrg-xchacha` CFRG draft     |
 | `CSHAKE-128`         | cSHAKE with a 128 bit security level                                                                                    |
 | `CSHAKE-256`         | cSHAKE with a 256 bit security level                                                                                    |
+| `TURBOSHAKE-128`     | TurboSHAKE extendable-output function with a 128 bit security level                                                     |
+| `TURBOSHAKE-256`     | TurboSHAKE extendable-output function with a 256 bit security level                                                     |
+| `KT128`              | KangarooTwelve extendable-output function with a 128 bit security level                                                 |
+| `KT256`              | KangarooTwelve extendable-output function with a 256 bit security level                                                 |
 
 Implementations are encouraged to include the `XOODYAK-128`, `XCHACHA20-POLY1305` and `ML-KEM-1024` (or `ML-KEM-768`) algorithms in order to exercise additional features of the API.
 

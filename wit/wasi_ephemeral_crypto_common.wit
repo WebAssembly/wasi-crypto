@@ -1,4 +1,4 @@
-package wasi:crypto@0.0.1;
+package wasi:crypto@0.11.0;
 
 interface wasi-ephemeral-crypto-common {
   type key-id = list<u8>;
@@ -302,8 +302,8 @@ interface wasi-ephemeral-crypto-common {
   /// An optional options set.
   ///
   /// This union simulates an `Option<Options>` type to make the `options` parameter of some functions optional.
-  @deprecated(version = 0.0.1)
-  @since(version = 0.0.1)
+  @deprecated(version = 0.11.0)
+  @since(version = 0.11.0)
   type opt-options = option<options>;
 
   /// Symmetric key index, only required by the Interface Types translation layer.
@@ -315,8 +315,8 @@ interface wasi-ephemeral-crypto-common {
   /// An optional symmetric key.
   ///
   /// This union simulates an `Option<SymmetricKey>` type to make the `symmetric_key` parameter of some functions optional.
-  @deprecated(version = 0.0.1)
-  @since(version = 0.0.1)
+  @deprecated(version = 0.11.0)
+  @since(version = 0.11.0)
   type opt-symmetric-key = option<symmetric-key>;
 
   /// Create a new object to set non-default options.
@@ -357,8 +357,8 @@ interface wasi-ephemeral-crypto-common {
   /// This implementation using `list<u8>` does not have this guarantee and serves as a stopgap till [caller-supplied buffers](https://wasi.dev/roadmap) arrive in future WASI 0.3.x release.
   ///
   /// This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
-  @deprecated(version = 0.0.1)
-  @since(version = 0.0.1)
+  @deprecated(version = 0.11.0)
+  @since(version = 0.11.0)
   options-set-guest-buffer: func(options: borrow<options>, name: string, buffer: list<u8>) -> result<_, crypto-errno>;
 
   /// Return the length of an `array_output` object.

@@ -1,4 +1,4 @@
-package wasi:crypto@0.0.1;
+package wasi:crypto@0.11.0;
 
 interface wasi-ephemeral-crypto-signatures-batch {
   use wasi-ephemeral-crypto-common.{array-output, crypto-errno, signature-verification-state, signature, signature-state};

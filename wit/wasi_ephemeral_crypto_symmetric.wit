@@ -1,4 +1,4 @@
-package wasi:crypto@0.0.1;
+package wasi:crypto@0.11.0;
 
 interface wasi-ephemeral-crypto-symmetric {
   use wasi-ephemeral-crypto-common.{options, symmetric-key, crypto-errno, size, array-output, secrets-manager, version, symmetric-state, %u64, symmetric-tag};

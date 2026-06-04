@@ -1,4 +1,4 @@
-package wasi:crypto@0.0.1;
+package wasi:crypto@0.11.0;
 
 interface wasi-ephemeral-crypto-kx {
   use wasi-ephemeral-crypto-common.{keypair, publickey, secretkey, array-output, crypto-errno, size};

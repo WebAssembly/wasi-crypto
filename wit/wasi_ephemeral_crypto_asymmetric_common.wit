@@ -1,4 +1,4 @@
-package wasi:crypto@0.0.1;
+package wasi:crypto@0.11.0;
 
 interface wasi-ephemeral-crypto-asymmetric-common {
   use wasi-ephemeral-crypto-common.{algorithm-type, options, keypair, crypto-errno, size, keypair-encoding, secrets-manager, version, publickey, secretkey, array-output, publickey-encoding, secretkey-encoding};

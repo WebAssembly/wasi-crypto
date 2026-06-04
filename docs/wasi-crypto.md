@@ -377,6 +377,9 @@ A `wasi-crypto` implementation MUST implement the following algorithms, and MUST
 | `ML-KEM-1024`        | ML-KEM-1024 post-quantum key encapsulation mechanism, as standardized by NIST                                           |
 | `ML-KEM-768`         | ML-KEM-768 post-quantum key encapsulation mechanism, as standardized by NIST                                            |
 | `ML-KEM-512`         | ML-KEM-512 post-quantum key encapsulation mechanism, as standardized by NIST                                            |
+| `ML-DSA-87`          | ML-DSA-87 post-quantum signature scheme, as standardized by NIST                                                        |
+| `ML-DSA-65`          | ML-DSA-65 post-quantum signature scheme, as standardized by NIST                                                        |
+| `ML-DSA-44`          | ML-DSA-44 post-quantum signature scheme, as standardized by NIST                                                        |
 | `XOODYAK-128`        | XOODYAK lightweight scheme, as specified in the most recent submission to NIST competition for lightweight cryptography |
 | `XCHACHA20-POLY1305` | ChaCha20-Poly1305 AEAD with an extended nonce, as specified in the most recent `draft-irtf-cfrg-xchacha` CFRG draft     |
 | `CSHAKE-128`         | cSHAKE with a 128 bit security level                                                                                    |

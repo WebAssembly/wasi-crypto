@@ -383,12 +383,18 @@ interface wasi-ephemeral-crypto-symmetric {
   /// - **AEAD:** decrypts `data` into `out`. Additional data must have been previously absorbed using `symmetric_state_absorb()`.
   /// - **SHOE, Xoodyak, Strobe:** decrypts data, squeezes a tag and verify that it matches the one that was appended to the ciphertext.
   ///
+  /// `out-len` is the expected length of the plaintext. It must equal `data.len() - tag_len`, where
+  /// `tag_len` is the length of the authentication tag appended to the ciphertext. This parameter is
+  /// required because the tag length is algorithm-specific and may vary within the same algorithm
+  /// (e.g. AES-GCM supports tag lengths of 4–16 bytes), so the host cannot determine the split point
+  /// without explicit guidance from the caller.
+  ///
   /// The function returns the decrypted message.
   ///
   /// `invalid_tag` is returned if the tag didn't verify.
   ///
   /// `invalid_operation` is returned for algorithms not supporting encryption.
-  symmetric-state-decrypt: func(state: borrow<symmetric-state>, data: list<u8>) -> result<list<u8>, crypto-errno>;
+  symmetric-state-decrypt: func(state: borrow<symmetric-state>, data: list<u8>, out-len: size) -> result<list<u8>, crypto-errno>;
 
   /// - **Stream cipher:** returns `invalid_operation` since stream ciphers do not include authentication tags.
   /// - **AEAD:** decrypts `data` into `out`. Additional data must have been previously absorbed using `symmetric_state_absorb()`.
@@ -417,14 +423,14 @@ interface wasi-ephemeral-crypto-symmetric {
 
   /// Copy an authentication tag into a guest-allocated buffer.
   ///
-  /// The handle automatically becomes invalid after this operation. Manually closing it is not required.
+  /// The handle is consumed and becomes invalid after this call.
   ///
   /// Example usage:
   ///
   /// ```rust
   /// let raw_tag = ctx.symmetric_tag_pull(raw_tag_handle)?;
   /// ```
-  symmetric-tag-pull: func(symmetric-tag: borrow<symmetric-tag>) -> result<list<u8>, crypto-errno>;
+  symmetric-tag-pull: func(symmetric-tag: symmetric-tag) -> result<list<u8>, crypto-errno>;
 
   /// Verify that a computed authentication tag matches the expected value, in constant-time.
   ///
@@ -444,8 +450,6 @@ interface wasi-ephemeral-crypto-symmetric {
   symmetric-tag-verify: func(symmetric-tag: borrow<symmetric-tag>, expected-raw-tag: list<u8>) -> result<_, crypto-errno>;
 
   /// Explicitly destroy an unused authentication tag.
-  ///
-  /// This is usually not necessary, as `symmetric_tag_pull()` automatically closes a tag after it has been copied.
   ///
   /// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
   symmetric-tag-close: func(symmetric-tag: symmetric-tag) -> result<_, crypto-errno>;

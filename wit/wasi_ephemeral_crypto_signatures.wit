@@ -60,13 +60,15 @@ interface wasi-ephemeral-crypto-signatures {
 
   /// Absorb data into the signature state.
   ///
-  /// This function may return `unsupported_feature` if the selected algorithm doesn't support incremental updates.
+  /// This function may return `unsupported_feature` if the selected algorithm doesn't support incremental updates,
+  /// or if `signature-state-sign` has already been called on this state (e.g. pure Ed25519, which does not support
+  /// re-feeding data after a signature has been produced).
   signature-state-update: func(state: borrow<signature-state>, input: list<u8>) -> result<_, crypto-errno>;
 
   /// Compute a signature for all the data collected up to that point.
   ///
   /// The function can be called multiple times for incremental signing.
-  signature-state-sign: func(state: borrow<signature-state>) -> result<array-output, crypto-errno>;
+  signature-state-sign: func(state: borrow<signature-state>) -> result<signature, crypto-errno>;
 
   /// Destroy a signature state.
   ///

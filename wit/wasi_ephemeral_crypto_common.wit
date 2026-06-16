@@ -368,19 +368,15 @@ interface wasi-ephemeral-crypto-common {
 
   /// Copy the content of an `array_output` object into an application-allocated buffer.
   ///
-  /// Multiple calls to that function can be made in order to consume the data in a streaming fashion, if necessary.
-  ///
-  /// The function returns the copied bytes. A length of 0 means that the end of the stream has been reached.
-  ///
-  /// The handle is automatically closed after all the data has been consumed.
+  /// The function returns the copied bytes. The handle is consumed and becomes invalid after this call.
   ///
   /// Example usage:
   ///
   /// ```rust
   /// let len = array_output_len(output_handle)?;
-  /// let out =  array_output_pull(output_handle)?;
+  /// let out = array_output_pull(output_handle)?;
   /// ```
-  array-output-pull: func(array-output: borrow<array-output>) -> result<list<u8>, crypto-errno>;
+  array-output-pull: func(array-output: array-output) -> result<list<u8>, crypto-errno>;
 
   /// __(optional)__
   /// Create a context to use a secrets manager.

@@ -383,6 +383,8 @@ A `wasi-crypto` implementation MUST implement the following algorithms, and MUST
 | `XCHACHA20-POLY1305` | ChaCha20-Poly1305 AEAD with an extended nonce, as specified in the most recent `draft-irtf-cfrg-xchacha` CFRG draft     |
 | `ASCON-AEAD`         | ASCON lightweight authenticated cipher, as standardized by NIST in SP 800-232                                           |
 | `ASCON-HASH`         | ASCON lightweight hash function, as standardized by NIST in SP 800-232                                                  |
+| `BLAKE2B-512`        | BLAKE2b hash function with a 512 bit output, as specified in RFC7693                                                    |
+| `BLAKE2B-256`        | BLAKE2b hash function with a 256 bit output, as specified in RFC7693                                                    |
 | `CSHAKE-128`         | cSHAKE with a 128 bit security level                                                                                    |
 | `CSHAKE-256`         | cSHAKE with a 256 bit security level                                                                                    |
 | `TURBOSHAKE-128`     | TurboSHAKE extendable-output function with a 128 bit security level                                                     |

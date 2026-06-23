@@ -22,7 +22,7 @@ processes, goals, scope, and deliverables.
   * external secrets ([witx](witx/witx-0.10/wasi_ephemeral_crypto_external_secrets.witx), [doc](witx/witx-0.10/wasi_ephemeral_crypto_external_secrets.md))
 * [Concise API overview](witx/witx-0.10/wasi_ephemeral_crypto.txt)
 * [Implementation for the WasmEdge runtime](https://wasmedge.org/book/en/dev/rust/wasicrypto.html)
-* [Wasmtime with support for wasi-crypto](https://github.com/wasm-crypto/wasmtime-crypto)
+* [Wasmtime with support for wasi-crypto](https://github.com/wasi-crypto-wasmtime)
 * [Example implementation](https://github.com/wasm-crypto/wasi-crypto-host-functions) in Rust
 * [Example bindings](https://github.com/wasm-crypto/wasi-crypto-bindings) for AssemblyScript and Rust
 

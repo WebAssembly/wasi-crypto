@@ -385,6 +385,7 @@ A `wasi-crypto` implementation MUST implement the following algorithms, and MUST
 | `ASCON-HASH`         | ASCON lightweight hash function, as standardized by NIST in SP 800-232                                                  |
 | `BLAKE2B-512`        | BLAKE2b hash function with a 512 bit output, as specified in RFC7693                                                    |
 | `BLAKE2B-256`        | BLAKE2b hash function with a 256 bit output, as specified in RFC7693                                                    |
+| `BLAKE3`             | BLAKE3 function usable both as a fixed-length hash and as an extendable-output function                                 |
 | `CSHAKE-128`         | cSHAKE with a 128 bit security level                                                                                    |
 | `CSHAKE-256`         | cSHAKE with a 256 bit security level                                                                                    |
 | `TURBOSHAKE-128`     | TurboSHAKE extendable-output function with a 128 bit security level                                                     |

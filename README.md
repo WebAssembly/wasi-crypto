@@ -16,7 +16,7 @@ processes, goals, scope, and deliverables.
 * An adapter for [Wasmtime](https://github.com/wasm-crypto/wasi-crypto-wasmtime)
 * [Bindings](https://github.com/wasm-crypto/wasi-crypto-bindings) for AssemblyScript and Rust
 
-## Specifications
+## Specification
 
 * [High-level goals](docs/HighLevelGoals.md)
 * [Security design document](design/security.md)

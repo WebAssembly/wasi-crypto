@@ -14,7 +14,7 @@ processes, goals, scope, and deliverables.
 * [Wasmedge](https://wasmedge.org) ships with a [wasi-crypto plugin](https://wasmedge.org/docs/contribute/source/plugin/wasi_crypto/)
 * A [reference implementation](https://github.com/wasm-crypto/wasi-crypto-host-functions) of the host functions
 * An adapter for [Wasmtime](https://github.com/wasm-crypto/wasi-crypto-wasmtime)
-* [Bindings](https://github.com/wasm-crypto/wasi-crypto-bindings) for AssemblyScript and Rust
+* [Example bindings](https://github.com/wasm-crypto/wasi-crypto-bindings) for AssemblyScript and Rust
 
 ## Specification
 
@@ -29,10 +29,6 @@ processes, goals, scope, and deliverables.
   * key exchange ([witx](witx/witx-0.10/wasi_ephemeral_crypto_kx.witx), [doc](witx/witx-0.10/wasi_ephemeral_crypto_kx.md))
   * external secrets ([witx](witx/witx-0.10/wasi_ephemeral_crypto_external_secrets.witx), [doc](witx/witx-0.10/wasi_ephemeral_crypto_external_secrets.md))
 * [Concise API overview](witx/witx-0.10/wasi_ephemeral_crypto.txt)
-* [Implementation for the WasmEdge runtime](https://wasmedge.org/book/en/dev/rust/wasicrypto.html)
-* [Wasmtime with support for wasi-crypto](https://github.com/wasi-crypto-wasmtime)
-* [Example implementation](https://github.com/wasm-crypto/wasi-crypto-host-functions) in Rust
-* [Example bindings](https://github.com/wasm-crypto/wasi-crypto-bindings) for AssemblyScript and Rust
 
 Interested parties are welcome to join the working group meeting every 2 weeks on Tuesday 17:00 UTC.
 

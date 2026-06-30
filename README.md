@@ -9,7 +9,15 @@ processes, goals, scope, and deliverables.
 [WASI Subgroup]: https://github.com/WebAssembly/WASI
 [WebAssembly Community Group]: https://www.w3.org/community/webassembly/
 
-* [Reference implementations](https://github.com/wasm-crypto)
+## Implementations
+
+* [Wasmedge](https://wasmedge.org) ships with a [wasi-crypto plugin](https://wasmedge.org/docs/contribute/source/plugin/wasi_crypto/)
+* A [reference implementation](https://github.com/wasm-crypto/wasi-crypto-host-functions) of the host functions
+* An adapter for [Wasmtime](https://github.com/wasm-crypto/wasi-crypto-wasmtime)
+* [Bindings](https://github.com/wasm-crypto/wasi-crypto-bindings) for AssemblyScript and Rust
+
+## Specifications
+
 * [High-level goals](docs/HighLevelGoals.md)
 * [Security design document](design/security.md)
 * [Specification](docs/wasi-crypto.md)

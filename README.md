@@ -15,6 +15,8 @@ processes, goals, scope, and deliverables.
 * A [reference implementation](https://github.com/wasm-crypto/wasi-crypto-host-functions) of the host functions
 * An adapter for [Wasmtime](https://github.com/wasm-crypto/wasi-crypto-wasmtime)
 * [Example bindings](https://github.com/wasm-crypto/wasi-crypto-bindings) for AssemblyScript and Rust
+* A [BoringSSL-compatible API](https://github.com/jedisct1/superboring) for Rust
+* [Fast JWT tokens for WebAssembly](https://github.com/jedisct1/rust-jwt-simple) for Rust (with the `wasi-crypto` feature).
 
 ## Specification
 

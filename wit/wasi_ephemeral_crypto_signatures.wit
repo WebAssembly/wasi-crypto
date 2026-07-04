@@ -104,7 +104,7 @@ interface wasi-ephemeral-crypto-signatures {
   /// The state is not closed and can absorb more data to allow for incremental verification.
   ///
   /// The function returns `invalid_signature` if the signature doesn't appear to be valid.
-  signature-verification-state-verify: func(state: borrow<signature-verification-state>, signature: signature) -> result<_, crypto-errno>;
+  signature-verification-state-verify: func(state: borrow<signature-verification-state>, signature: borrow<signature>) -> result<_, crypto-errno>;
 
   /// Destroy a signature verification state.
   ///

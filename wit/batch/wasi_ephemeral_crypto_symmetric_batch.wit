@@ -1,0 +1,226 @@
+package wasi:crypto@0.11.0;
+
+/// Symmetric Batch Operations
+interface wasi-ephemeral-crypto-symmetric-batch {
+  use wasi-ephemeral-crypto-common.{size, crypto-errno, symmetric-tag, symmetric-state};
+
+  type output = list<u8>;
+
+  /// A non-mutable data buffer
+  type data = list<u8>;
+
+  /// A raw tag buffer
+  type raw-tag = list<u8>;
+
+  /// Tuple representing results and output buffers produced by an encrypt/decrypt operation.
+  type crypt-result = tuple<output, crypto-errno>;
+
+  /// A list of results from the individual encrypt/decrypt operations within a batch operation.
+  type batch-crypt-results = list<crypt-result>;
+
+  /// Tuple representing results and size produced by a detached encrypt operation.
+  type encrypt-detached-result = tuple<output, symmetric-tag, crypto-errno>;
+
+  /// A list of results from the individual encrypt/decrypt operations within a batch operation.
+  type batch-encrypt-detached-results = list<encrypt-detached-result>;
+
+  /// Tuple representing results and size produced by a squeeze operation.
+  type squeeze-result = tuple<output, crypto-errno>;
+
+  /// A list of results from squeeze operation within a batch operation.
+  type batch-squeeze-results = list<squeeze-result>;
+
+  /// Tuple representing results and tag and error produced by a detached squeeze operation.
+  type squeeze-detached-result = tuple<symmetric-tag, crypto-errno>;
+
+  /// A list of results from the individual detached squeeze operations within a batch operation.
+  type batch-squeeze-detached-results = list<squeeze-detached-result>;
+
+  /// Batch of operations to squeeze bytes from a batch of states.
+  ///
+  /// This is a batch version of the $symmetric_state_squeeze operation.
+  ///
+  /// Each entry in the batch corresponds to an individual squeeze operation.
+  /// The parameters associated with each operation are grouped into a tuple.
+  ///
+  /// The batch operation returns an error code of type $crypto_errno that
+  /// indicates if the batch was processed or if the batch could not be
+  /// processed.
+  ///
+  /// Batch processing error codes:
+  ///  - `success`: Batch was processed. The status of each operation is indicated in the results list.
+  ///  - `not_implemented`: Batch functionality is not supported.
+  ///  - `unsupported_feature`: Inconsistent operations within the batch, e.g. not all operations in the batch use the same algorithm.
+  ///
+  /// If the batch was processed, the result is a list of $crypto_errno error
+  /// codes that represent the status of the operation in the input list at
+  /// the same list offset.
+  ///
+  batch-symmetric-state-squeeze: func(batch: list<borrow<symmetric-state>>) -> result<batch-squeeze-results, crypto-errno>;
+
+  /// Batch of operations to compute and return a tag for all the data
+  /// injected into the state so far.
+  ///
+  /// This is a batch version of the $symmetric_state_squeeze_tag operation.
+  ///
+  /// Each entry in the batch corresponds to an individual squeeze_tag
+  /// operation. The parameters associated with each operation are grouped
+  /// into a tuple.
+  ///
+  /// The batch operation returns an error code of type $crypto_errno that
+  /// indicates if the batch was processed or if the batch could not be
+  /// processed.
+  ///
+  /// Batch processing error codes:
+  ///  - `success`: Batch was processed. The status of each operation is indicated in the results list.
+  ///  - `not_implemented`: Batch functionality is not supported.
+  ///  - `unsupported_feature`: Inconsistent operations within the batch, e.g. not all operations in the batch use the same algorithm.
+  ///
+  /// If the batch was processed, the result is a list of tuples, with each
+  /// list entry corresponding to the operation in the input list at the same
+  /// list offset. Each tuple contains a $crypto_errno error code and a tag.
+  /// The error code represents the status of the operation and the tag is the
+  /// tag generated from the squeeze operation. The tag is only valid if the
+  /// tuple's error code is `success`.
+  ///
+  batch-symmetric-state-squeeze-tag: func(states: list<borrow<symmetric-state>>) -> result<batch-squeeze-detached-results, crypto-errno>;
+
+  /// Perform a batch of symmetric encrypt operations.
+  ///
+  /// This is a batch version of the symmetric_state_encrypt operation.
+  ///
+  /// Each entry in the batch corresponds to an individual encrypt operation.
+  /// The parameters associated with each encrypt operation are grouped into a
+  /// tuple.
+  ///
+  /// The batch operation returns an error code of type $crypto_errno that
+  /// indicates if the batch was processed or if the batch could not be
+  /// processed.
+  ///
+  /// Batch processing error codes:
+  ///  - `success`: Batch was processed. The status of each operation is indicated in the results list.
+  ///  - `not_implemented`: Batch functionality is not supported.
+  ///  - `unsupported_feature`: Inconsistent operations within the batch, e.g. not all operations in the batch use the same algorithm.
+  ///
+  /// If the batch was processed, the result is a list of tuples, with each
+  /// list entry corresponding to the operation in the input list at the same
+  /// list offset.
+  /// Each tuple contains a size and a $crypto_errno error code.
+  /// The error code represents the status of the operation and the size is
+  /// the actual size of the ciphertext and the tag in the output buffer. The
+  /// size value is only valid if the tuple's error code is `success`.
+  ///
+  /// Example usage:
+  ///
+  /// ```rust
+  /// let mut batch = Vec::new();
+  ///
+  /// let state_handle = ctx.symmetric_state_open("AES-256-GCM", Some(key_handle1), Some(options_handle1))?;
+  /// let mut ciphertext = vec![0u8; message.len() + ctx.symmetric_state_max_tag_len(state_handle)?];
+  /// batch.push((batch, state_handle, ciphertext, ciphertext.len(), message, message.len()));
+  ///
+  /// let state_handle = ctx.symmetric_state_open("AES-256-GCM", Some(key_handle2), Some(options_handle2))?;
+  /// let mut ciphertext = vec![0u8; message2.len() + ctx.symmetric_state_max_tag_len(state_handle)?];
+  /// batch.push((batch, state_handle, ciphertext, ciphertext.len(), message2, message2.len()));
+  ///
+  /// let results = ctx.batch_symmetric_state_encrypt(batch)?;
+  /// ```
+  batch-symmetric-state-encrypt: func(batch: list<tuple<borrow<symmetric-state>, data>>) -> result<batch-crypt-results, crypto-errno>;
+
+  /// Perform a batch of symmetric encrypt operations with detached tags.
+  ///
+  /// This is a batch version of the symmetric_state_encrypt_detached
+  /// operation.
+  ///
+  /// Each entry in the batch corresponds to an individual encrypt operation.
+  /// The parameters associated with each encrypt operation are grouped into a
+  /// tuple.
+  ///
+  /// The batch operation returns an error code of type $crypto_errno that
+  /// indicates if the batch was processed or if the batch could not be
+  /// processed.
+  ///
+  /// Batch processing error codes:
+  ///  - `success`: Batch was processed. The status of each operation is indicated in the results list.
+  ///  - `not_implemented`: Batch functionality is not supported.
+  ///  - `unsupported_feature`: Inconsistent operations within the batch, e.g. not all operations in the batch use the same algorithm.
+  ///
+  /// If the batch was processed, the result is a list of tuples, with each
+  /// list entry corresponding to the operation in the input list at the same
+  /// list offset.
+  /// Each tuple contains a tag and a $crypto_errno error code.
+  /// The error code represents the status of the operation and the tag is
+  /// the tag generated by the operation. The tag is only valid if the tuple's
+  /// error code is `success`.
+  ///
+  /// Example usage:
+  ///
+  /// ```rust
+  /// let mut batch = Vec::new();
+  ///
+  /// let state_handle = ctx.symmetric_state_open("AES-256-GCM", Some(key_handle1), Some(options_handle1))?;
+  /// let mut ciphertext = vec![0u8; message.len() + ctx.symmetric_state_max_tag_len(state_handle)?];
+  /// batch.push((batch, state_handle, ciphertext, ciphertext.len(), message, message.len()));
+  ///
+  /// let state_handle = ctx.symmetric_state_open("AES-256-GCM", Some(key_handle2), Some(options_handle2))?;
+  /// let mut ciphertext = vec![0u8; message2.len() + ctx.symmetric_state_max_tag_len(state_handle)?];
+  /// batch.push((batch, state_handle, ciphertext, ciphertext.len(), message2, message2.len()));
+  ///
+  /// let results = ctx.batch_symmetric_state_encrypt_detached(batch)?;
+  /// ```
+  batch-symmetric-state-encrypt-detached: func(batch: list<tuple<borrow<symmetric-state>, data>>) -> result<batch-encrypt-detached-results, crypto-errno>;
+
+  /// Perform a batch of symmetric decrypt operations.
+  ///
+  /// This is a batch version of the symmetric_state_decrypt operation.
+  ///
+  /// Each entry in the batch corresponds to an individual decrypt operation.
+  /// The parameters associated with each decrypt operation are grouped into a
+  /// tuple.
+  ///
+  /// The batch operation returns an error code of type $crypto_errno that
+  /// indicates if the batch was processed or if the batch could not be
+  /// processed.
+  ///
+  /// Batch processing error codes:
+  ///  - `success`: Batch was processed. The status of each operation is indicated in the results list.
+  ///  - `not_implemented`: Batch functionality is not supported.
+  ///  - `unsupported_feature`: Inconsistent operations within the batch, e.g. not all operations in the batch use the same algorithm.
+  ///
+  /// If the batch was processed, the result is a list of tuples, with each
+  /// list entry corresponding to the operation in the input list at the same
+  /// list offset.
+  /// Each tuple contains a size and a $crypto_errno error code.
+  /// The error code represents the status of the operation and the size is
+  /// the actual size of the decrypted data in the output buffer. The size
+  /// value is only valid if the tuple's error code is `success`.
+  ///
+  batch-symmetric-state-decrypt: func(batch: list<tuple<borrow<symmetric-state>, data>>) -> result<batch-crypt-results, crypto-errno>;
+
+  /// Perform a batch of symmetric decrypt operations with detached tags.
+  ///
+  /// This is a batch version of the symmetric_state_decrypt_detached operation.
+  ///
+  /// Each entry in the batch corresponds to an individual decrypt operation.
+  /// The parameters associated with each decrypt operation are grouped into a
+  /// tuple.
+  ///
+  /// The batch operation returns an error code of type $crypto_errno that
+  /// indicates if the batch was processed or if the batch could not be
+  /// processed.
+  ///
+  /// Batch processing error codes:
+  ///  - `success`: Batch was processed. The status of each operation is indicated in the results list.
+  ///  - `not_implemented`: Batch functionality is not supported.
+  ///  - `unsupported_feature`: Inconsistent operations within the batch, e.g. not all operations in the batch use the same algorithm.
+  ///
+  /// If the batch was processed, the result is a list of tuples, with each
+  /// list entry corresponding to the operation in the input list at the same
+  /// list offset.
+  /// Each tuple contains a size and a $crypto_errno error code.
+  /// The error code represents the status of the operation and the size is
+  /// the actual size of the decrypted data in the output buffer. The size
+  /// value is only valid if the tuple's error code is `success`.
+  ///
+  batch-symmetric-state-decrypt-detached: func(batch: list<tuple<borrow<symmetric-state>, data, raw-tag>>) -> result<batch-crypt-results, crypto-errno>;
+}

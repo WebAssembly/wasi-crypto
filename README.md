@@ -15,7 +15,7 @@ The WASI Preview 1 (WASI-core) API, defined by the WITX files in
 [`witx/witx-0.10`](witx/witx-0.10/), is stable and production ready.
 It will not receive breaking changes.
 
-The WIT API in [`wit/`](wit/) targets WASI 0.3+.
+The current WIT API in [`wit/`](wit/) targets WASI 0.2.
 It is a moving target and is not yet stable.
 
 ## Implementations
@@ -40,7 +40,7 @@ It is a moving target and is not yet stable.
   * key exchange ([witx](witx/witx-0.10/wasi_ephemeral_crypto_kx.witx), [doc](witx/witx-0.10/wasi_ephemeral_crypto_kx.md))
   * external secrets ([witx](witx/witx-0.10/wasi_ephemeral_crypto_external_secrets.witx), [doc](witx/witx-0.10/wasi_ephemeral_crypto_external_secrets.md))
 * [Concise API overview](witx/witx-0.10/wasi_ephemeral_crypto.txt)
-* [WASI 0.3+ WIT API](wit/README.md)
+* [WASI 0.2+ WIT API](wit/README.md)
 
 Interested parties are welcome to join the working group meeting every 2 weeks on Tuesday 17:00 UTC.
 

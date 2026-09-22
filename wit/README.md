@@ -1,6 +1,6 @@
-# WASI Crypto for WASI 0.3+
+# WASI Crypto for WASI 0.2+
 
-This directory contains the WIT API for WASI 0.3+.
+This directory contains the WIT API for WASI 0.2+.
 
 ## Status
 

@@ -5,7 +5,7 @@ API, a set of interfaces that a runtime can expose to WebAssembly modules in
 order to perform cryptographic operations and key management.
 
 The API is production ready and will not receive breaking changes.
-The WIT API targeting WASI 0.3+ is a moving target and is documented in
+The WIT API targeting WASI 0.2+ is a moving target and is documented in
 [`wit/`](../wit/README.md).
 
 - [WASI cryptography APIs](#wasi-cryptography-apis)

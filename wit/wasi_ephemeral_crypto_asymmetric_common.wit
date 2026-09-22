@@ -116,13 +116,6 @@ interface wasi-ephemeral-crypto-asymmetric-common {
   /// Get the secret key of a key pair.
   keypair-secretkey: func(kp: borrow<keypair>) -> result<secretkey, crypto-errno>;
 
-  /// Destroy a key pair.
-  ///
-  /// The host will automatically wipe traces of the secret key from memory.
-  ///
-  /// If this is a managed key, the key will not be removed from persistent storage, and can be reconstructed later using the key identifier.
-  keypair-close: func(kp: keypair) -> result<_, crypto-errno>;
-
   /// Import a public key.
   ///
   /// The function may return `unsupported_encoding` if importing from the given format is not implemented or incompatible with the key type.
@@ -153,11 +146,6 @@ interface wasi-ephemeral-crypto-asymmetric-common {
   /// Compute the public key for a secret key.
   publickey-from-secretkey: func(sk: borrow<secretkey>) -> result<publickey, crypto-errno>;
 
-  /// Destroy a public key.
-  ///
-  /// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
-  publickey-close: func(pk: publickey) -> result<_, crypto-errno>;
-
   /// Import a secret key.
   ///
   /// The function may return `unsupported_encoding` if importing from the given format is not implemented or incompatible with the key type.
@@ -177,9 +165,4 @@ interface wasi-ephemeral-crypto-asymmetric-common {
   ///
   /// May return `unsupported_encoding` if the encoding is not supported.
   secretkey-export: func(sk: borrow<secretkey>, encoding: secretkey-encoding) -> result<array-output, crypto-errno>;
-
-  /// Destroy a secret key.
-  ///
-  /// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
-  secretkey-close: func(sk: secretkey) -> result<_, crypto-errno>;
 }

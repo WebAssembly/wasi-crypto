@@ -70,13 +70,6 @@ interface wasi-ephemeral-crypto-signatures {
   /// The function can be called multiple times for incremental signing.
   signature-state-sign: func(state: borrow<signature-state>) -> result<signature, crypto-errno>;
 
-  /// Destroy a signature state.
-  ///
-  /// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
-  ///
-  /// Note that closing a signature state doesn't close or invalidate the key pair object, that can be reused for further signatures.
-  signature-state-close: func(state: signature-state) -> result<_, crypto-errno>;
-
   /// Create a new state to collect data to verify a signature on.
   ///
   /// This is the verification counterpart of `signature_state`.
@@ -105,14 +98,4 @@ interface wasi-ephemeral-crypto-signatures {
   ///
   /// The function returns `invalid_signature` if the signature doesn't appear to be valid.
   signature-verification-state-verify: func(state: borrow<signature-verification-state>, signature: borrow<signature>) -> result<_, crypto-errno>;
-
-  /// Destroy a signature verification state.
-  ///
-  /// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
-  ///
-  /// Note that closing a signature state doesn't close or invalidate the public key object, that can be reused for further verifications.
-  signature-verification-state-close: func(state: signature-verification-state) -> result<_, crypto-errno>;
-
-  /// Destroy a signature.
-  signature-close: func(signature: signature) -> result<_, crypto-errno>;
 }

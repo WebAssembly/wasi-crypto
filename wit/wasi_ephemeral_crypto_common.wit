@@ -328,12 +328,8 @@ interface wasi-ephemeral-crypto-common {
   /// options_set(options_handle, "context", context)?;
   /// options_set_u64(options_handle, "threads", 4)?;
   /// let state = symmetric_state_open("BLAKE3", None, Some(options_handle))?;
-  /// options_close(options_handle)?;
   /// ```
   options-open: func(algorithm-type: algorithm-type) -> result<options, crypto-errno>;
-
-  /// Destroy an options object.
-  options-close: func(options: options) -> result<_, crypto-errno>;
 
   /// Set or update an option.
   ///
@@ -386,13 +382,6 @@ interface wasi-ephemeral-crypto-common {
   /// The function returns the `unsupported_feature` error code if secrets management facilities are not supported by the host.
   /// This is also an optional import, meaning that the function may not even exist.
   secrets-manager-open: func(options: option<borrow<options>>) -> result<secrets-manager, crypto-errno>;
-
-  /// __(optional)__
-  /// Destroy a secrets manager context.
-  ///
-  /// The function returns the `unsupported_feature` error code if secrets management facilities are not supported by the host.
-  /// This is also an optional import, meaning that the function may not even exist.
-  secrets-manager-close: func(secrets-manager: secrets-manager) -> result<_, crypto-errno>;
 
   /// __(optional)__
   /// Invalidate a managed key or key pair given an identifier and a version.

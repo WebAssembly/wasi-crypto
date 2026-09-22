@@ -27,11 +27,6 @@ interface wasi-ephemeral-crypto-symmetric {
   /// May return `prohibited_operation` if this operation is denied.
   symmetric-key-export: func(symmetric-key: borrow<symmetric-key>) -> result<array-output, crypto-errno>;
 
-  /// Destroy a symmetric key.
-  ///
-  /// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
-  symmetric-key-close: func(symmetric-key: symmetric-key) -> result<_, crypto-errno>;
-
   /// __(optional)__
   /// Generate a new managed symmetric key.
   ///
@@ -294,11 +289,6 @@ interface wasi-ephemeral-crypto-symmetric {
   /// The function clones the internal state, assigns a new handle to it and returns the new handle.
   symmetric-state-clone: func(state: borrow<symmetric-state>) -> result<symmetric-state, crypto-errno>;
 
-  /// Destroy a symmetric state.
-  ///
-  /// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
-  symmetric-state-close: func(state: symmetric-state) -> result<_, crypto-errno>;
-
   /// Absorb data into the state.
   ///
   /// - **Hash functions:** adds data to be hashed.
@@ -448,9 +438,4 @@ interface wasi-ephemeral-crypto-symmetric {
   /// ctx.symmetric_tag_verify(computed_tag_handle, expected_raw_tag)?;
   /// ```
   symmetric-tag-verify: func(symmetric-tag: borrow<symmetric-tag>, expected-raw-tag: list<u8>) -> result<_, crypto-errno>;
-
-  /// Explicitly destroy an unused authentication tag.
-  ///
-  /// Objects are reference counted. It is safe to close an object immediately after the last function needing it is called.
-  symmetric-tag-close: func(symmetric-tag: symmetric-tag) -> result<_, crypto-errno>;
 }

@@ -53,7 +53,7 @@ interface signatures {
     ///
     /// Trying to use that key pair with different parameters will throw an `invalid_key` error.
     ///
-    /// This function may return `$crypto_errno.unsupported_feature` if key generation is not supported by the host for the chosen algorithm.
+    /// This function may return `unsupported_feature` if key generation is not supported by the host for the chosen algorithm.
     ///
     /// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
     ///

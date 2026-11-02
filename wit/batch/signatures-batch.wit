@@ -22,7 +22,7 @@ interface signatures-batch {
   ///
   /// This is a batch version of the `signature-state.sign` operation and is an extension of the `signatures` interface.
   ///
-  /// The batch operation returns an error code of type $crypto_errno that
+  /// The batch operation returns an error code of type `crypto-errno` that
   /// indicates if the batch was processed or if the batch could not be
   /// processed.
   ///
@@ -32,7 +32,7 @@ interface signatures-batch {
   ///  - `unsupported_feature`: Inconsistent operations within the batch, e.g. not all operations in the batch use the same algorithm.
   ///
   /// If the batch was processed, the result of each operation in the batch
-  /// is a pair of a $crypto_errno error code and a signature. The error code
+  /// is a pair of a `crypto-errno` error code and a signature. The error code
   /// indicates if that operation succeeded or failed. The signature is only
   /// valid if the error code indicates success.
   ///
@@ -61,7 +61,7 @@ interface signatures-batch {
   /// This is a batch version of the `signature-verification-state.verify` operation and is
   /// an extension of the `signatures` interface.
   ///
-  /// The batch operation returns an error code of type $crypto_errno that
+  /// The batch operation returns an error code of type `crypto-errno` that
   /// indicates if the batch was processed (`success`) or if the batch could
   /// not be processed.
   ///

@@ -45,7 +45,7 @@ interface kx {
     ///
     /// Trying to use that key pair with different parameters will throw an `invalid_key` error.
     ///
-    /// This function may return `$crypto_errno.unsupported_feature` if key generation is not supported by the host for the chosen algorithm.
+    /// This function may return `unsupported_feature` if key generation is not supported by the host for the chosen algorithm.
     ///
     /// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
     ///
@@ -112,7 +112,7 @@ interface kx {
     /// Create a shared secret and encrypt it for the given public key.
     ///
     /// This operation is only compatible with specific algorithms.
-    /// If a selected algorithm doesn't support it, `$crypto_errno.invalid_operation` is returned.
+    /// If a selected algorithm doesn't support it, `invalid_operation` is returned.
     ///
     /// On success, both the shared secret and its encrypted version are returned.
     encapsulate: func() -> result<tuple<array-output, array-output>, crypto-errno>;
@@ -142,15 +142,15 @@ interface kx {
 
     /// Perform a simple Diffie-Hellman key exchange.
     ///
-    /// Both keys must be of the same type, or else the `$crypto_errno.incompatible_keys` error is returned.
-    /// The algorithm also has to support this kind of key exchange. If this is not the case, the `$crypto_errno.invalid_operation` error is returned.
+    /// Both keys must be of the same type, or else the `incompatible_keys` error is returned.
+    /// The algorithm also has to support this kind of key exchange. If this is not the case, the `invalid_operation` error is returned.
     ///
     /// Otherwise, a raw shared key is returned, and can be imported as a symmetric key.
     dh: func(pk: borrow<kx-publickey>) -> result<array-output, crypto-errno>;
 
     /// Decapsulate an encapsulated secret created with `kx-publickey.encapsulate()`
     ///
-    /// Return the secret, or `$crypto_errno.verification_failed` on error.
+    /// Return the secret, or `verification_failed` on error.
     decapsulate: func(encapsulated-secret: list<u8>) -> result<array-output, crypto-errno>;
   }
 }

@@ -14,7 +14,6 @@ interface kx-managed {
 
   type kp-id = list<u8>;
 
-  /// __(optional)__
   /// Generate a new managed key pair.
   ///
   /// The key pair is generated and stored by the secrets management facilities.
@@ -25,17 +24,13 @@ interface kx-managed {
   /// or `unsupported_algorithm` if a key cannot be created for the chosen algorithm.
   ///
   /// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
-  ///
-  /// This is also an optional import, meaning that the function may not even exist.
   generate-managed: func(secrets-manager: borrow<secrets-manager>, algorithm: string, options: option<borrow<kx-options>>) -> result<kx-keypair, crypto-errno>;
 
-  /// __(optional)__
   /// Store a key pair into the secrets manager.
   ///
   /// On success, the function returns the key pair identifier
   store-managed: func(secrets-manager: borrow<secrets-manager>, kp: borrow<kx-keypair>) -> result<kp-id, crypto-errno>;
 
-  /// __(optional)__
   /// Replace a managed key pair.
   ///
   /// This function creates a new version of a managed key pair, by replacing `$kp_old` with `$kp_new`.
@@ -54,25 +49,17 @@ interface kx-managed {
   /// Finally, `prohibited_operation` can be returned if `$kp_new` wasn't created by the secrets manager, and the secrets manager prohibits imported keys.
   ///
   /// If the operation succeeded, the new version is returned.
-  ///
-  /// This is an optional import, meaning that the function may not even exist.
   replace-managed: func(secrets-manager: borrow<secrets-manager>, kp-old: kx-keypair, kp-new: borrow<kx-keypair>) -> result<version, crypto-errno>;
 
-  /// __(optional)__
   /// Return the key pair identifier and version of a managed key pair.
   ///
   /// If the key pair is not managed, `unsupported_feature` is returned instead.
-  ///
-  /// This is an optional import, meaning that the function may not even exist.
   id: func(kp: borrow<kx-keypair>) -> result<tuple<kp-id, version>, crypto-errno>;
 
-  /// __(optional)__
   /// Return a managed key pair from a key identifier.
   ///
   /// `kp_version` can be set to `version_latest` to retrieve the most recent version of a key pair.
   ///
   /// If no key pair matching the provided information is found, `not_found` is returned instead.
-  ///
-  /// This is an optional import, meaning that the function may not even exist.
   from-id: func(secrets-manager: borrow<secrets-manager>, kp-id: kp-id, kp-version: version) -> result<kx-keypair, crypto-errno>;
 }

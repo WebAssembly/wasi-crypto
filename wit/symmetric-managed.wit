@@ -14,7 +14,6 @@ interface symmetric-managed {
 
   type symmetric-key-id = list<u8>;
 
-  /// __(optional)__
   /// Generate a new managed symmetric key.
   ///
   /// The key is generated and stored by the secrets management facilities.
@@ -25,19 +24,13 @@ interface symmetric-managed {
   /// or `unsupported_algorithm` if a key cannot be created for the chosen algorithm.
   ///
   /// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
-  ///
-  /// This is also an optional import, meaning that the function may not even exist.
   generate-managed: func(secrets-manager: borrow<secrets-manager>, algorithm: string, options: option<borrow<symmetric-options>>) -> result<symmetric-key, crypto-errno>;
 
-  /// __(optional)__
   /// Store a symmetric key into the secrets manager.
   ///
   /// On success, the function returns the key identifier.
-  ///
-  /// This is an optional import, meaning that the function may not even exist.
   store-managed: func(secrets-manager: borrow<secrets-manager>, symmetric-key: borrow<symmetric-key>) -> result<symmetric-key-id, crypto-errno>;
 
-  /// __(optional)__
   /// Replace a managed symmetric key.
   ///
   /// This function creates a new version of a managed symmetric key, by replacing `$kp_old` with `$kp_new`.
@@ -56,25 +49,17 @@ interface symmetric-managed {
   /// Finally, `prohibited_operation` can be returned if `$symmetric_key_new` wasn't created by the secrets manager, and the secrets manager prohibits imported keys.
   ///
   /// If the operation succeeded, the new version is returned.
-  ///
-  /// This is an optional import, meaning that the function may not even exist.
   replace-managed: func(secrets-manager: borrow<secrets-manager>, symmetric-key-old: symmetric-key, symmetric-key-new: borrow<symmetric-key>) -> result<version, crypto-errno>;
 
-  /// __(optional)__
   /// Return the key identifier and version of a managed symmetric key.
   ///
   /// If the key is not managed, `unsupported_feature` is returned instead.
-  ///
-  /// This is an optional import, meaning that the function may not even exist.
   id: func(symmetric-key: borrow<symmetric-key>) -> result<tuple<symmetric-key-id, version>, crypto-errno>;
 
-  /// __(optional)__
   /// Return a managed symmetric key from a key identifier.
   ///
   /// `kp_version` can be set to `version_latest` to retrieve the most recent version of a symmetric key.
   ///
   /// If no key matching the provided information is found, `not_found` is returned instead.
-  ///
-  /// This is an optional import, meaning that the function may not even exist.
   from-id: func(secrets-manager: borrow<secrets-manager>, symmetric-key-id: symmetric-key-id, symmetric-key-version: version) -> result<symmetric-key, crypto-errno>;
 }

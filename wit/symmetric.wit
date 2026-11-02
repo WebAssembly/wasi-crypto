@@ -1,0 +1,439 @@
+package wasi:crypto@0.12.0;
+
+interface symmetric {
+  use common.{crypto-errno, size, array-output, %u64};
+
+  /// A set of options for symmetric operations.
+  ///
+  /// This type is used to set non-default parameters.
+  ///
+  /// The exact set of allowed options depends on the algorithm being used.
+  resource symmetric-options {
+    /// Create a new object to set non-default options.
+    ///
+    /// Example usage:
+    ///
+    /// ```rust
+    /// let options = SymmetricOptions::new();
+    /// options.set("context", context)?;
+    /// options.set_u64("threads", 4)?;
+    /// let state = SymmetricState::open("BLAKE3", None, Some(&options))?;
+    /// ```
+    constructor();
+
+    /// Set or update an option.
+    ///
+    /// This is used to set algorithm-specific parameters.
+    ///
+    /// This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
+    set: func(name: string, value: list<u8>) -> result<_, crypto-errno>;
+
+    /// Set or update an integer option.
+    ///
+    /// This is used to set algorithm-specific parameters.
+    ///
+    /// This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
+    set-u64: func(name: string, value: u64) -> result<_, crypto-errno>;
+
+    /// Set or update buffer that the host can use or return data into.
+    ///
+    /// This is for example used to set the scratch buffer required by memory-hard functions.
+    ///
+    /// NOTE: In WITX, this was a raw pointer into guest linear memory, ensuring the allocation counted against the guest's memory budget.
+    /// This implementation using `list<u8>` does not have this guarantee and serves as a stopgap till [caller-supplied buffers](https://wasi.dev/roadmap) arrive in future WASI 0.3.x release.
+    ///
+    /// This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
+    @deprecated(version = 0.11.0)
+    @since(version = 0.11.0)
+    set-guest-buffer: func(name: string, buffer: list<u8>) -> result<_, crypto-errno>;
+  }
+
+  /// A symmetric key.
+  ///
+  /// The key can be imported from raw bytes, or can be a reference to a managed key.
+  ///
+  /// If it was imported, the host will wipe it from memory as soon as the handle is closed.
+  resource symmetric-key {
+    /// Generate a new symmetric key for a given algorithm.
+    ///
+    /// `options` can be `None` to use the default parameters, or an algorithm-specific set of parameters to override.
+    ///
+    /// This function may return `unsupported_feature` if key generation is not supported by the host for the chosen algorithm, or `unsupported_algorithm` if the algorithm is not supported by the host.
+    generate: static func(algorithm: string, options: option<borrow<symmetric-options>>) -> result<symmetric-key, crypto-errno>;
+
+    /// Create a symmetric key from raw material.
+    ///
+    /// The algorithm is internally stored along with the key, and trying to use the key with an operation expecting a different algorithm will return `invalid_key`.
+    ///
+    /// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+    %import: static func(algorithm: string, raw: list<u8>) -> result<symmetric-key, crypto-errno>;
+
+    /// Export a symmetric key as raw material.
+    ///
+    /// This is mainly useful to export a managed key.
+    ///
+    /// May return `prohibited_operation` if this operation is denied.
+    %export: func() -> result<array-output, crypto-errno>;
+  }
+
+  /// Symmetric key index, only required by the Interface Types translation layer.
+  enum opt-symmetric-key-u {
+    some,
+    none,
+  }
+
+  /// An optional symmetric key.
+  ///
+  /// This union simulates an `Option<SymmetricKey>` type to make the `symmetric_key` parameter of some functions optional.
+  @deprecated(version = 0.11.0)
+  @since(version = 0.11.0)
+  type opt-symmetric-key = option<symmetric-key>;
+
+  /// A state to perform symmetric operations.
+  ///
+  /// The state is not reset nor invalidated after an option has been performed.
+  /// Incremental updates and sessions are thus supported.
+  resource symmetric-state {
+    /// Create a new state to absorb and produce data using symmetric operations.
+    ///
+    /// The state remains valid after every operation in order to support incremental updates.
+    ///
+    /// The function has two optional parameters: a key and an options set.
+    ///
+    /// It will fail with a `key_not_supported` error code if a key was provided but the chosen algorithm doesn't natively support keying.
+    ///
+    /// On the other hand, if a key is required, but was not provided, a `key_required` error will be thrown.
+    ///
+    /// Some algorithms may require additional parameters. They have to be supplied as an options set:
+    ///
+    /// ```rust
+    /// let options = SymmetricOptions::new();
+    /// options.set("context", b"My application")?;
+    /// options.set_u64("fanout", 16)?;
+    /// let state = SymmetricState::open("BLAKE2B-512", None, Some(&options))?;
+    /// ```
+    ///
+    /// If some parameters are mandatory but were not set, the `parameters_missing` error code will be returned.
+    ///
+    /// A notable exception is the `nonce` parameter, that is common to most AEAD constructions.
+    ///
+    /// If a nonce is required but was not supplied:
+    ///
+    /// - If it is safe to do so, the host will automatically generate a nonce. This is true for nonces that are large enough to be randomly generated, or if the host is able to maintain a global counter.
+    /// - If not, the function will fail and return the dedicated `nonce_required` error code.
+    ///
+    /// A nonce that was automatically generated can be retrieved after the function returns with `state.options_get("nonce")`.
+    ///
+    /// **Sample usage patterns:**
+    ///
+    /// - **Hashing**
+    ///
+    /// ```rust
+    /// let state = SymmetricState::open("SHA-256", None, None)?;
+    /// state.absorb(b"data")?;
+    /// state.absorb(b"more_data")?;
+    /// let digest = state.squeeze()?;
+    /// ```
+    ///
+    /// - **MAC**
+    ///
+    /// ```rust
+    /// let key = SymmetricKey::import("HMAC/SHA-512", b"key")?;
+    /// let state = SymmetricState::open("HMAC/SHA-512", Some(&key), None)?;
+    /// state.absorb(b"data")?;
+    /// state.absorb(b"more_data")?;
+    /// let computed_tag = state.squeeze_tag()?;
+    /// let raw_tag = SymmetricTag::pull(computed_tag)?;
+    /// ```
+    ///
+    /// Verification:
+    ///
+    /// ```rust
+    /// let state = SymmetricState::open("HMAC/SHA-512", Some(&key), None)?;
+    /// state.absorb(b"data")?;
+    /// state.absorb(b"more_data")?;
+    /// let computed_tag = state.squeeze_tag()?;
+    /// computed_tag.verify(expected_raw_tag)?;
+    /// ```
+    ///
+    /// - **Tuple hashing**
+    ///
+    /// ```rust
+    /// let state = SymmetricState::open("TupleHashXOF256", None, None)?;
+    /// state.absorb(b"value 1")?;
+    /// state.absorb(b"value 2")?;
+    /// state.absorb(b"value 3")?;
+    /// let out = state.squeeze()?;
+    /// ```
+    /// Unlike MACs and regular hash functions, inputs are domain separated instead of being concatenated.
+    ///
+    /// - **Key derivation using extract-and-expand**
+    ///
+    /// Extract:
+    ///
+    /// ```rust
+    /// let key = SymmetricKey::import("HKDF-EXTRACT/SHA-512", b"key")?;
+    /// let state = SymmetricState::open("HKDF-EXTRACT/SHA-512", Some(&key), None)?;
+    /// state.absorb(b"salt")?;
+    /// let prk = state.squeeze_key("HKDF-EXPAND/SHA-512")?;
+    /// ```
+    ///
+    /// Expand:
+    ///
+    /// ```rust
+    /// let state = SymmetricState::open("HKDF-EXPAND/SHA-512", Some(&prk), None)?;
+    /// state.absorb(b"info")?;
+    /// let subkey = state.squeeze()?;
+    /// ```
+    ///
+    /// - **Key derivation using a XOF**
+    ///
+    /// ```rust
+    /// let key = SymmetricKey::import("BLAKE3", b"key")?;
+    /// let state = SymmetricState::open("BLAKE3", Some(&key), None)?;
+    /// state.absorb(b"context")?;
+    /// let subkey1 = state.squeeze()?;
+    /// let subkey2 = state.squeeze()?;
+    /// ```
+    ///
+    /// - **Password hashing**
+    ///
+    /// ```rust
+    /// let memory = vec![0u8; 1_000_000_000];
+    /// let options = SymmetricOptions::new();
+    /// options.set_guest_buffer("memory", &memory)?;
+    /// options.set_u64("opslimit", 5)?;
+    /// options.set_u64("parallelism", 8)?;
+    ///
+    /// let state = SymmetricState::open("ARGON2-ID-13", None, Some(&options))?;
+    /// state.absorb(b"password")?;
+    ///
+    /// let pw_str_tag = state.squeeze_tag()?;
+    /// let pw_str = SymmetricTag::pull(pw_str_tag)?;
+    /// ```
+    ///
+    /// - **AEAD encryption with an explicit nonce**
+    ///
+    /// ```rust
+    /// let key = SymmetricKey::generate("AES-256-GCM", None)?;
+    ///
+    /// let options = SymmetricOptions::new();
+    /// options.set("nonce", nonce)?;
+    ///
+    /// let state = SymmetricState::open("AES-256-GCM", Some(&key), Some(&options))?;
+    /// state.absorb(b"additional data")?;
+    /// let ciphertext_and_tag = state.encrypt(b"test")?;
+    /// ```
+    ///
+    /// - **AEAD encryption with automatic nonce generation**
+    ///
+    /// ```rust
+    /// let key = SymmetricKey::generate("AES-256-GCM-SIV", None)?;
+    /// let state = SymmetricState::open("AES-256-GCM-SIV", Some(&key), None)?;
+    ///
+    /// let nonce = state.options_get("nonce")?;
+    ///
+    /// state.absorb(b"additional data")?;
+    /// let ciphertext_and_tag = state.encrypt(b"test")?;
+    /// ```
+    ///
+    /// - **Session authenticated modes**
+    ///
+    /// ```rust
+    /// let key = SymmetricKey::generate("XOODYAK-128", None)?;
+    /// let state = SymmetricState::open("XOODYAK-128", Some(&key), None)?;
+    /// state.absorb(b"data")?;
+    /// let ciphertext_and_tag = state.encrypt(b"abcd")?;
+    /// state.absorb(b"more data")?;
+    /// let out = state.squeeze()?;
+    /// let out2 = state.squeeze()?;
+    /// state.ratchet()?;
+    /// state.absorb(b"more data")?;
+    /// let next_key = state.squeeze_key("XOODYAK-128")?;
+    /// // ...
+    /// ```
+    open: static func(algorithm: string, key: option<borrow<symmetric-key>>, options: option<borrow<symmetric-options>>) -> result<symmetric-state, crypto-errno>;
+
+    /// Retrieve a parameter from the current state.
+    ///
+    /// In particular, `symmetric-state.options-get("nonce")` can be used to get a nonce that as automatically generated.
+    ///
+    /// The function may return `options_not_set` if an option was not set, which is different from an empty value.
+    ///
+    /// It may also return `unsupported_option` if the option doesn't exist for the chosen algorithm.
+    options-get: func(name: string) -> result<list<u8>, crypto-errno>;
+
+    /// Retrieve an integer parameter from the current state.
+    ///
+    /// The function may return `options_not_set` if an option was not set.
+    ///
+    /// It may also return `unsupported_option` if the option doesn't exist for the chosen algorithm.
+    options-get-u64: func(name: string) -> result<%u64, crypto-errno>;
+
+    /// Clone a symmetric state.
+    ///
+    /// The function clones the internal state, assigns a new handle to it and returns the new handle.
+    clone: func() -> result<symmetric-state, crypto-errno>;
+
+    /// Absorb data into the state.
+    ///
+    /// - **Hash functions:** adds data to be hashed.
+    /// - **MAC functions:** adds data to be authenticated.
+    /// - **Tuplehash-like constructions:** adds a new tuple to the state.
+    /// - **Key derivation functions:** adds to the IKM or to the subkey information.
+    /// - **AEAD constructions:** adds additional data to be authenticated.
+    /// - **Stateful hash objects, permutation-based constructions:** absorbs.
+    ///
+    /// If the chosen algorithm doesn't accept input data, the `invalid_operation` error code is returned.
+    ///
+    /// If too much data has been fed for the algorithm, `overflow` may be thrown.
+    absorb: func(data: list<u8>) -> result<_, crypto-errno>;
+
+    /// Squeeze bytes from the state.
+    ///
+    /// - **Hash functions:** this tries to output an `out_len` bytes digest from the absorbed data. The hash function output will be truncated if necessary. If the requested size is too large, the `invalid_len` error code is returned.
+    /// - **Key derivation functions:** : outputs an arbitrary-long derived key.
+    /// - **RNGs, DRBGs, stream ciphers:**: outputs arbitrary-long data.
+    /// - **Stateful hash objects, permutation-based constructions:** squeeze.
+    ///
+    /// Other kinds of algorithms may return `invalid_operation` instead.
+    ///
+    /// For password-stretching functions, the function may return `in_progress`.
+    /// In that case, the guest should retry with the same parameters until the function completes.
+    squeeze: func() -> result<list<u8>, crypto-errno>;
+
+    /// Compute and return a tag for all the data injected into the state so far.
+    ///
+    /// - **MAC functions**: returns a tag authenticating the absorbed data.
+    /// - **Tuplehash-like constructions:** returns a tag authenticating all the absorbed tuples.
+    /// - **Password-hashing functions:** returns a standard string containing all the required parameters for password verification.
+    ///
+    /// Other kinds of algorithms may return `invalid_operation` instead.
+    ///
+    /// For password-stretching functions, the function may return `in_progress`.
+    /// In that case, the guest should retry with the same parameters until the function completes.
+    squeeze-tag: func() -> result<symmetric-tag, crypto-errno>;
+
+    /// Use the current state to produce a key for a target algorithm.
+    ///
+    /// For extract-then-expand constructions, this returns the PRK.
+    /// For session-based authentication encryption, this returns a key that can be used to resume a session without storing a nonce.
+    ///
+    /// `invalid_operation` is returned for algorithms not supporting this operation.
+    squeeze-key: func(alg-str: string) -> result<symmetric-key, crypto-errno>;
+
+    /// Return the maximum length of an authentication tag for the current algorithm.
+    ///
+    /// This allows guests to compute the size required to store a ciphertext along with its authentication tag.
+    ///
+    /// The returned length may include the encryption mode's padding requirements in addition to the actual tag.
+    ///
+    /// For an encryption operation, the size of the output buffer should be `input_len + symmetric-state.max-tag-len()`.
+    ///
+    /// For a decryption operation, the size of the buffer that will store the decrypted data must be `ciphertext_len - symmetric-state.max-tag-len()`.
+    max-tag-len: func() -> result<size, crypto-errno>;
+
+    /// Encrypt data with an attached tag.
+    ///
+    /// - **Stream cipher:** adds the input to the stream cipher output. `out_len` and `data_len` can be equal, as no authentication tags will be added.
+    /// - **AEAD:** encrypts `data` into `out`, including the authentication tag to the output. Additional data must have been previously absorbed using `symmetric-state.absorb()`. The `symmetric-state.max-tag-len()` function can be used to retrieve the overhead of adding the tag, as well as padding if necessary.
+    /// - **SHOE, Xoodyak, Strobe:** encrypts data, squeezes a tag and appends it to the output.
+    ///
+    /// The function returns the ciphertext along with the tag.
+    ///
+    /// `invalid_operation` is returned for algorithms not supporting encryption.
+    encrypt: func(data: list<u8>) -> result<list<u8>, crypto-errno>;
+
+    /// Encrypt data, with a detached tag.
+    ///
+    /// - **Stream cipher:** returns `invalid_operation` since stream ciphers do not include authentication tags.
+    /// - **AEAD:** encrypts `data` into `out` and returns the tag separately. Additional data must have been previously absorbed using `symmetric-state.absorb()`. The output and input buffers must be of the same length.
+    /// - **SHOE, Xoodyak, Strobe:** encrypts data and squeezes a tag.
+    ///
+    /// The function returns the ciphertext and tag.
+    ///
+    /// `invalid_operation` is returned for algorithms not supporting encryption.
+    encrypt-detached: func(data: list<u8>) -> result<tuple<list<u8>, symmetric-tag>, crypto-errno>;
+
+    /// - **Stream cipher:** adds the input to the stream cipher output. `out_len` and `data_len` can be equal, as no authentication tags will be added.
+    /// - **AEAD:** decrypts `data` into `out`. Additional data must have been previously absorbed using `symmetric-state.absorb()`.
+    /// - **SHOE, Xoodyak, Strobe:** decrypts data, squeezes a tag and verify that it matches the one that was appended to the ciphertext.
+    ///
+    /// `out-len` is the expected length of the plaintext. It must equal `data.len() - tag_len`, where
+    /// `tag_len` is the length of the authentication tag appended to the ciphertext. This parameter is
+    /// required because the tag length is algorithm-specific and may vary within the same algorithm
+    /// (e.g. AES-GCM supports tag lengths of 4–16 bytes), so the host cannot determine the split point
+    /// without explicit guidance from the caller.
+    ///
+    /// The function returns the decrypted message.
+    ///
+    /// `invalid_tag` is returned if the tag didn't verify.
+    ///
+    /// `invalid_operation` is returned for algorithms not supporting encryption.
+    decrypt: func(data: list<u8>, out-len: size) -> result<list<u8>, crypto-errno>;
+
+    /// - **Stream cipher:** returns `invalid_operation` since stream ciphers do not include authentication tags.
+    /// - **AEAD:** decrypts `data` into `out`. Additional data must have been previously absorbed using `symmetric-state.absorb()`.
+    /// - **SHOE, Xoodyak, Strobe:** decrypts data, squeezes a tag and verify that it matches the expected one.
+    ///
+    /// `raw_tag` is the expected tag, as raw bytes.
+    ///
+    /// The function returns the decrypted message.
+    ///
+    /// `invalid_tag` is returned if the tag verification failed.
+    ///
+    /// `invalid_operation` is returned for algorithms not supporting encryption.
+    decrypt-detached: func(data: list<u8>, raw-tag: list<u8>) -> result<list<u8>, crypto-errno>;
+
+    /// Make it impossible to recover the previous state.
+    ///
+    /// This operation is supported by some systems keeping a rolling state over an entire session, for forward security.
+    ///
+    /// `invalid_operation` is returned for algorithms not supporting ratcheting.
+    ratchet: func() -> result<_, crypto-errno>;
+  }
+
+  /// An authentication tag.
+  ///
+  /// This is an object returned by functions computing authentication tags.
+  ///
+  /// A tag can be compared against another tag (directly supplied as raw bytes) in constant time with the `symmetric-tag.verify()` function.
+  ///
+  /// This object type can't be directly created from raw bytes. They are only returned by functions computing MACs.
+  ///
+  /// The host is responsible for securely wiping them from memory on close.
+  resource symmetric-tag {
+    /// Return the length of an authentication tag.
+    ///
+    /// This function can be used by a guest to allocate the correct buffer size to copy a computed authentication tag.
+    len: func() -> result<size, crypto-errno>;
+
+    /// Copy an authentication tag into a guest-allocated buffer.
+    ///
+    /// The handle is consumed and becomes invalid after this call.
+    ///
+    /// Example usage:
+    ///
+    /// ```rust
+    /// let raw_tag = SymmetricTag::pull(tag)?;
+    /// ```
+    pull: static func(this: symmetric-tag) -> result<list<u8>, crypto-errno>;
+
+    /// Verify that a computed authentication tag matches the expected value, in constant-time.
+    ///
+    /// The expected tag must be provided as a raw byte string.
+    ///
+    /// The function returns `invalid_tag` if the tags don't match.
+    ///
+    /// Example usage:
+    ///
+    /// ```rust
+    /// let key = SymmetricKey::import("HMAC/SHA-256", b"key")?;
+    /// let state = SymmetricState::open("HMAC/SHA-256", Some(&key), None)?;
+    /// state.absorb(b"data")?;
+    /// let computed_tag = state.squeeze_tag()?;
+    /// computed_tag.verify(expected_raw_tag)?;
+    /// ```
+    verify: func(expected-raw-tag: list<u8>) -> result<_, crypto-errno>;
+  }
+}

@@ -1,0 +1,65 @@
+package wasi:crypto@0.12.0;
+
+/// Managed signature key pairs.
+///
+/// These functions take both a `secrets-manager` and a `signature-keypair`, which are declared in different interfaces, so they are free functions rather than methods.
+///
+/// The whole interface is optional.
+///
+/// __(optional)__
+interface signatures-managed {
+  use common.{crypto-errno, version};
+  use secrets-manager.{secrets-manager};
+  use signatures.{signature-keypair, signature-options};
+
+  type kp-id = list<u8>;
+
+  /// Generate a new managed key pair.
+  ///
+  /// The key pair is generated and stored by the secrets management facilities.
+  ///
+  /// It may be used through its identifier, but the host may not allow it to be exported.
+  ///
+  /// The function returns the `unsupported_feature` error code if secrets management facilities are not supported by the host,
+  /// or `unsupported_algorithm` if a key cannot be created for the chosen algorithm.
+  ///
+  /// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+  generate-managed: func(secrets-manager: borrow<secrets-manager>, algorithm: string, options: option<borrow<signature-options>>) -> result<signature-keypair, crypto-errno>;
+
+  /// Store a key pair into the secrets manager.
+  ///
+  /// On success, the function returns the key pair identifier
+  store-managed: func(secrets-manager: borrow<secrets-manager>, kp: borrow<signature-keypair>) -> result<kp-id, crypto-errno>;
+
+  /// Replace a managed key pair.
+  ///
+  /// This function creates a new version of a managed key pair, by replacing `kp_old` with `kp_new`.
+  ///
+  /// It does several things:
+  ///
+  /// - The key identifier for `kp_new` is set to the one of `kp_old`.
+  /// - A new, unique version identifier is assigned to `kp_new`. This version will be equivalent to using `version.latest` until the key is replaced.
+  /// - The `kp_old` handle is closed.
+  ///
+  /// Both keys must share the same algorithm and have compatible parameters. If this is not the case, `incompatible_keys` is returned.
+  ///
+  /// The function may also return the `unsupported_feature` error code if secrets management facilities are not supported by the host,
+  /// or if keys cannot be rotated.
+  ///
+  /// Finally, `prohibited_operation` can be returned if `kp_new` wasn't created by the secrets manager, and the secrets manager prohibits imported keys.
+  ///
+  /// If the operation succeeded, the new version is returned.
+  replace-managed: func(secrets-manager: borrow<secrets-manager>, kp-old: signature-keypair, kp-new: borrow<signature-keypair>) -> result<version, crypto-errno>;
+
+  /// Return the key pair identifier and version of a managed key pair.
+  ///
+  /// If the key pair is not managed, `unsupported_feature` is returned instead.
+  id: func(kp: borrow<signature-keypair>) -> result<tuple<kp-id, version>, crypto-errno>;
+
+  /// Return a managed key pair from a key identifier.
+  ///
+  /// `kp_version` can be set to `version.latest` to retrieve the most recent version of a key pair.
+  ///
+  /// If no key pair matching the provided information is found, `not_found` is returned instead.
+  from-id: func(secrets-manager: borrow<secrets-manager>, kp-id: kp-id, kp-version: version) -> result<signature-keypair, crypto-errno>;
+}

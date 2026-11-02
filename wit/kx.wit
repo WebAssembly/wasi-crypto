@@ -1,0 +1,156 @@
+package wasi:crypto@0.12.0;
+
+interface kx {
+  use common.{crypto-errno, array-output, keypair-encoding, publickey-encoding, secretkey-encoding};
+
+  /// A set of options for key exchange algorithms.
+  ///
+  /// This type is used to set non-default parameters.
+  ///
+  /// The exact set of allowed options depends on the algorithm being used.
+  resource kx-options {
+    /// Create a new object to set non-default options.
+    constructor();
+
+    /// Set or update an option.
+    ///
+    /// This is used to set algorithm-specific parameters.
+    ///
+    /// This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
+    set: func(name: string, value: list<u8>) -> result<_, crypto-errno>;
+
+    /// Set or update an integer option.
+    ///
+    /// This is used to set algorithm-specific parameters.
+    ///
+    /// This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
+    set-u64: func(name: string, value: u64) -> result<_, crypto-errno>;
+
+    /// Set or update buffer that the host can use or return data into.
+    ///
+    /// NOTE: In WITX, this was a raw pointer into guest linear memory, ensuring the allocation counted against the guest's memory budget.
+    /// This implementation using `list<u8>` does not have this guarantee and serves as a stopgap till [caller-supplied buffers](https://wasi.dev/roadmap) arrive in future WASI 0.3.x release.
+    ///
+    /// This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
+    @deprecated(version = 0.11.0)
+    @since(version = 0.11.0)
+    set-guest-buffer: func(name: string, buffer: list<u8>) -> result<_, crypto-errno>;
+  }
+
+  /// A key pair, for key exchange mechanisms.
+  resource kx-keypair {
+    /// Generate a new key pair.
+    ///
+    /// Internally, a key pair stores the supplied algorithm and optional parameters.
+    ///
+    /// Trying to use that key pair with different parameters will throw an `invalid_key` error.
+    ///
+    /// This function may return `unsupported_feature` if key generation is not supported by the host for the chosen algorithm.
+    ///
+    /// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+    ///
+    /// Finally, if generating that type of key pair is an expensive operation, the function may return `in_progress`.
+    /// In that case, the guest should retry with the same parameters until the function completes.
+    ///
+    /// Example usage:
+    ///
+    /// ```rust
+    /// let kp = KxKeypair::generate("X25519", None)?;
+    /// ```
+    generate: static func(algorithm: string, options: option<borrow<kx-options>>) -> result<kx-keypair, crypto-errno>;
+
+    /// Import a key pair.
+    ///
+    /// This function creates a `keypair` object from existing material.
+    ///
+    /// It may return `unsupported_algorithm` if the encoding scheme is not supported, or `invalid_key` if the key cannot be decoded.
+    ///
+    /// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+    %import: static func(algorithm: string, encoded: list<u8>, encoding: keypair-encoding) -> result<kx-keypair, crypto-errno>;
+
+    /// Create a key pair from a public key and a secret key.
+    from-pk-and-sk: static func(publickey: borrow<kx-publickey>, secretkey: borrow<kx-secretkey>) -> result<kx-keypair, crypto-errno>;
+
+    /// Export a key pair as the given encoding format.
+    ///
+    /// May return `prohibited_operation` if this operation is denied or `unsupported_encoding` if the encoding is not supported.
+    %export: func(encoding: keypair-encoding) -> result<array-output, crypto-errno>;
+
+    /// Get the public key of a key pair.
+    publickey: func() -> result<kx-publickey, crypto-errno>;
+
+    /// Get the secret key of a key pair.
+    secretkey: func() -> result<kx-secretkey, crypto-errno>;
+  }
+
+  /// A public key, for key exchange mechanisms.
+  resource kx-publickey {
+    /// Import a public key.
+    ///
+    /// The function may return `unsupported_encoding` if importing from the given format is not implemented or incompatible with the key type.
+    ///
+    /// It may also return `invalid_key` if the key doesn't appear to match the supplied algorithm.
+    ///
+    /// Finally, the function may return `unsupported_algorithm` if the algorithm is not supported by the host.
+    %import: static func(algorithm: string, encoded: list<u8>, encoding: publickey-encoding) -> result<kx-publickey, crypto-errno>;
+
+    /// Compute the public key for a secret key.
+    from-secretkey: static func(sk: borrow<kx-secretkey>) -> result<kx-publickey, crypto-errno>;
+
+    /// Export a public key as the given encoding format.
+    ///
+    /// May return `unsupported_encoding` if the encoding is not supported.
+    %export: func(encoding: publickey-encoding) -> result<array-output, crypto-errno>;
+
+    /// Check that a public key is valid and in canonical form.
+    ///
+    /// This function may perform stricter checks than those made during importation at the expense of additional CPU cycles.
+    ///
+    /// The function returns `invalid_key` if the public key didn't pass the checks.
+    verify: func() -> result<_, crypto-errno>;
+
+    /// Create a shared secret and encrypt it for the given public key.
+    ///
+    /// This operation is only compatible with specific algorithms.
+    /// If a selected algorithm doesn't support it, `invalid_operation` is returned.
+    ///
+    /// On success, both the shared secret and its encrypted version are returned.
+    encapsulate: func() -> result<tuple<array-output, array-output>, crypto-errno>;
+  }
+
+  /// A secret key, for key exchange mechanisms.
+  resource kx-secretkey {
+    /// Import a secret key.
+    ///
+    /// The function may return `unsupported_encoding` if importing from the given format is not implemented or incompatible with the key type.
+    ///
+    /// It may also return `invalid_key` if the key doesn't appear to match the supplied algorithm.
+    ///
+    /// Finally, the function may return `unsupported_algorithm` if the algorithm is not supported by the host.
+    ///
+    /// Example usage:
+    ///
+    /// ```rust
+    /// let sk = KxSecretkey::import("X25519", encoded, SecretkeyEncoding::Raw)?;
+    /// ```
+    %import: static func(algorithm: string, encoded: list<u8>, encoding: secretkey-encoding) -> result<kx-secretkey, crypto-errno>;
+
+    /// Export a secret key as the given encoding format.
+    ///
+    /// May return `unsupported_encoding` if the encoding is not supported.
+    %export: func(encoding: secretkey-encoding) -> result<array-output, crypto-errno>;
+
+    /// Perform a simple Diffie-Hellman key exchange.
+    ///
+    /// Both keys must be of the same type, or else the `incompatible_keys` error is returned.
+    /// The algorithm also has to support this kind of key exchange. If this is not the case, the `invalid_operation` error is returned.
+    ///
+    /// Otherwise, a raw shared key is returned, and can be imported as a symmetric key.
+    dh: func(pk: borrow<kx-publickey>) -> result<array-output, crypto-errno>;
+
+    /// Decapsulate an encapsulated secret created with `kx-publickey.encapsulate()`
+    ///
+    /// Return the secret, or `verification_failed` on error.
+    decapsulate: func(encapsulated-secret: list<u8>) -> result<array-output, crypto-errno>;
+  }
+}

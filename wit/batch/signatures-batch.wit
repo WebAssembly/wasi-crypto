@@ -1,7 +1,8 @@
-package wasi:crypto@0.11.0;
+package wasi:crypto@0.12.0;
 
-interface wasi-ephemeral-crypto-signatures-batch {
-  use wasi-ephemeral-crypto-common.{array-output, crypto-errno, signature-verification-state, signature, signature-state};
+interface signatures-batch {
+  use common.{array-output, crypto-errno};
+  use signatures.{signature-verification-state, signature, signature-state};
 
   /// The result of a signature sign operation. A pair of the signature and an error code.
   type signature-sign-result = tuple<array-output, crypto-errno>;
@@ -19,9 +20,9 @@ interface wasi-ephemeral-crypto-signatures-batch {
 
   /// Compute a batch of signatures.
   ///
-  /// This is a batch version of the signature_state_sign operation and is an extension of the wasi_ephemeral_crypto_signatures module.
+  /// This is a batch version of the `signature-state.sign` operation and is an extension of the `signatures` interface.
   ///
-  /// The batch operation returns an error code of type $crypto_errno that
+  /// The batch operation returns an error code of type `crypto-errno` that
   /// indicates if the batch was processed or if the batch could not be
   /// processed.
   ///
@@ -31,40 +32,36 @@ interface wasi-ephemeral-crypto-signatures-batch {
   ///  - `unsupported_feature`: Inconsistent operations within the batch, e.g. not all operations in the batch use the same algorithm.
   ///
   /// If the batch was processed, the result of each operation in the batch
-  /// is a pair of a $crypto_errno error code and a signature. The error code
+  /// is a pair of a `crypto-errno` error code and a signature. The error code
   /// indicates if that operation succeeded or failed. The signature is only
   /// valid if the error code indicates success.
   ///
   /// Example usage:
   ///
   /// ```rust
-  /// let kp_handle = keypair_import(AlgorithmType::Signatures, "Ed25519", encoded, KeypairEncoding::Raw)?;
+  /// let kp = SignatureKeypair::import("Ed25519", encoded_keypair, KeypairEncoding::Raw)?;
   ///
-  /// let mut state_handles = Vec::new();
+  /// let state1 = SignatureState::open(&kp)?;
+  /// state1.update(b"message part 1")?;
+  /// state1.update(b"message part 2")?;
   ///
-  /// let state_handle = signature_state_open(kp_handle)?;
-  /// signature_state_update(state_handle, b"message part 1")?;
-  /// signature_state_update(state_handle, b"message part 2")?;
-  /// state_handles.push(state_handle);
+  /// let state2 = SignatureState::open(&kp)?;
+  /// state2.update(b"message part 1")?;
+  /// state2.update(b"message part 2")?;
   ///
-  /// let state_handle = signature_state_open(kp_handle)?;
-  /// signature_state_update(state_handle, b"message part 1")?;
-  /// signature_state_update(state_handle, b"message part 2")?;
-  /// state_handles.push(state_handle);
-  ///
-  /// let sig_handles = batch_signature_state_sign(state_handles)?;
-  ///
-  /// let raw_sig1 = signature_export(sig_handle[0], SignatureEncoding::Raw)?;
-  /// let raw_sig2 = signature_export(sig_handle[1], SignatureEncoding::Raw)?;
+  /// let results = batch_signature_state_sign(&[&state1, &state2])?;
+  /// for (encoded_signature, status) in results {
+  ///     // `encoded_signature` is only valid if `status` is `CryptoErrno::Success`.
+  /// }
   /// ```
   batch-signature-state-sign: func(states: list<borrow<signature-state>>) -> result<signature-results, crypto-errno>;
 
   /// Verify a batch of signatures.
   ///
-  /// This is a batch version of the signature_state_verify operation and is
-  /// an extension of the wasi_ephemeral_crypto_signatures module.
+  /// This is a batch version of the `signature-verification-state.verify` operation and is
+  /// an extension of the `signatures` interface.
   ///
-  /// The batch operation returns an error code of type $crypto_errno that
+  /// The batch operation returns an error code of type `crypto-errno` that
   /// indicates if the batch was processed (`success`) or if the batch could
   /// not be processed.
   ///
@@ -80,21 +77,17 @@ interface wasi-ephemeral-crypto-signatures-batch {
   /// Example usage:
   ///
   /// ```rust
-  /// let kp_handle = keypair_import(AlgorithmType::Signatures, "Ed25519", encoded, KeypairEncoding::Raw)?;
+  /// let pk = SignaturePublickey::import("Ed25519", encoded_pk, PublickeyEncoding::Raw)?;
   ///
-  /// let mut batch = Vec::new();
+  /// let state1 = SignatureVerificationState::open(&pk)?;
+  /// state1.update(b"message part 1")?;
+  /// state1.update(b"message part 2")?;
   ///
-  /// let state_handle = signature_verification_state_open(kp_handle)?;
-  /// signature_verification_state_update(state_handle, b"message part 1")?;
-  /// signature_verification_state_update(state_handle, b"message part 2")?;
-  /// state_handles.push((state_handle, signature1));
+  /// let state2 = SignatureVerificationState::open(&pk)?;
+  /// state2.update(b"message part 1")?;
+  /// state2.update(b"message part 2")?;
   ///
-  /// let state_handle = signature_verification_state_open(kp_handle)?;
-  /// signature_verification_state_update(state_handle, b"message part 1")?;
-  /// signature_verification_state_update(state_handle, b"message part 2")?;
-  /// state_handles.push((state_handle, signature2));
-  ///
-  /// let results = batch_signature_state_verify(state_handles)?;
+  /// let results = batch_signature_state_verify(&[(&state1, &signature1), (&state2, &signature2)])?;
   /// ```
   batch-signature-state-verify: func(states: list<signature-verification-input>) -> result<signature-verification-results, crypto-errno>;
 }

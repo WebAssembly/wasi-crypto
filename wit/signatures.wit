@@ -1,0 +1,243 @@
+package wasi:crypto@0.12.0;
+
+interface signatures {
+  use common.{crypto-errno, array-output, keypair-encoding, publickey-encoding, secretkey-encoding};
+
+  /// Encoding to use for importing or exporting a signature.
+  enum signature-encoding {
+    /// Raw bytes.
+    raw,
+    /// DER encoding.
+    der,
+  }
+
+  /// A set of options for signature algorithms.
+  ///
+  /// This type is used to set non-default parameters.
+  ///
+  /// The exact set of allowed options depends on the algorithm being used.
+  resource signature-options {
+    /// Create a new object to set non-default options.
+    constructor();
+
+    /// Set or update an option.
+    ///
+    /// This is used to set algorithm-specific parameters.
+    ///
+    /// This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
+    set: func(name: string, value: list<u8>) -> result<_, crypto-errno>;
+
+    /// Set or update an integer option.
+    ///
+    /// This is used to set algorithm-specific parameters.
+    ///
+    /// This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
+    set-u64: func(name: string, value: u64) -> result<_, crypto-errno>;
+
+    /// Set or update buffer that the host can use or return data into.
+    ///
+    /// NOTE: In WITX, this was a raw pointer into guest linear memory, ensuring the allocation counted against the guest's memory budget.
+    /// This implementation using `list<u8>` does not have this guarantee and serves as a stopgap till [caller-supplied buffers](https://wasi.dev/roadmap) arrive in future WASI 0.3.x release.
+    ///
+    /// This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
+    @deprecated(version = 0.11.0)
+    @since(version = 0.11.0)
+    set-guest-buffer: func(name: string, buffer: list<u8>) -> result<_, crypto-errno>;
+  }
+
+  /// A key pair, for signatures.
+  resource signature-keypair {
+    /// Generate a new key pair.
+    ///
+    /// Internally, a key pair stores the supplied algorithm and optional parameters.
+    ///
+    /// Trying to use that key pair with different parameters will throw an `invalid_key` error.
+    ///
+    /// This function may return `$crypto_errno.unsupported_feature` if key generation is not supported by the host for the chosen algorithm.
+    ///
+    /// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+    ///
+    /// Finally, if generating that type of key pair is an expensive operation, the function may return `in_progress`.
+    /// In that case, the guest should retry with the same parameters until the function completes.
+    ///
+    /// Example usage:
+    ///
+    /// ```rust
+    /// let kp = SignatureKeypair::generate("RSA_PKCS1_2048_SHA256", None)?;
+    /// ```
+    generate: static func(algorithm: string, options: option<borrow<signature-options>>) -> result<signature-keypair, crypto-errno>;
+
+    /// Import a key pair.
+    ///
+    /// This function creates a `keypair` object from existing material.
+    ///
+    /// It may return `unsupported_algorithm` if the encoding scheme is not supported, or `invalid_key` if the key cannot be decoded.
+    ///
+    /// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+    ///
+    /// Example usage:
+    ///
+    /// ```rust
+    /// let kp = SignatureKeypair::import("RSA_PKCS1_2048_SHA256", encoded, KeypairEncoding::Pkcs8)?;
+    /// ```
+    %import: static func(algorithm: string, encoded: list<u8>, encoding: keypair-encoding) -> result<signature-keypair, crypto-errno>;
+
+    /// Create a key pair from a public key and a secret key.
+    from-pk-and-sk: static func(publickey: borrow<signature-publickey>, secretkey: borrow<signature-secretkey>) -> result<signature-keypair, crypto-errno>;
+
+    /// Export a key pair as the given encoding format.
+    ///
+    /// May return `prohibited_operation` if this operation is denied or `unsupported_encoding` if the encoding is not supported.
+    %export: func(encoding: keypair-encoding) -> result<array-output, crypto-errno>;
+
+    /// Get the public key of a key pair.
+    publickey: func() -> result<signature-publickey, crypto-errno>;
+
+    /// Get the secret key of a key pair.
+    secretkey: func() -> result<signature-secretkey, crypto-errno>;
+  }
+
+  /// A public key, for signature verification.
+  resource signature-publickey {
+    /// Import a public key.
+    ///
+    /// The function may return `unsupported_encoding` if importing from the given format is not implemented or incompatible with the key type.
+    ///
+    /// It may also return `invalid_key` if the key doesn't appear to match the supplied algorithm.
+    ///
+    /// Finally, the function may return `unsupported_algorithm` if the algorithm is not supported by the host.
+    ///
+    /// Example usage:
+    ///
+    /// ```rust
+    /// let pk = SignaturePublickey::import("ECDSA_P256_SHA256", encoded, PublickeyEncoding::Sec)?;
+    /// ```
+    %import: static func(algorithm: string, encoded: list<u8>, encoding: publickey-encoding) -> result<signature-publickey, crypto-errno>;
+
+    /// Compute the public key for a secret key.
+    from-secretkey: static func(sk: borrow<signature-secretkey>) -> result<signature-publickey, crypto-errno>;
+
+    /// Export a public key as the given encoding format.
+    ///
+    /// May return `unsupported_encoding` if the encoding is not supported.
+    %export: func(encoding: publickey-encoding) -> result<array-output, crypto-errno>;
+
+    /// Check that a public key is valid and in canonical form.
+    ///
+    /// This function may perform stricter checks than those made during importation at the expense of additional CPU cycles.
+    ///
+    /// The function returns `invalid_key` if the public key didn't pass the checks.
+    verify: func() -> result<_, crypto-errno>;
+  }
+
+  /// A secret key, for signatures.
+  resource signature-secretkey {
+    /// Import a secret key.
+    ///
+    /// The function may return `unsupported_encoding` if importing from the given format is not implemented or incompatible with the key type.
+    ///
+    /// It may also return `invalid_key` if the key doesn't appear to match the supplied algorithm.
+    ///
+    /// Finally, the function may return `unsupported_algorithm` if the algorithm is not supported by the host.
+    %import: static func(algorithm: string, encoded: list<u8>, encoding: secretkey-encoding) -> result<signature-secretkey, crypto-errno>;
+
+    /// Export a secret key as the given encoding format.
+    ///
+    /// May return `unsupported_encoding` if the encoding is not supported.
+    %export: func(encoding: secretkey-encoding) -> result<array-output, crypto-errno>;
+  }
+
+  /// A signature.
+  resource signature {
+    /// Create a signature object.
+    ///
+    /// This object can be used along with a public key to verify an existing signature.
+    ///
+    /// It may return `invalid_signature` if the signature is invalid or incompatible with the specified algorithm, as well as `unsupported_encoding` if the encoding is not compatible with the signature type.
+    ///
+    /// The function may also return `unsupported_algorithm` if the algorithm is not supported by the host.
+    ///
+    /// Example usage:
+    ///
+    /// ```rust
+    /// let signature = Signature::import("ECDSA_P256_SHA256", encoded, SignatureEncoding::Der)?;
+    /// ```
+    %import: static func(algorithm: string, encoded: list<u8>, encoding: signature-encoding) -> result<signature, crypto-errno>;
+
+    /// Export a signature.
+    ///
+    /// This function exports a signature object using the specified encoding.
+    ///
+    /// May return `unsupported_encoding` if the signature cannot be encoded into the given format.
+    %export: func(encoding: signature-encoding) -> result<array-output, crypto-errno>;
+  }
+
+  /// A state to absorb data to be signed.
+  ///
+  /// After a signature has been computed or verified, the state remains valid for further operations.
+  ///
+  /// A subsequent signature would sign all the data accumulated since the creation of the state object.
+  resource signature-state {
+    /// Create a new state to collect data to compute a signature on.
+    ///
+    /// This function allows data to be signed to be supplied in a streaming fashion.
+    ///
+    /// The state is not closed and can be used after a signature has been computed, allowing incremental updates by calling `signature-state.update()` again afterwards.
+    ///
+    /// Example usage - signature creation
+    ///
+    /// ```rust
+    /// let kp = SignatureKeypair::import("Ed25519ph", encoded_keypair, KeypairEncoding::Raw)?;
+    /// let state = SignatureState::open(&kp)?;
+    /// state.update(b"message part 1")?;
+    /// state.update(b"message part 2")?;
+    /// let signature = state.sign()?;
+    /// let raw_signature = ArrayOutput::pull(signature.export(SignatureEncoding::Raw)?)?;
+    /// ```
+    open: static func(kp: borrow<signature-keypair>) -> result<signature-state, crypto-errno>;
+
+    /// Absorb data into the signature state.
+    ///
+    /// This function may return `unsupported_feature` if the selected algorithm doesn't support incremental updates,
+    /// or if `signature-state.sign` has already been called on this state (e.g. pure Ed25519, which does not support
+    /// re-feeding data after a signature has been produced).
+    update: func(input: list<u8>) -> result<_, crypto-errno>;
+
+    /// Compute a signature for all the data collected up to that point.
+    ///
+    /// The function can be called multiple times for incremental signing.
+    sign: func() -> result<signature, crypto-errno>;
+  }
+
+  /// A state to absorb signed data to be verified.
+  resource signature-verification-state {
+    /// Create a new state to collect data to verify a signature on.
+    ///
+    /// This is the verification counterpart of `signature_state`.
+    ///
+    /// Data can be injected using `signature-verification-state.update()`, and the state is not closed after a verification, allowing incremental verification.
+    ///
+    /// Example usage - signature verification:
+    ///
+    /// ```rust
+    /// let pk = SignaturePublickey::import("ECDSA_P256_SHA256", encoded_pk, PublickeyEncoding::Sec)?;
+    /// let signature = Signature::import("ECDSA_P256_SHA256", encoded_sig, SignatureEncoding::Der)?;
+    /// let state = SignatureVerificationState::open(&pk)?;
+    /// state.update(b"message")?;
+    /// state.verify(&signature)?;
+    /// ```
+    open: static func(kp: borrow<signature-publickey>) -> result<signature-verification-state, crypto-errno>;
+
+    /// Absorb data into the signature verification state.
+    ///
+    /// This function may return `unsupported_feature` if the selected algorithm doesn't support incremental updates.
+    update: func(input: list<u8>) -> result<_, crypto-errno>;
+
+    /// Check that the given signature verifies for the data collected up to that point.
+    ///
+    /// The state is not closed and can absorb more data to allow for incremental verification.
+    ///
+    /// The function returns `invalid_signature` if the signature doesn't appear to be valid.
+    verify: func(signature: borrow<signature>) -> result<_, crypto-errno>;
+  }
+}

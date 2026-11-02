@@ -1,6 +1,7 @@
-package wasi:crypto@0.11.0;
+package wasi:crypto@0.12.0;
 
-interface wasi-ephemeral-crypto-common {
+/// Types and resources shared by every algorithm family.
+interface common {
   type key-id = list<u8>;
 
   /// Error codes.
@@ -103,7 +104,7 @@ interface wasi-ephemeral-crypto-common {
 
     /// The requested operation is incompatible with the current scheme.
     ///
-    /// For example, the `symmetric_state_encrypt()` function cannot complete if the selected construction is a key derivation function.
+    /// For example, the `symmetric-state.encrypt()` function cannot complete if the selected construction is a key derivation function.
     /// This error code will be returned instead.
     invalid-operation,
 
@@ -111,7 +112,7 @@ interface wasi-ephemeral-crypto-common {
     ///
     /// Most encryption schemes require a nonce.
     ///
-    /// In the absence of a nonce, the WASI cryptography module can automatically generate one, if that can be done safely. The nonce can be retrieved later with the `symmetric_state_option_get()` function using the `nonce` parameter.
+    /// In the absence of a nonce, the WASI cryptography module can automatically generate one, if that can be done safely. The nonce can be retrieved later with the `symmetric-state.options-get()` function using the `nonce` parameter.
     /// If automatically generating a nonce cannot be done safely, the module never falls back to an insecure option and requests an explicit nonce by throwing that error.
     nonce-required,
 
@@ -126,12 +127,12 @@ interface wasi-ephemeral-crypto-common {
 
     /// A key or key pair matching the requested identifier cannot be found using the supplied information.
     ///
-    /// This error is returned by a secrets manager via the `keypair_from_id()` function.
+    /// This error is returned by a secrets manager via the `from-id()` functions of the managed-key interfaces (e.g. `signatures-managed.from-id()`).
     not-found,
 
     /// The algorithm requires parameters that haven't been set.
     ///
-    /// Non-generic options are required and must be given by building an `options` set and giving that object to functions instantiating that algorithm.
+    /// Non-generic options are required and must be given by building an options set (e.g. `symmetric-options`) and giving that object to functions instantiating that algorithm.
     parameters-missing,
 
     /// A requested computation is not done yet, and additional calls to the function are required.
@@ -189,21 +190,6 @@ interface wasi-ephemeral-crypto-common {
     local,
   }
 
-  /// Encoding to use for importing or exporting a signature.
-  enum signature-encoding {
-    /// Raw bytes.
-    raw,
-    /// DER encoding.
-    der,
-  }
-
-  /// An algorithm category.
-  enum algorithm-type {
-    signatures,
-    symmetric,
-    key-exchange,
-  }
-
   /// Version of a managed key.
   variant version {
     /// Key doesn't support versioning.
@@ -233,165 +219,22 @@ interface wasi-ephemeral-crypto-common {
   /// In addition, the content of such an object can be consumed by a guest in a streaming fashion.
   ///
   /// An `array_output` handle is automatically closed after its full content has been consumed.
-  resource array-output {}
+  resource array-output {
+    /// Return the length of an `array_output` object.
+    ///
+    /// This allows a guest to allocate a buffer of the correct size in order to copy the output of a function returning this object type.
+    len: func() -> result<size, crypto-errno>;
 
-  /// A set of options.
-  ///
-  /// This type is used to set non-default parameters.
-  ///
-  /// The exact set of allowed options depends on the algorithm being used.
-  resource options {}
-
-  /// A handle to the optional secrets management facilities offered by a host.
-  ///
-  /// This is used to generate, retrieve and invalidate managed keys.
-  resource secrets-manager {}
-
-  /// A key pair.
-  resource keypair {}
-
-  /// A state to absorb data to be signed.
-  ///
-  /// After a signature has been computed or verified, the state remains valid for further operations.
-  ///
-  /// A subsequent signature would sign all the data accumulated since the creation of the state object.
-  resource signature-state {}
-
-  /// A signature.
-  resource signature {}
-
-  /// A public key, for key exchange and signature verification.
-  resource publickey {}
-
-  /// A secret key, for key exchange mechanisms.
-  resource secretkey {}
-
-  /// A state to absorb signed data to be verified.
-  resource signature-verification-state {}
-
-  /// A state to perform symmetric operations.
-  ///
-  /// The state is not reset nor invalidated after an option has been performed.
-  /// Incremental updates and sessions are thus supported.
-  resource symmetric-state {}
-
-  /// A symmetric key.
-  ///
-  /// The key can be imported from raw bytes, or can be a reference to a managed key.
-  ///
-  /// If it was imported, the host will wipe it from memory as soon as the handle is closed.
-  resource symmetric-key {}
-
-  /// An authentication tag.
-  ///
-  /// This is an object returned by functions computing authentication tags.
-  ///
-  /// A tag can be compared against another tag (directly supplied as raw bytes) in constant time with the `symmetric_tag_verify()` function.
-  ///
-  /// This object type can't be directly created from raw bytes. They are only returned by functions computing MACs.
-  ///
-  /// The host is responsible for securely wiping them from memory on close.
-  resource symmetric-tag {}
-
-  /// Options index, only required by the Interface Types translation layer.
-  enum opt-options-u {
-    some,
-    none,
+    /// Copy the content of an `array_output` object into an application-allocated buffer.
+    ///
+    /// The function returns the copied bytes. The handle is consumed and becomes invalid after this call.
+    ///
+    /// Example usage:
+    ///
+    /// ```rust
+    /// let len = output.len()?;
+    /// let out = ArrayOutput::pull(output)?;
+    /// ```
+    pull: static func(this: array-output) -> result<list<u8>, crypto-errno>;
   }
-
-  /// An optional options set.
-  ///
-  /// This union simulates an `Option<Options>` type to make the `options` parameter of some functions optional.
-  @deprecated(version = 0.11.0)
-  @since(version = 0.11.0)
-  type opt-options = option<options>;
-
-  /// Symmetric key index, only required by the Interface Types translation layer.
-  enum opt-symmetric-key-u {
-    some,
-    none,
-  }
-
-  /// An optional symmetric key.
-  ///
-  /// This union simulates an `Option<SymmetricKey>` type to make the `symmetric_key` parameter of some functions optional.
-  @deprecated(version = 0.11.0)
-  @since(version = 0.11.0)
-  type opt-symmetric-key = option<symmetric-key>;
-
-  /// Create a new object to set non-default options.
-  ///
-  /// Example usage:
-  ///
-  /// ```rust
-  /// let options_handle = options_open(AlgorithmType::Symmetric)?;
-  /// options_set(options_handle, "context", context)?;
-  /// options_set_u64(options_handle, "threads", 4)?;
-  /// let state = symmetric_state_open("BLAKE3", None, Some(options_handle))?;
-  /// ```
-  options-open: func(algorithm-type: algorithm-type) -> result<options, crypto-errno>;
-
-  /// Set or update an option.
-  ///
-  /// This is used to set algorithm-specific parameters, but also to provide credentials for the secrets management facilities, if required.
-  ///
-  /// This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
-  options-set: func(options: borrow<options>, name: string, value: list<u8>) -> result<_, crypto-errno>;
-
-  /// Set or update an integer option.
-  ///
-  /// This is used to set algorithm-specific parameters.
-  ///
-  /// This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
-  options-set-u64: func(options: borrow<options>, name: string, value: u64) -> result<_, crypto-errno>;
-
-  /// Set or update buffer that the host can use or return data into.
-  ///
-  /// This is for example used to set the scratch buffer required by memory-hard functions.
-  ///
-  /// NOTE: In WITX, this was a raw pointer into guest linear memory, ensuring the allocation counted against the guest's memory budget.
-  /// This implementation using `list<u8>` does not have this guarantee and serves as a stopgap till [caller-supplied buffers](https://wasi.dev/roadmap) arrive in future WASI 0.3.x release.
-  ///
-  /// This function may return `unsupported_option` if an option that doesn't exist for any implemented algorithms is specified.
-  @deprecated(version = 0.11.0)
-  @since(version = 0.11.0)
-  options-set-guest-buffer: func(options: borrow<options>, name: string, buffer: list<u8>) -> result<_, crypto-errno>;
-
-  /// Return the length of an `array_output` object.
-  ///
-  /// This allows a guest to allocate a buffer of the correct size in order to copy the output of a function returning this object type.
-  array-output-len: func(array-output: borrow<array-output>) -> result<size, crypto-errno>;
-
-  /// Copy the content of an `array_output` object into an application-allocated buffer.
-  ///
-  /// The function returns the copied bytes. The handle is consumed and becomes invalid after this call.
-  ///
-  /// Example usage:
-  ///
-  /// ```rust
-  /// let len = array_output_len(output_handle)?;
-  /// let out = array_output_pull(output_handle)?;
-  /// ```
-  array-output-pull: func(array-output: array-output) -> result<list<u8>, crypto-errno>;
-
-  /// __(optional)__
-  /// Create a context to use a secrets manager.
-  ///
-  /// The set of required and supported options is defined by the host.
-  ///
-  /// The function returns the `unsupported_feature` error code if secrets management facilities are not supported by the host.
-  /// This is also an optional import, meaning that the function may not even exist.
-  secrets-manager-open: func(options: option<borrow<options>>) -> result<secrets-manager, crypto-errno>;
-
-  /// __(optional)__
-  /// Invalidate a managed key or key pair given an identifier and a version.
-  ///
-  /// This asks the secrets manager to delete or revoke a stored key, a specific version of a key.
-  ///
-  /// `key_version` can be set to a version number, to `version.latest` to invalidate the current version, or to `version.all` to invalidate all versions of a key.
-  ///
-  /// The function returns `unsupported_feature` if this operation is not supported by the host, and `not_found` if the identifier and version don't match any existing key.
-  ///
-  /// This is an optional import, meaning that the function may not even exist.
-  secrets-manager-invalidate: func(secrets-manager: borrow<secrets-manager>, key-id: key-id, key-version: version) -> result<_, crypto-errno>;
 }

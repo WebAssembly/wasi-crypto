@@ -1,13 +1,15 @@
-package wasi:crypto@0.11.0;
+package wasi:crypto@0.12.0;
 
 world imports {
-    import wasi-ephemeral-crypto-asymmetric-common;
-    import wasi-ephemeral-crypto-common;
-    import wasi-ephemeral-crypto-external-secrets;
-    import wasi-ephemeral-crypto-kx;
-    import wasi-ephemeral-crypto-signatures;
-    import wasi-ephemeral-crypto-symmetric;
-    // import wasi-ephemeral-crypto-signatures-batch;
-    // import wasi-ephemeral-crypto-symmetric-batch;
+    import common;
+    import symmetric;
+    import signatures;
+    import kx;
+    import secrets-manager;
+    import symmetric-managed;
+    import signatures-managed;
+    import kx-managed;
+    import external-secrets;
+    // import signatures-batch;
+    // import symmetric-batch;
   }
-

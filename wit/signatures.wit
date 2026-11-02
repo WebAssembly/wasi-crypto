@@ -226,7 +226,7 @@ interface signatures {
     /// state.update(b"message")?;
     /// state.verify(&signature)?;
     /// ```
-    open: static func(kp: borrow<signature-publickey>) -> result<signature-verification-state, crypto-errno>;
+    open: static func(pk: borrow<signature-publickey>) -> result<signature-verification-state, crypto-errno>;
 
     /// Absorb data into the signature verification state.
     ///
